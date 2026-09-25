@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://decision-packet/1.0.0",
+  "title": "Decision Packet",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["revisionId", "taskId", "title", "status", "generatedAt", "findings", "evidenceRefs"],
+  "properties": {
+    "revisionId": {"type": "string", "format": "uuid"},
+    "taskId": {"type": "string", "format": "uuid"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 300},
+    "status": {"type": "string", "enum": ["DRAFT", "REVIEWED", "PUBLISHED"]},
+    "generatedAt": {"type": "string", "format": "date-time"},
+    "findings": {
+      "type": "array",
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "severity", "summary", "evidenceIds"],
+        "properties": {
+          "code": {"type": "string", "pattern": "^[A-Z0-9_]{3,80}$"},
+          "severity": {"type": "string", "enum": ["INFO", "LOW", "MEDIUM", "HIGH", "UNKNOWN"]},
+          "summary": {"type": "string", "minLength": 1, "maxLength": 2000},
+          "evidenceIds": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {"type": "string", "format": "uuid"}
+          }
+        }
+      }
+    },
+    "evidenceRefs": {
+      "type": "array",
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {"type": "string", "format": "uuid"}
+    }
+  }
+}

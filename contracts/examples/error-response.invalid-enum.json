@@ -1,0 +1,6 @@
+{
+  "code": "SOURCE_CONTRACT_DRIFT",
+  "message": "来源返回结构与已发布契约不一致",
+  "traceId": "trace-synthetic-001",
+  "retryClass": "RETRY_WHATEVER"
+}

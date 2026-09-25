@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://event/task-event/1.0.0",
+  "title": "Public Task Event",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["eventId", "taskId", "eventType", "occurredAt", "sequence", "payload"],
+  "properties": {
+    "eventId": {"type": "string", "format": "uuid"},
+    "taskId": {"type": "string", "format": "uuid"},
+    "eventType": {"type": "string", "enum": ["TASK_CREATED", "STEP_APPROVAL_REQUIRED", "STEP_STARTED", "STEP_COMPLETED", "TASK_FAILED", "PACKET_PUBLISHED"]},
+    "occurredAt": {"type": "string", "format": "date-time"},
+    "sequence": {"type": "integer", "minimum": 0},
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "summary": {"type": "string", "maxLength": 1000},
+        "status": {"type": "string", "maxLength": 40}
+      }
+    }
+  }
+}

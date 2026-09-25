@@ -1,0 +1,203 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Finance Operations Agent API",
+    "version": "1.0.0",
+    "description": "财务共享智能运维 Agent P0 API 契约。"
+  },
+  "x-contract-version": "1.0.0",
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/api/v1/tasks": {
+      "post": {
+        "operationId": "createTask",
+        "security": [
+          {
+            "unifiedAuth": ["OPERATOR"]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../json-schema/task-1.0.0.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Task created in DRAFT state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../json-schema/task-1.0.0.schema.json"
+                }
+              }
+            }
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ContractError"
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{taskId}/step-approvals": {
+      "post": {
+        "operationId": "createStepApproval",
+        "security": [
+          {
+            "unifiedAuth": ["OPERATOR"]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/TaskId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../json-schema/step-approval-1.0.0.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Approval revision created"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ContractError"
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{taskId}/publish": {
+      "post": {
+        "operationId": "publishPacket",
+        "security": [
+          {
+            "unifiedAuth": ["OPERATOR"]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/TaskId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["draftId", "reviewedContentDigest", "reviewId", "expectedRowVersion"],
+                "properties": {
+                  "draftId": {"type": "string", "format": "uuid"},
+                  "reviewedContentDigest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+                  "reviewId": {"type": "string", "format": "uuid"},
+                  "expectedRowVersion": {"type": "integer", "minimum": 0}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Immutable revision published",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../json-schema/decision-packet-1.0.0.schema.json"
+                }
+              }
+            }
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/ContractError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "unifiedAuth": {
+        "type": "openIdConnect",
+        "openIdConnectUrl": "https://auth.example.invalid/.well-known/openid-configuration"
+      }
+    },
+    "parameters": {
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 200
+        }
+      },
+      "TaskId": {
+        "name": "taskId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "responses": {
+      "Conflict": {
+        "description": "Task, scope, approval, or idempotency version conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../json-schema/error-response-1.0.0.schema.json"
+            }
+          }
+        }
+      },
+      "ContractError": {
+        "description": "Request does not satisfy the published contract",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../json-schema/error-response-1.0.0.schema.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "revisionId": "77777777-7777-4777-8777-777777777777",
+  "taskId": "11111111-1111-4111-8111-111111111111",
+  "title": "合成决策包",
+  "status": "DRAFT",
+  "generatedAt": "2026-09-26T09:02:00Z",
+  "findings": [
+    {"code": "FINDING_ONE", "severity": "LOW", "summary": "发现一", "evidenceIds": []},
+    {"code": "FINDING_TWO", "severity": "LOW", "summary": "发现二", "evidenceIds": []},
+    {"code": "FINDING_THREE", "severity": "LOW", "summary": "发现三", "evidenceIds": []}
+  ],
+  "evidenceRefs": []
+}

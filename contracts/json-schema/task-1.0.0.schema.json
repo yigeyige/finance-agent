@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://task/1.0.0",
+  "title": "Investigation Task",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["taskId", "title", "originalQuestion", "status", "rowVersion", "createdAt", "premises"],
+  "properties": {
+    "taskId": {"type": "string", "format": "uuid"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 300},
+    "originalQuestion": {"type": "string", "minLength": 1, "maxLength": 8000},
+    "status": {"type": "string", "enum": ["DRAFT", "READY", "RUNNING", "PAUSED", "COMPLETED", "FAILED", "CANCELLED"]},
+    "rowVersion": {"type": "integer", "minimum": 0},
+    "createdAt": {"type": "string", "format": "date-time"},
+    "premises": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "subjectKey", "statement", "sourceDescription"],
+        "properties": {
+          "type": {"type": "string", "minLength": 1, "maxLength": 50},
+          "subjectKey": {"type": "string", "minLength": 1, "maxLength": 200},
+          "statement": {"type": "string", "minLength": 1, "maxLength": 2000},
+          "sourceDescription": {"type": "string", "minLength": 1, "maxLength": 2000}
+        }
+      }
+    }
+  }
+}
