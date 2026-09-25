@@ -29,7 +29,7 @@
 | Java | `cn.com.crc.ems:finance-agent`，根包 `cn.com.crc.ems.finance.agent`，应用名 `finance-agent` |
 | 后端 | JDK 17、AgentScope Java 2.0.3、Spring Boot 4.0.4；单 Maven 可执行 JAR、按能力分包 |
 | 数据访问 | Spring JDBC/显式 SQL 为首选；核心事务和锁不依赖隐式 ORM 行为 |
-| 前端 | Vue 2.6.10、TypeScript、Vite、Element UI 2.x、Vue Router 3；版本在兼容性任务中锁定 |
+| 前端 | Vue 2.7.16、TypeScript、Vite、Element UI 2.x、Vue Router 3；版本在兼容性任务中锁定并记录 EOL 例外 |
 | 数据库 | 已有 `postgres-pgvector`；PostgreSQL 17.11、pgvector 0.8.6；数据库名 `finance_agent` |
 | 部署 | 本地 JAR或单应用 Docker 镜像；不使用 Compose；数据库独立运行 |
 | API/运行 | Spring MVC 快速返回，PostgreSQL Worker 异步执行，SSE 推送公开业务事件 |

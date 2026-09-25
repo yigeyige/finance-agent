@@ -27,7 +27,7 @@ description: >-
 
 1. 阅读仓库 `AGENTS.md`，遵守其中的流程、安全、OpenSpec 和运行验证约束。
 2. 先检查已有前端目录、组件、样式、API 客户端、路由和状态模块，再决定是否新增模式。
-3. 以仓库指导和构建配置为准确认技术基线：Vue 2.6.10、TypeScript、Vite、Element UI 2.0.0。
+3. 以仓库指导和构建配置为准确认技术基线：Vue 2.7.16、TypeScript、Vite、Element UI 2.0.0。
    未明确完成迁移前，禁止引入 Vue 3 专属 API，例如 `<script setup>`、`defineModel`、
    `defineProps`。
 4. 优先使用项目已有组件和样式体系。已有同类组件时必须复用；修改公共组件前评估所有调用方，
@@ -83,7 +83,7 @@ description: >-
 ## 评审清单
 
 - 是否优先复用了已有组件、API 客户端、样式变量、路由或状态？
-- 代码是否符合 Vue 2.6.10、TypeScript 和 Vite 基线？
+- 代码是否符合 Vue 2.7.16、TypeScript 和 Vite 基线？
 - props、事件、类型、请求状态、权限和失败路径是否明确？
 - 用户文案是否清晰统一，没有英文-only 或过小提示？
 - 样式是否局部、可访问，并与现有设计体系兼容？

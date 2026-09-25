@@ -1,0 +1,28 @@
+{
+  "name": "finance-agent-workbench",
+  "version": "0.1.0",
+  "private": true,
+  "description": "财务共享智能运维 Agent 工作台",
+  "engines": {
+    "node": "24.16.0",
+    "npm": "11.13.0"
+  },
+  "packageManager": "npm@11.13.0",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "axios": "1.20.0",
+    "element-ui": "2.0.0",
+    "vue": "2.7.16",
+    "vue-router": "3.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.5",
+    "@vitejs/plugin-vue2": "2.3.4",
+    "typescript": "5.7.3",
+    "vite": "4.5.14"
+  }
+}

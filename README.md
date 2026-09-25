@@ -7,7 +7,7 @@
 | 目录 | 用途 |
 |---|---|
 | `backend/` | Java 17、Spring Boot 和 AgentScope Java 后端应用 |
-| `frontend/` | Vue 2.6.10、TypeScript、Vite 工作台 |
+| `frontend/` | Vue 2.7.16、TypeScript、Vite 工作台 |
 | `contracts/` | OpenAPI、JSON Schema 和契约示例的版本化源文件 |
 | `deploy/` | JAR/单应用 Docker 的部署文件和说明 |
 | `docs/` | 稳定的开发、依赖、测试和运维说明 |
@@ -19,7 +19,7 @@
 ## 技术基线
 
 - 后端：JDK 17、Spring Boot 4.0.4、AgentScope Java 2.0.3 BOM。
-- 前端：Vue 2.6.10、TypeScript、Vite、Element UI 2.x、Vue Router 3。
+- 前端：Vue 2.7.16、TypeScript、Vite、Element UI 2.x、Vue Router 3。
 - 数据库：PostgreSQL + pgvector；核心数据访问使用 Spring JDBC/显式 SQL。
 - 部署：可执行 JAR 或单应用 Docker，不使用 Compose，不依赖 Docker socket。
 
