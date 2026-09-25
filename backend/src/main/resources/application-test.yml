@@ -1,0 +1,25 @@
+server:
+  port: ${FINANCE_AGENT_PORT:8081}
+
+finance-agent:
+  database:
+    url: ${FINANCE_AGENT_DB_URL:jdbc:postgresql://localhost:5432/finance_agent_test}
+    username: ${FINANCE_AGENT_DB_USERNAME:test}
+    password: ${FINANCE_AGENT_DB_PASSWORD:}
+  deep-seek:
+    api-key: ${DEEPSEEK_API_KEY:}
+    base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
+    model: ${DEEPSEEK_MODEL:deepseek-chat}
+    stub: ${FINANCE_AGENT_DEEPSEEK_STUB:true}
+  workspace:
+    root: ${FINANCE_AGENT_WORKSPACE_ROOT:./.runtime/finance-agent-test}
+  budget:
+    max-steps: ${FINANCE_AGENT_MAX_STEPS:10}
+    max-tokens: ${FINANCE_AGENT_MAX_TOKENS:8000}
+    max-cost: ${FINANCE_AGENT_MAX_COST:0}
+  identity:
+    mode: ${FINANCE_AGENT_IDENTITY_MODE:test}
+  storage:
+    mode: ${FINANCE_AGENT_STORAGE_MODE:memory}
+  field-policy:
+    strict: ${FINANCE_AGENT_FIELD_STRICT:true}
