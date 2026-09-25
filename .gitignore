@@ -7,6 +7,7 @@ target/
 *.class
 *.jar
 *.war
+!.mvn/wrapper/maven-wrapper.jar
 
 # Node/Vue
 node_modules/

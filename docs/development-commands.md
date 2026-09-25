@@ -14,11 +14,20 @@ rg -n -i "api[_-]?key|password|secret|token|jdbc:[^\s]+:[^\s]+" --glob "!node_mo
 
 ## 后端
 
-后端工程完成初始化后，在 `backend/` 执行任务卡要求的 Maven 命令：
+后端 Maven Wrapper 位于仓库根目录，命令从仓库根目录执行，并通过 `-f` 指向后端 POM：
 
 ```powershell
-./mvnw -q -DskipTests package
-./mvnw -q test
+.\mvnw.cmd -f backend\pom.xml -q -DskipTests package
+.\mvnw.cmd -f backend\pom.xml -q test
+```
+
+Linux/macOS 使用对应的 `./mvnw -f backend/pom.xml`。Wrapper 会使用已配置的 `JAVA_HOME`，并按 `.mvn/wrapper/maven-wrapper.properties` 锁定 Maven 发行版；不需要在脚本中硬编码本机 JDK 路径。
+
+如果需要直接使用本机 Maven，也可以从仓库根目录执行：
+
+```powershell
+mvn -f backend\pom.xml -q -DskipTests package
+mvn -f backend\pom.xml -q test
 ```
 
 依赖版本、AgentScope API 兼容性和架构检查以对应 BOOT/HAR 任务为准。
