@@ -1,0 +1,4 @@
+interface:
+  display_name: "Backend Coding Standards"
+  short_description: "Apply the project backend coding standards"
+  default_prompt: "Use $backend-coding-standards when implementing or reviewing backend Java code in this repository."

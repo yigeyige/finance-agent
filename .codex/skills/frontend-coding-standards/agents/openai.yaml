@@ -1,0 +1,4 @@
+interface:
+  display_name: "前端开发规范"
+  short_description: "应用本项目 Vue 与 TypeScript 前端开发、评审规范"
+  default_prompt: "在本项目开发或评审前端代码时，使用 $frontend-coding-standards；涉及界面视觉设计时同时参考 frontend-design。"
