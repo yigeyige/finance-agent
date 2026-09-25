@@ -25,7 +25,7 @@ source: development-workplan
 
 | 顺序 | 阶段 | 任务 | 标题 | 文件名 | 完成状态 | 直接依赖 |
 |---:|---|---|---|---|---|---|
-| 001 | P0 工程与技术验证 | [DEV-BOOT-001](20260925-dev-boot-001-初始化仓库规范与目录.md) | 初始化仓库规范与目录 | [20260925-dev-boot-001-初始化仓库规范与目录.md](20260925-dev-boot-001-初始化仓库规范与目录.md) | 未完成 | 无 |
+| 001 | P0 工程与技术验证 | [DEV-BOOT-001](../03.achieved/20260925-dev-boot-001-初始化仓库规范与目录.md) | 初始化仓库规范与目录 | [20260925-dev-boot-001-初始化仓库规范与目录.md](../03.achieved/20260925-dev-boot-001-初始化仓库规范与目录.md) | 已完成 | 无 |
 | 002 | P0 工程与技术验证 | [DEV-BOOT-002](20260925-dev-boot-002-锁定Java与AgentScope依赖组合.md) | 锁定 Java 与 AgentScope 依赖组合 | [20260925-dev-boot-002-锁定Java与AgentScope依赖组合.md](20260925-dev-boot-002-锁定Java与AgentScope依赖组合.md) | 未完成 | `DEV-BOOT-001` |
 | 003 | P0 工程与技术验证 | [DEV-BOOT-003](20260925-dev-boot-003-创建SpringBoot模块化单体骨架.md) | 创建 Spring Boot 模块化单体骨架 | [20260925-dev-boot-003-创建SpringBoot模块化单体骨架.md](20260925-dev-boot-003-创建SpringBoot模块化单体骨架.md) | 未完成 | `DEV-BOOT-002` |
 | 004 | P0 工程与技术验证 | [DEV-BOOT-004](20260925-dev-boot-004-建立配置profile与启动前校验.md) | 建立配置 profile 与启动前校验 | [20260925-dev-boot-004-建立配置profile与启动前校验.md](20260925-dev-boot-004-建立配置profile与启动前校验.md) | 未完成 | `DEV-BOOT-003` |

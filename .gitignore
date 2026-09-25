@@ -1,2 +1,44 @@
 .env
+.env.*
+!.env.example
+
+# Java/Maven
+target/
+*.class
+*.jar
+*.war
+
+# Node/Vue
 node_modules/
+dist/
+coverage/
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE and OS files
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+.DS_Store
+Thumbs.db
+
+# Local runtime and generated files
+*.log
+logs/
+tmp/
+temp/
+.cache/
+.pytest_cache/
+
+# Credentials and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+.npmrc
