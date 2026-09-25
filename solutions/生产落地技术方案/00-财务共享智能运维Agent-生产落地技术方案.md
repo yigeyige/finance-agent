@@ -320,7 +320,7 @@ PostgreSQL 首期安装 pgvector，语料库允许为空。RAG 只用于制度�
 | 层 | 选型 | 约束 |
 |---|---|---|
 | 后端 | JDK 17、Spring Boot 4.0.4、AgentScope Java 2.0.3 BOM | 以官方 BOM 锁定组合；P0 编译和依赖扫描 |
-| 前端 | Vue 2.7.16 | 优先复用现有 Vue 2 工具链；记录 EOL 风险和例外 |
+| 前端 | Vue 2.6.10 | 优先复用现有 Vue 2 工具链；记录 EOL 风险和例外 |
 | 数据库 | PostgreSQL + pgvector | 服务端版本 P0 确认；schema/角色分离；Flyway |
 | 模型 | 单一模型，经 `ModelGateway` | 无自动切换；结构化 JSON Schema；不可用时暂停模型步骤 |
 | 对象 | 可选对象存储 | 仅保存批准的大文档/导出；不可用时不保留大原件 |
