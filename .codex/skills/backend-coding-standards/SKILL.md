@@ -1,69 +1,126 @@
 ---
 name: backend-coding-standards
 description: >-
-  Apply the finance_agent repository's backend Java coding standards when implementing,
-  reviewing, or refactoring backend code. Use for layer boundaries, supported APIs,
-  validation, transactions, logging, security, utility selection, and verification;
-  do not use for frontend-only work or unrelated project-specific conventions.
+  在 finance_agent 项目中开发、评审或重构 Java 后端代码时使用。覆盖核心原则、
+  技术基线、分层、接口校验、事务、日志、安全、通用工具类选择和验证；前端开发
+  或其他项目专属约定不使用本 Skill。
 ---
 
-# Backend Coding Standards
+# 后端开发规范
 
-Use this skill for backend Java implementation and review in this repository. It is a
-decision guide, not permission to broaden the requested change.
+本 Skill 是本项目后端编码规范的唯一详细入口。它用于辅助实现和评审，不扩大用户
+需求范围，也不替代仓库 `AGENTS.md` 中的 OpenSpec、worktree、安全和部署约束。
 
-## Before changing code
+## 核心原则
 
-1. Read the repository `AGENTS.md` and follow its workflow, safety, OpenSpec, and
-   deployment constraints.
-2. Read [`docs/backend-coding-standards.md`](../../../docs/backend-coding-standards.md)
-   for the complete project standard.
-3. Inspect the existing module and call chain before adding an abstraction. Reuse an
-   existing capability or extract a focused component when that is compatible with the
-   requested behavior.
-4. Confirm the dependency baseline from the build configuration before using an API:
-   Java 17, Spring Boot 4.0.4, Spring Framework 7.0.7, AgentScope Java 2.0.3 BOM,
-   PostgreSQL JDBC 42.7.11, and pgvector Java SDK 0.1.6.
+1. **先明确边界，再实现代码**：确认业务对象、输入输出、权限边界、数据来源和失败行为。
+2. **单一职责、最小改动**：Controller 负责协议适配，Service 负责用例编排，Repository/Mapper
+   负责数据访问，避免形成职责混杂的“上帝类”。
+3. **可验证、可追溯**：关键结果应能通过测试、日志、审计或数据记录复核；时间、版本、来源和状态变化
+   不依赖隐式约定。
+4. **默认安全失败**：输入校验、权限检查、敏感信息保护、超时、重试和幂等必须显式设计。
+5. **复用优先**：先检索现有抽象、框架能力和工具类，再决定是否新增公共组件或依赖。
+6. **兼容性优先**：只使用技术基线支持的 API；升级依赖必须有收益、影响分析和验证记录。
 
-## Implementation rules
+## 规范等级
 
-- Keep Controller/API code focused on protocol adaptation and boundary validation.
-- Put use-case orchestration in application services, business invariants in the
-  domain layer, and database/external calls behind infrastructure interfaces.
-- Do not return persistence entities as public API contracts; use explicit DTO/VO or
-  domain result types.
-- Parameterize SQL and whitelist dynamic sort/filter fields. Define transaction scope
-  around the use case and keep uncontrolled network calls outside long transactions.
-- Preserve root causes when handling exceptions. Use the repository's unified error
-  model instead of swallowing exceptions, returning `null`, or inventing a local
-  response format.
-- Use the repository logging facade with placeholder arguments. Never log secrets,
-  tokens, credentials, full identifiers, or unmasked sensitive business data.
-- Prefer the existing project utility/component, then a stable already-approved
-  library, then Java 17 standard APIs. Do not add a dependency just to avoid a small,
-  clear piece of code.
-- Use `java.time` for new date/time code, explicit mapping for important DTO fields,
-  and bounded/expiring locks or caches when concurrency or caching is required.
-- Design idempotency for retries, message consumption, mutations, and external side
-  effects.
+| 等级 | 标记 | 含义 |
+| --- | --- | --- |
+| 强制 | 🔴 | 必须遵守；违反可能导致安全、数据一致性或运行事故。 |
+| 推荐 | 🟡 | 默认遵守；偏离时应在代码或变更说明中解释原因。 |
+| 参考 | 🟢 | 特定场景下采用，不作为普遍门禁。 |
 
-## Verification
+## 技术基线
 
-Match verification to risk. At minimum, run the relevant formatting/static checks,
-compile check, and tests. For API, database, message, permission, or migration changes,
-add the corresponding contract/integration/negative-path verification. If a check cannot
-run, report the reason, uncovered scope, risk, and the user's required manual step.
+| 技术 | 基线 | 约束 |
+| --- | --- | --- |
+| Java | 17 | 使用 Java 17 支持的语法和 API，不引入更高版本特性。 |
+| Spring Boot | 4.0.4 | 按项目依赖管理使用 Spring Boot 4 配套 API。 |
+| Spring Framework | 7.0.7 | 优先使用项目统一配置和生命周期机制。 |
+| AgentScope Java | 2.0.3 BOM | 通过明确适配层接入 Agent 能力，业务代码不散落直接调用。 |
+| PostgreSQL JDBC | 42.7.11 | 遵循 PostgreSQL 方言、事务和参数化要求。 |
+| pgvector Java SDK | 0.1.6 | 向量能力封装在基础设施或领域适配层。 |
 
-Do not deploy, start the development environment, or perform runtime manual validation
-unless the user explicitly requests it; this repository leaves those actions to the
-user. Do not commit, merge, push, reset, or change branches unless explicitly authorized
-by the repository instructions and the user.
+版本以构建文件和依赖管理为最终准据；本表用于防止误用新版本接口，不替代构建配置。
 
-## Review checklist
+## 分层与依赖方向
 
-- Is the change inside the requested layer and dependency direction?
-- Are input, permission, tenant/data, and failure boundaries explicit?
-- Are SQL, logs, configuration, and secrets safe?
-- Are retries/idempotency/transaction behavior defined where relevant?
-- Are tests and static/compile verification proportional to the change?
-- Did the change avoid unrelated project-specific rules from other repositories?
+```text
+接口层 Controller / API DTO
+        ↓
+应用层 Application Service / 用例编排
+        ↓
+领域层 Domain Model / 领域服务 / 业务规则
+        ↓
+基础设施层 Repository / Client / Agent Adapter
+```
+
+- 🔴 Controller 不直接查库、调用外部系统或承载复杂业务判断。
+- 🔴 Service 不把持久化 Entity 作为公开 API 契约，使用 DTO、VO 或明确的领域结果对象。
+- 🔴 基础设施实现不得反向依赖接口层；外部系统调用经过可替换接口或适配器。
+- 🟡 类和方法围绕业务能力命名，避免职责不明的 `Util`、`Manager`、`Helper`。
+- 🟡 公共抽象在出现至少两个稳定使用场景后提取，避免过早框架化。
+
+## 接口、校验与错误处理
+
+- 🔴 请求参数在接口边界校验；业务层再次校验关键不变量，不信任前端或上游已校验。
+- 🔴 API 响应结构、错误码和分页字段遵循项目统一契约，不在单个 Controller 私自发明格式。
+- 🔴 不得空 catch、记录日志后吞异常或用 `null` 静默替代；无法处理时保留根因并交给统一异常处理。
+- 🟡 可预期业务失败使用明确业务异常/错误码；系统异常记录堆栈，但不暴露密钥、SQL、内部路径或原始提示。
+- 🟡 修改、重试、消息消费和外部副作用操作设计幂等键或去重策略。
+
+## 数据访问与事务
+
+- 🔴 所有 SQL 使用参数绑定，禁止拼接用户输入；写操作明确事务边界。
+- 🔴 事务围绕一个完整业务用例设计，避免在事务中执行不可控的长耗时网络调用。
+- 🔴 分页、排序、过滤字段经过白名单或框架安全封装，禁止接收任意 SQL 片段。
+- 🟡 数据库字段、枚举、时间和金额类型符合业务语义；金额禁止用 `float`/`double` 作为主计算或持久化类型。
+- 🟡 数据库迁移具备可重复检查、回滚或补偿方案，并同步更新模型、索引和验证。
+
+## 日志、配置与安全
+
+- 🔴 使用项目统一日志门面和参数占位符，禁止 `System.out`、字符串拼接日志和无上下文异常日志。
+- 🔴 日志不得记录密码、Token、密钥、完整证件号、完整账号或真实敏感业务数据；必要时脱敏或记录摘要。
+- 🔴 配置、密钥和连接串通过配置注入或密钥管理提供，禁止硬编码和提交 `.env`、凭据文件。
+- 🟡 关键操作日志包含 request/correlation id、业务对象标识、结果和耗时；日志不能替代审计记录。
+- 🟡 超时、重试、熔断、连接池和线程池参数集中配置，并说明默认值和边界。
+
+## 通用操作和工具类选择
+
+选择顺序：项目已有公共组件 → 已批准的 Apache Commons 等成熟库 → Java 17 标准库 → 新增依赖。
+新增依赖必须说明必要性和维护成本。
+
+| 场景 | 规范 |
+| --- | --- |
+| 字符串/集合判空 | 区分 empty 与 blank，优先项目统一工具，不能混用语义不同的工具。 |
+| 日期时间 | 使用 `java.time`，统一时区和序列化格式，禁止新代码使用 `SimpleDateFormat`。 |
+| 文件与流 | 使用 JDK NIO 或统一 IO 工具，确保流关闭、路径校验和临时文件清理。 |
+| 编码/摘要 | 使用 JDK 或成熟库实现；密码使用专用密码哈希，禁止自定义“加盐+MD5”。 |
+| JSON | 使用项目统一序列化配置，避免混用多个库或手写 JSON 字符串。 |
+| 对象转换 | 跨层转换使用显式映射或统一映射工具，重要字段不依赖不可见的反射复制。 |
+| 反射 | 仅在框架适配或确有必要时使用，限制访问范围并补充测试。 |
+| 并发/缓存 | 定义 key、TTL、一致性和失效策略；分布式锁必须有超时并在 finally 中释放。 |
+
+## 测试与验证
+
+- 🔴 新增业务逻辑覆盖正常路径、边界条件、失败路径和权限/数据隔离路径。
+- 🔴 修改接口、数据库或消息契约时，补充契约、集成或迁移验证，不能只依赖编译通过。
+- 🟡 测试数据隔离，外部依赖使用可控替身；测试不依赖执行顺序。
+- 🟡 提交前至少完成相关静态检查、编译和测试；无法运行时记录原因、未覆盖范围和剩余风险。
+- 🔴 按 `AGENTS.md` 约定，开发环境启动和运行时人工验证由用户执行，除非用户另行明确授权。
+
+## 代码评审红线
+
+- 禁止提交密钥、账号密码、生产连接串和真实用户数据。
+- 禁止未经确认执行删库、批量删改数据、重置分支或覆盖用户文件。
+- 禁止为了通过测试关闭校验、吞异常、扩大权限或跳过审计。
+- 禁止引入与当前技术基线不兼容的依赖、API 或配置格式。
+
+## 评审清单
+
+- 是否在正确的层实现，依赖方向是否清晰？
+- 输入、权限、数据范围和失败边界是否明确？
+- SQL、日志、配置和敏感信息是否安全？
+- 重试、幂等、事务和外部副作用是否有明确策略？
+- 测试、静态检查和编译验证是否与改动风险匹配？
+- 是否避免引入其他项目的业务实体、旧版本限制或基础设施契约？
