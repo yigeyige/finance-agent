@@ -1,6 +1,6 @@
 # Flyway 数据库基线
 
-本项目的数据库迁移由显式 Flyway runner 执行，不在 Spring Boot 应用启动时自动执行。迁移脚本位于 `backend/src/main/resources/db/migration/`，版本为 V1–V7，history 表为 `public.finance_agent_schema_history`。
+本项目的数据库迁移由显式 Flyway runner 执行，不在 Spring Boot 应用启动时自动执行。业务迁移脚本位于 `backend/src/main/resources/db/migration/`，版本为 V1–V8，history 表为 `public.finance_agent_schema_history`。数据库创建和授权准备脚本独立位于 `scripts/database-bootstrap/V0_create_database.sql`，不由 Flyway 加载。
 
 ## 平台前置
 
@@ -47,8 +47,10 @@ GROUP BY table_schema
 ORDER BY table_schema;
 ```
 
-预期 history 包含 V1–V7 且 `success=true`，schema 查询返回七行。重复执行迁移应返回成功且 `migrationsExecuted=0`。用应用账号执行 `CREATE SCHEMA` 或迁移命令应被数据库拒绝；这是权限负测，需由用户人工完成。
+预期 history 包含 V1–V8 且 `success=true`，schema 查询返回七行。重复执行迁移应返回成功且 `migrationsExecuted=0`。用应用账号执行 `CREATE SCHEMA` 或迁移命令应被数据库拒绝；这是权限负测，需由用户人工完成。
+
+V8 为统一审计字段迁移：每张领域表均有 `created_by`、`created_at`、`updated_by`、`updated_at`。人员字段可为空以支持系统生成事件，非空值必须关联 `iam.agent_user(user_id)`；后续仓储更新必须显式传递 `updated_by` 和 `updated_at`。
 
 ## 变更规则
 
-已安装的 V1–V7 文件不可编辑。领域模型变更必须新增 V8+ 前向迁移，并同步更新 OpenSpec 与本说明。不要删除 schema、清空 history 或使用 `repair` 掩盖未评审的 checksum 漂移。
+已安装的 V1–V8 文件不可编辑。领域模型变更必须新增 V9+ 前向迁移，并同步更新 OpenSpec 与本说明。不要删除 schema、清空 history 或使用 `repair` 掩盖未评审的 checksum 漂移。

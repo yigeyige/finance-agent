@@ -16,14 +16,17 @@ class FlywayMigrationContractTest {
 
     @Test
     void migrationFilesContainRequiredSchemasAndNoPlatformDdl() throws IOException {
-        String sql = IntStream.rangeClosed(1, 7)
+        String sql = IntStream.rangeClosed(1, 8)
                 .mapToObj(version -> read("db/migration/V" + version + "__" + suffix(version) + ".sql"))
                 .reduce("", (left, right) -> left + "\n" + right);
 
         assertThat(sql).contains("iam.", "task.", "evidence.", "packet.", "harness.", "knowledge.", "governance.");
-        assertThat(sql).contains("vector(3)", "ux_one_active_lease_per_task");
+        assertThat(sql).contains("vector(3)", "ux_one_active_lease_per_task", "created_by", "created_at",
+                "updated_by", "updated_at");
         assertThat(sql).doesNotContainIgnoringCase("CREATE ROLE", "CREATE DATABASE", "CREATE EXTENSION",
                 "DROP SCHEMA", "DROP DATABASE", "PASSWORD=");
+        assertThat(FlywayMigrationContractTest.class.getClassLoader()
+                .getResource("db/migration/V0_create_database.sql")).isNull();
     }
 
     @Test
@@ -46,6 +49,7 @@ class FlywayMigrationContractTest {
             case 5 -> "packet_and_governance";
             case 6 -> "harness";
             case 7 -> "knowledge";
+            case 8 -> "audit_fields";
             default -> throw new IllegalArgumentException("unsupported migration version");
         };
     }

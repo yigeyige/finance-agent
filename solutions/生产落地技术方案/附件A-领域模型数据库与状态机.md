@@ -95,6 +95,7 @@ CREATE SCHEMA governance AUTHORIZATION fa_owner;
 CREATE EXTENSION IF NOT EXISTS vector;
 
 -- 主键采用 UUID；时间统一 timestamptz；JSONB 只承载有 schema/version 的扩展属性。
+-- 每张领域表统一包含 created_by、created_at、updated_by、updated_at；人员字段为可空 UUID 外键，系统生成记录可不绑定人员。
 -- digest 使用小写 hex SHA-256；用户身份保存统一认证 subject 和唯一人员编号。
 ```
 
@@ -611,7 +612,8 @@ ResumeDecision resume(Checkpoint cp) {
 
 ## 8. Flyway 与数据演进规则
 
-- 基线采用 `V1__create_schemas.sql`、`V2__iam_and_governance.sql`、`V3__task.sql`、`V4__evidence.sql`、`V5__packet.sql`、`V6__harness.sql`、`V7__knowledge.sql` 顺序。
+- 基线采用 `V1__create_schemas.sql`、`V2__iam_and_governance.sql`、`V3__task.sql`、`V4__evidence.sql`、`V5__packet_and_governance.sql`、`V6__harness.sql`、`V7__knowledge.sql`、`V8__audit_fields.sql` 顺序。
+- 数据库创建与授权脚本独立放在 `scripts/database-bootstrap/V0_create_database.sql`，不得被 Flyway 业务迁移加载。
 - 迁移只向前追加；已发布内容字段变化采用新列/新 schema version 和读取兼容期。
 - JSONB 均绑定应用层 JSON Schema 版本，并建立必要的 check/index；不得把核心关系整体塞入 JSONB。
 - 索引在 P1 查询计划和规模量测后确定；`task.status`、活动租约、`snapshot(task_id, source_object_key)` 和 `packet(task_id, revision_no)` 为首批候选。

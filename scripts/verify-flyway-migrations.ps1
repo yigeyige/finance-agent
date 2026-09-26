@@ -8,10 +8,12 @@ if ([string]::IsNullOrWhiteSpace($MigrationDirectory)) {
     $MigrationDirectory = Join-Path $repoRoot "backend\src\main\resources\db\migration"
 }
 
-$expected = 1..7 | ForEach-Object { "V{0}__" -f $_ }
-$files = Get-ChildItem -LiteralPath $MigrationDirectory -Filter "V*.sql" -File | Sort-Object Name
-if ($files.Count -ne 7) {
-    throw "Expected exactly 7 Flyway migration files."
+$expected = 1..8 | ForEach-Object { "V{0}__" -f $_ }
+$files = Get-ChildItem -LiteralPath $MigrationDirectory -Filter "V*.sql" -File |
+    Where-Object { $_.Name -match '^V[1-9][0-9]*__.*\.sql$' } |
+    Sort-Object Name
+if ($files.Count -ne 8) {
+    throw "Expected exactly 8 Flyway migration files (V1-V8)."
 }
 for ($index = 0; $index -lt $expected.Count; $index++) {
     if (-not $files[$index].Name.StartsWith($expected[$index])) {
@@ -36,6 +38,9 @@ if ($sql -notmatch "(?i)vector\s*\(\s*3\s*\)") {
 }
 if ($sql -notmatch "(?i)ux_one_active_lease_per_task") {
     throw "Expected active lease uniqueness index is missing."
+}
+if ($sql -notmatch "(?is)created_by.*created_at.*updated_by.*updated_at") {
+    throw "Uniform audit columns are missing from the migration set."
 }
 
 Write-Output "status=OK"
