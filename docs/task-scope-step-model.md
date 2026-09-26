@@ -2,6 +2,8 @@
 
 DEV-DATA-003 复用 V3/V8 迁移中的 task 表，通过 MyBatis-Plus 3.5.17 Mapper 仓储访问。范围修订只允许追加，任务更新携带 `row_version`，活动租约由部分唯一索引保护，工具调用由 `idempotency_key` 唯一约束保护。
 
+任务持久化 Entity 的 UUID 主键统一使用 MyBatis-Plus `IdType.ASSIGN_UUID`；Entity 主键以 `String` 接收生成结果，映射层与领域 `UUID` 转换，数据库迁移和 UUID 列类型不变。
+
 ## 约束核对
 
 ```sql

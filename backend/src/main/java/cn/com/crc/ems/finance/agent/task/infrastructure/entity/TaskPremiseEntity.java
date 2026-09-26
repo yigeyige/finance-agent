@@ -10,8 +10,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 /** 任务前提表的 MyBatis-Plus 持久化实体。 */
 @TableName("task.task_premise")
 public class TaskPremiseEntity {
-    @TableId(value = "premise_id", type = IdType.INPUT)
-    public UUID premiseId;
+    @TableId(value = "premise_id", type = IdType.ASSIGN_UUID)
+    public String premiseId;
     public UUID taskId;
     public String premiseType;
     public String subjectKey;

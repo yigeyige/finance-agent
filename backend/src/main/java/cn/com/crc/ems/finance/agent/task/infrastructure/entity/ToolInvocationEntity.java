@@ -10,8 +10,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 /** 工具调用表的 MyBatis-Plus 持久化实体。 */
 @TableName("task.tool_invocation")
 public class ToolInvocationEntity {
-    @TableId(value = "invocation_id", type = IdType.INPUT)
-    public UUID invocationId;
+    @TableId(value = "invocation_id", type = IdType.ASSIGN_UUID)
+    public String invocationId;
     public UUID taskId;
     public UUID stepId;
     public UUID approvalId;

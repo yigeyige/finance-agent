@@ -10,8 +10,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 /** 调查任务表的 MyBatis-Plus 持久化实体。 */
 @TableName("task.investigation_task")
 public class InvestigationTaskEntity {
-    @TableId(value = "task_id", type = IdType.INPUT)
-    public UUID taskId;
+    @TableId(value = "task_id", type = IdType.ASSIGN_UUID)
+    public String taskId;
     public String title;
     public String originalQuestion;
     public UUID initiatorUserId;

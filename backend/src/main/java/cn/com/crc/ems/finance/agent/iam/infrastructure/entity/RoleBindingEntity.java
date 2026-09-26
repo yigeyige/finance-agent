@@ -10,8 +10,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 /** IAM 角色授权表的 MyBatis-Plus 持久化实体。 */
 @TableName("iam.role_binding")
 public class RoleBindingEntity {
-    @TableId(value = "user_id", type = IdType.INPUT)
-    public UUID userId;
+    @TableId(value = "user_id", type = IdType.ASSIGN_UUID)
+    public String userId;
     public String roleCode;
     public UUID grantedBy;
     public Instant grantedAt;

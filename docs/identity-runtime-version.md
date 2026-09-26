@@ -2,6 +2,8 @@
 
 DEV-DATA-002 通过 MyBatis-Plus 3.5.17 Mapper 仓储访问 `iam.agent_user`、`iam.role_binding` 和 `governance.runtime_bundle`。合成数据默认关闭，仅在 `local` 或 `test` profile 配置 `FINANCE_AGENT_IDENTITY_SEED_ENABLED=true` 时执行一次幂等种子写入；`prod` profile 不注册种子执行器。
 
+持久化 Entity 的 UUID 主键统一使用 MyBatis-Plus `IdType.ASSIGN_UUID`；因该策略生成字符串，Entity 主键字段使用 `String`，映射层转换为领域 `UUID`，数据库列仍保持 `uuid`。
+
 ## 数据库核对
 
 ```sql

@@ -6,6 +6,7 @@ import cn.com.crc.ems.finance.agent.iam.domain.RoleBinding;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 import cn.com.crc.ems.finance.agent.iam.infrastructure.entity.AgentUserEntity;
 import cn.com.crc.ems.finance.agent.iam.infrastructure.entity.RoleBindingEntity;
+import cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid;
 
 /** IAM 持久化实体与领域快照之间的显式映射。 */
 final class MybatisIamMappings {
@@ -14,13 +15,13 @@ final class MybatisIamMappings {
     }
 
     static AgentUser toDomain(AgentUserEntity entity) {
-        return new AgentUser(entity.userId, entity.authSubject, entity.employeeNo, entity.displayName,
+        return new AgentUser(PersistenceUuid.toDomain(entity.userId), entity.authSubject, entity.employeeNo, entity.displayName,
                 AgentUserStatus.valueOf(entity.status), entity.createdAt, entity.createdBy, entity.updatedAt, entity.updatedBy);
     }
 
     static AgentUserEntity toEntity(AgentUser user) {
         AgentUserEntity entity = new AgentUserEntity();
-        entity.userId = user.userId();
+        entity.userId = PersistenceUuid.toStorage(user.userId());
         entity.authSubject = user.authSubject();
         entity.employeeNo = user.employeeNo();
         entity.displayName = user.displayName();
@@ -33,13 +34,13 @@ final class MybatisIamMappings {
     }
 
     static RoleBinding toDomain(RoleBindingEntity entity) {
-        return new RoleBinding(entity.userId, RoleCode.valueOf(entity.roleCode), entity.grantedBy, entity.grantedAt,
+        return new RoleBinding(PersistenceUuid.toDomain(entity.userId), RoleCode.valueOf(entity.roleCode), entity.grantedBy, entity.grantedAt,
                 entity.revokedAt, entity.createdBy, entity.createdAt, entity.updatedBy, entity.updatedAt);
     }
 
     static RoleBindingEntity toEntity(RoleBinding binding) {
         RoleBindingEntity entity = new RoleBindingEntity();
-        entity.userId = binding.userId();
+        entity.userId = PersistenceUuid.toStorage(binding.userId());
         entity.roleCode = binding.roleCode().name();
         entity.grantedBy = binding.grantedBy();
         entity.grantedAt = binding.grantedAt();

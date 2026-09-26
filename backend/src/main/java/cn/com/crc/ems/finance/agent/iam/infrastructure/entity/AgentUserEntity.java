@@ -10,8 +10,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 /** IAM 身份表的 MyBatis-Plus 持久化实体。 */
 @TableName("iam.agent_user")
 public class AgentUserEntity {
-    @TableId(value = "user_id", type = IdType.INPUT)
-    public UUID userId;
+    @TableId(value = "user_id", type = IdType.ASSIGN_UUID)
+    public String userId;
     public String authSubject;
     public String employeeNo;
     public String displayName;

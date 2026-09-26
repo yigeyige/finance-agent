@@ -10,8 +10,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 /** 步骤审批表的 MyBatis-Plus 持久化实体。 */
 @TableName("task.step_approval")
 public class StepApprovalEntity {
-    @TableId(value = "approval_id", type = IdType.INPUT)
-    public UUID approvalId;
+    @TableId(value = "approval_id", type = IdType.ASSIGN_UUID)
+    public String approvalId;
     public UUID stepId;
     public Integer revisionNo;
     public UUID approvedBy;

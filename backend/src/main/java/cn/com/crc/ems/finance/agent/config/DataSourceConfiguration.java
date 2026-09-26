@@ -31,6 +31,8 @@ public class DataSourceConfiguration {
         dataSource.setJdbcUrl(database.getUrl());
         dataSource.setUsername(database.getUsername());
         dataSource.setPassword(database.getPassword());
+        // ASSIGN_UUID 返回 String，而现有 PostgreSQL 主键列保持 uuid；让驱动按目标列推断字符串参数类型。
+        dataSource.addDataSourceProperty("stringtype", "unspecified");
         dataSource.setConnectionTimeout(database.getConnectTimeoutSeconds() * 1000L);
         dataSource.setValidationTimeout(database.getValidationTimeoutSeconds() * 1000L);
         dataSource.setInitializationFailTimeout(-1);

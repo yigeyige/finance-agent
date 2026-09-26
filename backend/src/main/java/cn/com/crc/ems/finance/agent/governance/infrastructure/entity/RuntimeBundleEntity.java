@@ -10,8 +10,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 /** 运行版本表的 MyBatis-Plus 持久化实体。 */
 @TableName("governance.runtime_bundle")
 public class RuntimeBundleEntity {
-    @TableId(value = "runtime_bundle_id", type = IdType.INPUT)
-    public UUID runtimeBundleId;
+    @TableId(value = "runtime_bundle_id", type = IdType.ASSIGN_UUID)
+    public String runtimeBundleId;
     public String applicationVersion;
     public String agentscopeVersion;
     public String modelBindingVersion;

@@ -11,6 +11,7 @@ import cn.com.crc.ems.finance.agent.governance.application.RuntimeBundleReposito
 import cn.com.crc.ems.finance.agent.governance.domain.RuntimeBundle;
 import cn.com.crc.ems.finance.agent.governance.infrastructure.entity.RuntimeBundleEntity;
 import cn.com.crc.ems.finance.agent.governance.infrastructure.mapper.RuntimeBundleMapper;
+import cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid;
 
 /** 使用 MyBatis-Plus Mapper 访问受治理的运行版本包。 */
 @Repository
@@ -47,7 +48,7 @@ public class MybatisRuntimeBundleRepository implements RuntimeBundleRepository {
     }
 
     private static RuntimeBundle toDomain(RuntimeBundleEntity entity) {
-        return new RuntimeBundle(entity.runtimeBundleId, entity.applicationVersion, entity.agentscopeVersion,
+        return new RuntimeBundle(PersistenceUuid.toDomain(entity.runtimeBundleId), entity.applicationVersion, entity.agentscopeVersion,
                 entity.modelBindingVersion, entity.promptBundleVersion, entity.ruleSetVersion, entity.toolCatalogVersion,
                 entity.sourceCatalogVersion, entity.knowledgeReleaseId, entity.bundleDigest,
                 cn.com.crc.ems.finance.agent.governance.domain.RuntimeBundleStatus.valueOf(entity.status),
@@ -56,7 +57,7 @@ public class MybatisRuntimeBundleRepository implements RuntimeBundleRepository {
 
     private static RuntimeBundleEntity toEntity(RuntimeBundle bundle) {
         RuntimeBundleEntity entity = new RuntimeBundleEntity();
-        entity.runtimeBundleId = bundle.runtimeBundleId();
+        entity.runtimeBundleId = PersistenceUuid.toStorage(bundle.runtimeBundleId());
         entity.applicationVersion = bundle.applicationVersion();
         entity.agentscopeVersion = bundle.agentscopeVersion();
         entity.modelBindingVersion = bundle.modelBindingVersion();

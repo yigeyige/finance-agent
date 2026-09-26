@@ -13,8 +13,8 @@ import cn.com.crc.ems.finance.agent.task.infrastructure.JsonbTypeHandler;
 /** 范围修订表的 MyBatis-Plus 持久化实体。 */
 @TableName("task.scope_revision")
 public class ScopeRevisionEntity {
-    @TableId(value = "scope_revision_id", type = IdType.INPUT)
-    public UUID scopeRevisionId;
+    @TableId(value = "scope_revision_id", type = IdType.ASSIGN_UUID)
+    public String scopeRevisionId;
     public UUID taskId;
     public Integer revisionNo;
     public String systemCode;

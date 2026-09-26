@@ -10,8 +10,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 /** 任务租约表的 MyBatis-Plus 持久化实体。 */
 @TableName("task.task_lease")
 public class TaskLeaseEntity {
-    @TableId(value = "lease_id", type = IdType.INPUT)
-    public UUID leaseId;
+    @TableId(value = "lease_id", type = IdType.ASSIGN_UUID)
+    public String leaseId;
     public UUID taskId;
     public UUID stepId;
     public String ownerInstance;
