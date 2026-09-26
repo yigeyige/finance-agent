@@ -5,7 +5,7 @@
 - **后端编码规范**：`.codex/skills/backend-coding-standards/SKILL.md`，包含核心原则、规范等级、技术基线、分层、数据访问、安全、工具类选择和验证要求。
 - **OpenSpec 目录**：`openspec/`。每个能力切片对应一个 change，`tasks.md` 是执行清单。
 - **任务目录**：`tasks/`。团队任务按 `.env` 中的 `CURRENT_USER` 进入 `tasks/<操作人>/01.doing/`。
-- **当前技术基线**：Java 17、AgentScope Java 2.0.3 BOM、Spring Boot 4.0.4、Spring Framework 7.0.7、PostgreSQL JDBC 42.7.11、pgvector Java SDK 0.1.6、Vue 2.7.16、TypeScript、Vite、Element UI 2.0.0。
+- **当前技术基线**：Java 17、AgentScope Java 2.0.3 BOM、Spring Boot 4.0.4、Spring Framework 7.0.7、MyBatis-Plus 3.5.17（`mybatis-plus-spring-boot4-starter`）、PostgreSQL JDBC 42.7.11、pgvector Java SDK 0.1.6、Vue 2.7.16、TypeScript、Vite、Element UI 2.0.0。
 - **自定义需求**：开发任务来源为 自定义需求，格式 ` 标题`；任务文件名统一用 `YYYYMMDD- 精简标题.md`。
 
 

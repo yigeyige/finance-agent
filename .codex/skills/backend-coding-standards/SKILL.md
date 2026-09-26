@@ -2,8 +2,8 @@
 name: backend-coding-standards
 description: >-
   在 finance_agent 项目中开发、评审或重构 Java 后端代码时使用。覆盖核心原则、
-  技术基线、分层、接口校验、事务、日志、安全、通用工具类选择和验证；前端开发
-  或其他项目专属约定不使用本 Skill。
+  技术基线、分层、MyBatis-Plus 持久层、接口校验、事务、日志、安全、通用工具类
+  选择和验证；前端开发或其他项目专属约定不使用本 Skill。
 ---
 
 # 后端开发规范
@@ -39,6 +39,7 @@ description: >-
 | Spring Framework | 7.0.7 | 优先使用项目统一配置和生命周期机制。 |
 | AgentScope Java | 2.0.3 BOM | 通过明确适配层接入 Agent 能力，业务代码不散落直接调用。 |
 | PostgreSQL JDBC | 42.7.11 | 遵循 PostgreSQL 方言、事务和参数化要求。 |
+| MyBatis-Plus | 3.5.17 | 使用 `mybatis-plus-spring-boot4-starter`，适配 Spring Boot 4；新增依赖须与该版本保持一致。 |
 | pgvector Java SDK | 0.1.6 | 向量能力封装在基础设施或领域适配层。 |
 
 版本以构建文件和依赖管理为最终准据；本表用于防止误用新版本接口，不替代构建配置。
@@ -92,6 +93,19 @@ description: >-
 - 🔴 基础设施实现不得反向依赖接口层；外部系统调用经过可替换接口或适配器。
 - 🟡 类和方法围绕业务能力命名，避免职责不明的 `Util`、`Manager`、`Helper`。
 - 🟡 公共抽象在出现至少两个稳定使用场景后提取，避免过早框架化。
+
+## 持久层与 MyBatis-Plus
+
+- 🔴 新增或重构常规业务持久层时，优先使用 MyBatis-Plus；通过 Mapper、Entity 和明确的查询/更新方法访问数据库，
+  不在 Service 或 Controller 中直接编写 JDBC 操作。
+- 🔴 Mapper 只负责数据访问，业务规则、权限判断和跨聚合编排放在应用层/领域层；持久化 Entity 不直接作为 API 返回对象。
+- 🟡 常规单表 CRUD 优先复用 MyBatis-Plus 的 `BaseMapper`、Service 能力和 Lambda 条件构造器；字段名、排序字段和分页参数
+  不直接接受用户输入，动态字段必须白名单化。
+- 🟡 分页统一使用项目配置的 MyBatis-Plus 分页能力；查询结果映射为 DTO、VO 或领域对象，避免把数据库结构泄漏到接口层。
+- 🟡 复杂查询使用 Mapper XML 或注解 SQL 集中维护，必须参数化、可解释并补充边界/性能验证；禁止为了少量查询在业务类中拼接 SQL。
+- 🟡 MyBatis-Plus 的逻辑删除、乐观锁、自动填充等能力只有在项目明确配置后才能使用，不能仅依赖注解产生假设行为。
+- 🟢 现有 `JdbcTemplate` 代码不因规范更新而批量重写；维护旧模块时保持行为兼容，新增普通 CRUD 不继续扩散 `JdbcTemplate`。
+- 🟢 只有在已有遗留兼容、数据库特殊能力、批量/流式处理或 MyBatis-Plus 难以表达的 SQL 场景使用 `JdbcTemplate`，并在代码注释或变更说明中记录原因。
 
 ## 接口、校验与错误处理
 
