@@ -9,7 +9,7 @@
 
 本方案可以作为生产研发和联调的技术基线，但不能跳过 P0 事实盘点后直接承诺生产可用。方案把生产能力拆成三类：
 
-1. **已确定设计**：业务边界、只读原则、逐步确认、状态权威、证据规则、技术栈、单实例部署、发布事务和 Harness 治理。
+1. **已确定设计**：业务边界、只读原则、逐步确认、状态权威、证据规则、技术栈、前端静态站点与后端 API 分离部署、后端单实例、发布事务和 Harness 治理。
 2. **待实现能力**：任务控制器、只读适配器、证据与规则引擎、Agent 运行时、工作台、发布和审计。
 3. **待 P0 证实事实**：源对象字段及查询完整性、模型协议、统一认证细节、数据库服务端版本、对象存储、并发预算和保留策略。每项均有阻断动作，不能以默认值替代。
 
@@ -64,10 +64,11 @@
 
 ```mermaid
 flowchart LR
-    O[功能运维人员] --> W[Vue 2 运维工作台]
-    V[业务查看人] --> W
-    I[统一认证] --> W
-    W --> A[Agent 应用 API]
+    O[功能运维人员] --> FE[Vue 2 静态工作台]
+    V[业务查看人] --> FE
+    I[统一认证/网关] --> G
+    FE --> G[网关/API 路由]
+    G --> A[Agent 应用 API]
     A --> F[财务系统只读事实通道]
     A --> M[单一大模型服务]
     A --> P[(Agent PostgreSQL)]
@@ -81,7 +82,12 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    subgraph APP[单个 Java 应用实例]
+    subgraph FRONTEND[前端静态容器]
+      UI[Vue dist]
+      NG[Nginx:8080]
+      UI --> NG
+    end
+    subgraph APP[后端 Java 应用实例]
       API[REST API 与认证]
       TC[任务控制器/Java 状态机]
       HR[AgentScope Harness 运行时]
@@ -98,13 +104,14 @@ flowchart TB
       EV --> PK
       WK --> TC
     end
+    NG --> API
     APP --> PG[(PostgreSQL + pgvector)]
     APP --> SRC[财务系统只读源]
     APP --> LLM[ModelGateway/单模型]
     APP --> OBJ[可选对象存储]
 ```
 
-采用模块化单体。API 与 Worker 在同一进程、不同线程池中运行；等待人工确认的任务不占 Worker。任务、租约、checkpoint 和 outbox 使用 PostgreSQL，不引入消息中间件。首期生产单实例，进程由部署平台自动拉起。
+后端采用模块化单体：API 与 Worker 在同一进程、不同线程池中运行；等待人工确认的任务不占 Worker。前端 Vue 静态站点独立于后端 Java 进程和镜像部署，由网关/API 路由连接工作台与后端服务。任务、租约、checkpoint 和 outbox 使用 PostgreSQL，不引入消息中间件。首期后端生产单实例，进程由部署平台自动拉起。
 
 ### 4.3 模块责任
 
@@ -324,7 +331,7 @@ PostgreSQL 首期安装 pgvector，语料库允许为空。RAG 只用于制度�
 | 数据库 | PostgreSQL + pgvector | 服务端版本 P0 确认；schema/角色分离；Flyway |
 | 模型 | 单一模型，经 `ModelGateway` | 无自动切换；结构化 JSON Schema；不可用时暂停模型步骤 |
 | 对象 | 可选对象存储 | 仅保存批准的大文档/导出；不可用时不保留大原件 |
-| 打包 | 容器镜像 + 可执行 JAR | 测试/生产同一制品；单实例，不假设 Kubernetes |
+| 打包 | 前端静态镜像 + 后端容器镜像 + 可执行 JAR | 同一版本分别构建；后端单实例，不假设 Kubernetes，不要求 Compose |
 
 规则核心算法用版本化 Java 代码实现；对象映射和简单阈值使用受控配置。首期不提供任意表达式编辑器。每个任务冻结应用、规则、提示模板、工具目录、源映射、模型和知识库版本组合。
 
@@ -335,21 +342,27 @@ PostgreSQL 首期安装 pgvector，语料库允许为空。RAG 只用于制度�
 ```mermaid
 flowchart LR
     subgraph TEST[测试环境]
-      TA[单实例应用] --> TP[(测试 PostgreSQL+pgvector)]
+      TF[前端静态镜像] --> TG[测试网关/API 路由]
+      TG --> TA[后端单实例镜像]
+      TA --> TP[(测试 PostgreSQL+pgvector)]
       TA --> TS[合成源/经批准的只读配置源]
       TA --> TM[测试模型端点]
     end
     subgraph PROD[生产环境]
-      PA[单实例应用] --> PP[(生产 PostgreSQL+pgvector)]
+      PF[前端静态镜像] --> PGW[生产网关/API 路由]
+      PGW --> PA[后端单实例镜像]
+      PA --> PP[(生产 PostgreSQL+pgvector)]
       PA --> PS[生产只读配置源]
       PA --> PM[生产模型端点]
       PA -.可选.-> PO[对象存储]
     end
-    CI[CI 构建/SBOM/签名制品] --> TA
-    CI -->|门禁批准后同制品| PA
+    CI[CI 构建/SBOM/签名制品] --> TF
+    CI --> TA
+    CI -->|门禁批准后同版本制品| PF
+    CI -->|门禁批准后同版本制品| PA
 ```
 
-测试环境优先使用合成数据；为验证真实兼容性，可以经批准读取受控配置字段。生产应用和 Worker 同进程，使用独立连接池/线程池配额。维护时先停止领取新任务，等待运行步骤到安全检查点，再关闭进程；重启后由租约扫描器恢复。
+测试环境优先使用合成数据；为验证真实兼容性，可以经批准读取受控配置字段。前端静态容器与后端 Java 容器分别发布，但使用同一版本标识；网关负责认证、静态入口和 API 路由。生产应用和 Worker 同进程，使用独立连接池/线程池配额。维护时先停止领取新任务，等待运行步骤到安全检查点，再关闭后端进程；前端静态站点可独立回滚，后端重启后由租约扫描器恢复。
 
 ### 12.2 数据库迁移和发布
 

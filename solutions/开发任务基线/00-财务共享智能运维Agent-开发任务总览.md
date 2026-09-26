@@ -31,7 +31,7 @@
 | 数据访问 | Spring JDBC/显式 SQL 为首选；核心事务和锁不依赖隐式 ORM 行为 |
 | 前端 | Vue 2.7.16、TypeScript、Vite、Element UI 2.x、Vue Router 3；版本在兼容性任务中锁定并记录 EOL 例外 |
 | 数据库 | 已有 `postgres-pgvector`；PostgreSQL 17.11、pgvector 0.8.6；数据库名 `finance_agent` |
-| 部署 | 本地 JAR或单应用 Docker 镜像；不使用 Compose；数据库独立运行 |
+| 部署 | 前端静态产物与后端 JAR 独立交付；可分别运行前端 Nginx 镜像和后端 Java 镜像；不使用 Compose；数据库独立运行 |
 | API/运行 | Spring MVC 快速返回，PostgreSQL Worker 异步执行，SSE 推送公开业务事件 |
 | 模型 | Stub 优先；DeepSeek `https://api.deepseek.com`、`deepseek-flash`、OpenAI Chat Completions |
 | Thinking | 默认 high；`reasoning_content` 仅在当前循环易失内存中传递，不记录、不展示 |
