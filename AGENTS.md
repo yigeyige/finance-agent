@@ -105,7 +105,7 @@
 
 用户说出“归档”“存档”等触发词即授权 AI 完成文件层面的收尾；所有 git 操作（提交 / 合并 / push）由用户执行，AI 不参与。
 
-1. **文件收尾（AI 执行）**：使用 **openspec-archive-change skill** 归档对应 change；移动前再次检查任务 basename，合规后才把任务 md 从 `02.done/` 移入 `03.achieved/` 并更新执行记录。
+1. **规格同步与文件收尾（AI 执行）**：归档前必须检查 change 是否存在 delta spec；存在时先使用 **openspec-sync-specs skill** 将 delta 同步到 `openspec/specs/` 主规格，再使用 **openspec-archive-change skill** 归档对应 change。同步完成后再次检查任务 basename，合规后才把任务 md 从 `02.done/` 移入 `03.achieved/` 并更新执行记录；不得直接跳过同步归档。
 2. **git 操作（默认用户执行）**：由用户自行完成提交、合并、push 等 git 操作；若用户明确告知“帮我创建提交”，AI 将本次调整内容创建 commit，message 用 `<type>:  标题`；除此之外 AI 不执行任何 git 写操作。
 
 
