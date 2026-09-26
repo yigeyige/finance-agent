@@ -118,6 +118,7 @@ source: development-workplan
 | 090 | P0 专项加固 | [20260926-harden-diagnostics-and-config](../03.achieved/20260926-加固诊断与配置.md) | 加固诊断与配置 | [20260926-加固诊断与配置.md](../03.achieved/20260926-加固诊断与配置.md) | 已完成 | `DEV-BOOT-004`、`DEV-BOOT-009` |
 | 091 | P2 自定义需求 | [20260926-add-backend-chinese-comments](../03.achieved/20260926-补充后端中文注释.md) | 补充后端中文注释 | [20260926-补充后端中文注释.md](../03.achieved/20260926-补充后端中文注释.md) | 已完成 | 无 |
 | 092 | P2 自定义需求 | [20260926-adjust-backend-comment-rules](../03.achieved/20260926-调整后端注释规则.md) | 调整后端注释规则 | [20260926-调整后端注释规则.md](../03.achieved/20260926-调整后端注释规则.md) | 已完成 | 无 |
+| 093 | P2 自定义需求 | [20260926-strict-versioned-json-validation](../03.achieved/20260926-严格解析VersionedJson并补充基础能力复用规范.md) | 严格解析 VersionedJson 并补充基础能力复用规范 | [20260926-严格解析VersionedJson并补充基础能力复用规范.md](../03.achieved/20260926-严格解析VersionedJson并补充基础能力复用规范.md) | 已完成 | 无 |
 
 ## 阶段统计
 
