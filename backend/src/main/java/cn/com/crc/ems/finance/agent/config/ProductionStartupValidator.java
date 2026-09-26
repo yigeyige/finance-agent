@@ -9,7 +9,6 @@ import org.springframework.core.env.Profiles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component
 /**
  *
  * @Description: 当前类型承载本模块的职责、边界与协作契约。
@@ -18,32 +17,25 @@ import org.springframework.stereotype.Component;
  * @Author: yigeyige99
  * @Date: 2026-09-26 19:35:24
  */
+@Component
 public class ProductionStartupValidator {
 
     private final Environment environment;
     private final FinanceAgentProperties properties;
 
     @Autowired
-    /**
-     *
-     * @description: 执行当前职责所需的处理。
-     *
-     * @param: environment 输入参数。
-     * @param: properties 输入参数。
-     * @author: yigeyige99
-     */
     public ProductionStartupValidator(Environment environment, FinanceAgentProperties properties) {
         this.environment = environment;
         this.properties = properties;
     }
 
-    @PostConstruct
     /**
      *
      * @description: 执行当前职责所需的处理。
      *
      * @author: yigeyige99
      */
+    @PostConstruct
     void validateAtStartup() {
         if (environment.acceptsProfiles(Profiles.of("prod"))) {
             validateProduction(properties);
@@ -109,26 +101,10 @@ public class ProductionStartupValidator {
         }
     }
 
-    /**
-     *
-     * @description: 判断当前配置或状态是否满足条件。
-     *
-     * @param: value 输入参数。
-     * @return: 当前处理结果。
-     * @author: yigeyige99
-     */
     private static boolean isBlank(String value) {
         return value == null || value.isBlank();
     }
 
-    /**
-     *
-     * @description: 判断当前配置或状态是否满足条件。
-     *
-     * @param: value 输入参数。
-     * @return: 当前处理结果。
-     * @author: yigeyige99
-     */
     private static boolean isDevelopmentStorageAdapter(String value) {
         return "none".equalsIgnoreCase(value) || "temporary".equalsIgnoreCase(value)
                 || "local".equalsIgnoreCase(value) || "memory".equalsIgnoreCase(value);

@@ -30,14 +30,6 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
     private final Path root;
     private final long maxBytes;
 
-    /**
-     *
-     * @description: 执行当前职责所需的处理。
-     *
-     * @param: root 输入参数。
-     * @param: maxBytes 输入参数。
-     * @author: yigeyige99
-     */
     public LocalTemporaryObjectStorageGateway(Path root, long maxBytes) {
         if (root == null || maxBytes <= 0) {
             throw new IllegalArgumentException("root and positive maxBytes are required");
@@ -46,7 +38,6 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
         this.maxBytes = maxBytes;
     }
 
-    @Override
     /**
      *
      * @description: 执行当前职责所需的处理。
@@ -57,6 +48,7 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
      * @return: 当前处理结果。
      * @author: yigeyige99
      */
+    @Override
     public ObjectReference put(String objectKey, InputStream content, String mediaType) {
         String safeKey = safeKey(objectKey);
         if (content == null) {
@@ -94,7 +86,6 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
         }
     }
 
-    @Override
     /**
      *
      * @description: 执行当前职责所需的处理。
@@ -103,6 +94,7 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
      * @return: 当前处理结果。
      * @author: yigeyige99
      */
+    @Override
     public InputStream open(ObjectReference reference) {
         Path target = resolve(reference == null ? null : reference.objectKey());
         try {
@@ -117,7 +109,6 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
         }
     }
 
-    @Override
     /**
      *
      * @description: 执行当前职责所需的处理。
@@ -125,6 +116,7 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
      * @param: reference 输入参数。
      * @author: yigeyige99
      */
+    @Override
     public void delete(ObjectReference reference) {
         Path target = resolve(reference == null ? null : reference.objectKey());
         try {

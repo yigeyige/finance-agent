@@ -16,7 +16,6 @@ import cn.com.crc.ems.finance.agent.storage.domain.ObjectReference;
  */
 public final class DisabledObjectStorageGateway implements ObjectStorageGateway {
 
-    @Override
     /**
      *
      * @description: 执行当前职责所需的处理。
@@ -27,11 +26,11 @@ public final class DisabledObjectStorageGateway implements ObjectStorageGateway 
      * @return: 当前处理结果。
      * @author: yigeyige99
      */
+    @Override
     public ObjectReference put(String objectKey, InputStream content, String mediaType) {
         throw new ObjectStorageNotConfiguredException();
     }
 
-    @Override
     /**
      *
      * @description: 执行当前职责所需的处理。
@@ -40,11 +39,11 @@ public final class DisabledObjectStorageGateway implements ObjectStorageGateway 
      * @return: 当前处理结果。
      * @author: yigeyige99
      */
+    @Override
     public InputStream open(ObjectReference reference) {
         throw new ObjectStorageNotConfiguredException();
     }
 
-    @Override
     /**
      *
      * @description: 执行当前职责所需的处理。
@@ -52,6 +51,7 @@ public final class DisabledObjectStorageGateway implements ObjectStorageGateway 
      * @param: reference 输入参数。
      * @author: yigeyige99
      */
+    @Override
     public void delete(ObjectReference reference) {
         throw new ObjectStorageNotConfiguredException();
     }

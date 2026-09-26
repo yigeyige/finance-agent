@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import cn.com.crc.ems.finance.agent.config.FinanceAgentProperties;
 
-@Component("sourceStub")
 /**
  *
  * @Description: 当前类型承载本模块的职责、边界与协作契约。
@@ -16,23 +15,16 @@ import cn.com.crc.ems.finance.agent.config.FinanceAgentProperties;
  * @Author: yigeyige99
  * @Date: 2026-09-26 19:35:37
  */
+@Component("sourceStub")
 public final class SourceStubHealthIndicator implements HealthIndicator, DiagnosticProbe {
 
     private final FinanceAgentProperties properties;
 
     @Autowired
-    /**
-     *
-     * @description: 执行当前职责所需的处理。
-     *
-     * @param: properties 输入参数。
-     * @author: yigeyige99
-     */
     public SourceStubHealthIndicator(FinanceAgentProperties properties) {
         this.properties = properties;
     }
 
-    @Override
     /**
      *
      * @description: 执行当前职责所需的处理。
@@ -40,11 +32,11 @@ public final class SourceStubHealthIndicator implements HealthIndicator, Diagnos
      * @return: 当前处理结果。
      * @author: yigeyige99
      */
+    @Override
     public String name() {
         return "sourceStub";
     }
 
-    @Override
     /**
      *
      * @description: 执行当前职责所需的处理。
@@ -52,6 +44,7 @@ public final class SourceStubHealthIndicator implements HealthIndicator, Diagnos
      * @return: 当前处理结果。
      * @author: yigeyige99
      */
+    @Override
     public DiagnosticComponentStatus check() {
         FinanceAgentProperties.Source source = properties.getSource();
         boolean stub = source != null && source.isStub();
@@ -60,7 +53,6 @@ public final class SourceStubHealthIndicator implements HealthIndicator, Diagnos
                 : new DiagnosticComponentStatus(name(), "UNKNOWN", "real_source_probe_not_implemented");
     }
 
-    @Override
     /**
      *
      * @description: 执行当前职责所需的处理。
@@ -68,6 +60,7 @@ public final class SourceStubHealthIndicator implements HealthIndicator, Diagnos
      * @return: 当前处理结果。
      * @author: yigeyige99
      */
+    @Override
     public Health health() {
         DiagnosticComponentStatus status = check();
         Health.Builder builder = "UP".equals(status.status()) ? Health.up() : Health.unknown();

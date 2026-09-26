@@ -4,8 +4,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
-@SpringBootApplication
-@ConfigurationPropertiesScan
 /**
  *
  * @Description: 当前类型承载本模块的职责、边界与协作契约。
@@ -14,14 +12,10 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
  * @Author: yigeyige99
  * @Date: 2026-09-26 19:35:26
  */
+@SpringBootApplication
+@ConfigurationPropertiesScan
 public class FinanceAgentApplication {
 
-    /**
-     *
-     * @description: 执行当前职责所需的处理。
-     *
-     * @author: yigeyige99
-     */
     private FinanceAgentApplication() {
     }
 

@@ -10,25 +10,10 @@ package cn.com.crc.ems.finance.agent.storage.application;
  */
 public class ObjectStorageException extends RuntimeException {
 
-    /**
-     *
-     * @description: 执行当前职责所需的处理。
-     *
-     * @param: message 输入参数。
-     * @author: yigeyige99
-     */
     public ObjectStorageException(String message) {
         super(message);
     }
 
-    /**
-     *
-     * @description: 执行当前职责所需的处理。
-     *
-     * @param: message 输入参数。
-     * @param: cause 输入参数。
-     * @author: yigeyige99
-     */
     public ObjectStorageException(String message, Throwable cause) {
         super(message, cause);
     }
