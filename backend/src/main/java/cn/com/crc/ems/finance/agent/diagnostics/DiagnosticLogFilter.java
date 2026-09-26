@@ -10,7 +10,14 @@ import ch.qos.logback.core.spi.FilterReply;
 
 import org.slf4j.Marker;
 
-/** Global Logback guard that drops log events containing raw sensitive content. */
+/**
+ *
+ * @Description: 当前类型承载本模块的职责、边界与协作契约。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-09-26 19:35:31
+ */
 public final class DiagnosticLogFilter extends TurboFilter {
 
     private static final Pattern FORBIDDEN = Pattern.compile(

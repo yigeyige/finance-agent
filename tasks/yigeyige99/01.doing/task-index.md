@@ -35,7 +35,7 @@ source: development-workplan
 | 008 | P0 工程与技术验证 | [DEV-BOOT-008](../03.achieved/20260925-dev-boot-008-建立前后端分离构建与部署.md) | 建立前后端分离构建与部署 | [20260925-dev-boot-008-建立前后端分离构建与部署.md](../03.achieved/20260925-dev-boot-008-建立前后端分离构建与部署.md) | 已完成 | `DEV-BOOT-003`、`DEV-BOOT-005` |
 | 009 | P0 工程与技术验证 | [DEV-BOOT-009](../03.achieved/20260925-dev-boot-009-实现最小诊断能力.md) | 实现最小诊断能力 | [20260925-dev-boot-009-实现最小诊断能力.md](../03.achieved/20260925-dev-boot-009-实现最小诊断能力.md) | 已完成 | `DEV-BOOT-003`、`DEV-BOOT-004` |
 | 010 | P0 工程与技术验证 | [DEV-BOOT-010](../03.achieved/20260925-dev-boot-010-定义延后对象存储边界.md) | 定义延后对象存储边界 | [20260925-dev-boot-010-定义延后对象存储边界.md](../03.achieved/20260925-dev-boot-010-定义延后对象存储边界.md) | 已完成 | `DEV-BOOT-003` |
-| 011 | P0 领域模型与数据库 | [DEV-DATA-001](20260925-dev-data-001-建立Flyway基线和schema.md) | 建立 Flyway 基线和 schema | [20260925-dev-data-001-建立Flyway基线和schema.md](20260925-dev-data-001-建立Flyway基线和schema.md) | 未完成 | `DEV-BOOT-007` |
+| 011 | P0 领域模型与数据库 | [DEV-DATA-001](../02.done/20260925-dev-data-001-建立Flyway基线和schema.md) | 建立 Flyway 基线和 schema | [20260925-dev-data-001-建立Flyway基线和schema.md](../02.done/20260925-dev-data-001-建立Flyway基线和schema.md) | 已完成 | `DEV-BOOT-007` |
 | 012 | P0 领域模型与数据库 | [DEV-DATA-002](20260925-dev-data-002-建立身份和运行版本模型.md) | 建立身份和运行版本模型 | [20260925-dev-data-002-建立身份和运行版本模型.md](20260925-dev-data-002-建立身份和运行版本模型.md) | 未完成 | `DEV-DATA-001` |
 | 013 | P0 领域模型与数据库 | [DEV-DATA-003](20260925-dev-data-003-建立任务、范围、前提和步骤模型.md) | 建立任务、范围、前提和步骤模型 | [20260925-dev-data-003-建立任务、范围、前提和步骤模型.md](20260925-dev-data-003-建立任务、范围、前提和步骤模型.md) | 未完成 | `DEV-DATA-001` |
 | 014 | P0 领域模型与数据库 | [DEV-DATA-004](20260925-dev-data-004-建立证据、覆盖度和判断模型.md) | 建立证据、覆盖度和判断模型 | [20260925-dev-data-004-建立证据、覆盖度和判断模型.md](20260925-dev-data-004-建立证据、覆盖度和判断模型.md) | 未完成 | `DEV-DATA-003` |
@@ -115,6 +115,7 @@ source: development-workplan
 | 088 | P2 生产放行 | [DEV-P2-007](20260925-dev-p2-007-完成操作与开发移交.md) | 完成操作与开发移交 | [20260925-dev-p2-007-完成操作与开发移交.md](20260925-dev-p2-007-完成操作与开发移交.md) | 未完成 | `DEV-P2-006` |
 | 089 | P2 生产放行 | [DEV-P2-008](20260925-dev-p2-008-生产放行与首批有界任务.md) | 生产放行与首批有界任务 | [20260925-dev-p2-008-生产放行与首批有界任务.md](20260925-dev-p2-008-生产放行与首批有界任务.md) | 未完成 | `DEV-P2-007` |
 | 090 | P0 专项加固 | [20260926-harden-diagnostics-and-config](../03.achieved/20260926-加固诊断与配置.md) | 加固诊断与配置 | [20260926-加固诊断与配置.md](../03.achieved/20260926-加固诊断与配置.md) | 已完成 | `DEV-BOOT-004`、`DEV-BOOT-009` |
+| 091 | P2 自定义需求 | [20260926-add-backend-chinese-comments](../03.achieved/20260926-补充后端中文注释.md) | 补充后端中文注释 | [20260926-补充后端中文注释.md](../03.achieved/20260926-补充后端中文注释.md) | 已完成 | 无 |
 
 ## 阶段统计
 
@@ -122,5 +123,5 @@ source: development-workplan
 |---|---:|
 | P0 | 73 |
 | P1 | 9 |
-| P2 | 8 |
-| 合计 | 90 |
+| P2 | 9 |
+| 合计 | 91 |

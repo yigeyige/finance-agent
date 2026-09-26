@@ -13,8 +13,15 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/** Adds bounded correlation IDs to MDC and response headers for every HTTP request. */
 @Component
+/**
+ *
+ * @Description: 当前类型承载本模块的职责、边界与协作契约。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-09-26 19:35:33
+ */
 public final class DiagnosticContextFilter extends OncePerRequestFilter {
 
     private static final Pattern SAFE_ID = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._:-]{0,99}");
@@ -40,16 +47,40 @@ public final class DiagnosticContextFilter extends OncePerRequestFilter {
         }
     }
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: value 输入参数。
+     * @return: 当前处理结果。
+     * @author: yigeyige99
+     */
     private static String acceptedOrGenerated(String value) {
         return value != null && SAFE_ID.matcher(value).matches() ? value : DiagnosticContext.generatedId();
     }
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: key 输入参数。
+     * @param: value 输入参数。
+     * @author: yigeyige99
+     */
     private static void putIfAccepted(String key, String value) {
         if (value != null && SAFE_ID.matcher(value).matches()) {
             put(key, value);
         }
     }
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: key 输入参数。
+     * @param: value 输入参数。
+     * @author: yigeyige99
+     */
     private static void put(String key, String value) {
         MDC.put(key, value);
     }

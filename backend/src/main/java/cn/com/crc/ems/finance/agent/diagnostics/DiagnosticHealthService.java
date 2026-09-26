@@ -10,8 +10,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** Collects safe dependency statuses for the read-only diagnostics endpoint. */
 @Service
+/**
+ *
+ * @Description: 当前类型承载本模块的职责、边界与协作契约。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-09-26 19:35:27
+ */
 public final class DiagnosticHealthService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DiagnosticHealthService.class);
@@ -19,10 +26,24 @@ public final class DiagnosticHealthService {
     private final List<DiagnosticProbe> probes;
 
     @Autowired
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: probes 输入参数。
+     * @author: yigeyige99
+     */
     public DiagnosticHealthService(List<DiagnosticProbe> probes) {
         this.probes = probes.stream().sorted(Comparator.comparing(DiagnosticProbe::name)).toList();
     }
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @return: 当前处理结果。
+     * @author: yigeyige99
+     */
     public DiagnosticSnapshot snapshot() {
         Map<String, DiagnosticComponentStatus> components = new LinkedHashMap<>();
         for (DiagnosticProbe probe : probes) {
@@ -42,6 +63,14 @@ public final class DiagnosticHealthService {
         return new DiagnosticSnapshot(overall, components);
     }
 
+    /**
+     *
+     * @Description: 当前类型承载本模块的职责、边界与协作契约。
+     *
+     * @Version: 0.1.0
+     * @Author: yigeyige99
+     * @Date: 2026-09-26 19:35:27
+     */
     public record DiagnosticSnapshot(String status, Map<String, DiagnosticComponentStatus> components) {
     }
 }

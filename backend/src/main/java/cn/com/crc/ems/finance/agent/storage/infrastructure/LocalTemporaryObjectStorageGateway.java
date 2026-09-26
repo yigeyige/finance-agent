@@ -17,12 +17,27 @@ import cn.com.crc.ems.finance.agent.storage.application.ObjectStorageNotFoundExc
 import cn.com.crc.ems.finance.agent.storage.application.ObjectStoragePathViolationException;
 import cn.com.crc.ems.finance.agent.storage.domain.ObjectReference;
 
-/** Controlled local/test implementation; it is never registered for the prod profile. */
+/**
+ *
+ * @Description: 当前类型承载本模块的职责、边界与协作契约。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-09-26 19:35:44
+ */
 public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGateway {
 
     private final Path root;
     private final long maxBytes;
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: root 输入参数。
+     * @param: maxBytes 输入参数。
+     * @author: yigeyige99
+     */
     public LocalTemporaryObjectStorageGateway(Path root, long maxBytes) {
         if (root == null || maxBytes <= 0) {
             throw new IllegalArgumentException("root and positive maxBytes are required");
@@ -32,6 +47,16 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
     }
 
     @Override
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: objectKey 输入参数。
+     * @param: content 输入参数。
+     * @param: mediaType 输入参数。
+     * @return: 当前处理结果。
+     * @author: yigeyige99
+     */
     public ObjectReference put(String objectKey, InputStream content, String mediaType) {
         String safeKey = safeKey(objectKey);
         if (content == null) {
@@ -70,6 +95,14 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
     }
 
     @Override
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: reference 输入参数。
+     * @return: 当前处理结果。
+     * @author: yigeyige99
+     */
     public InputStream open(ObjectReference reference) {
         Path target = resolve(reference == null ? null : reference.objectKey());
         try {
@@ -85,6 +118,13 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
     }
 
     @Override
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: reference 输入参数。
+     * @author: yigeyige99
+     */
     public void delete(ObjectReference reference) {
         Path target = resolve(reference == null ? null : reference.objectKey());
         try {
@@ -98,6 +138,14 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
         }
     }
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: objectKey 输入参数。
+     * @return: 当前处理结果。
+     * @author: yigeyige99
+     */
     private Path resolve(String objectKey) {
         String safeKey = safeKey(objectKey);
         Path target = root.resolve(safeKey.replace('/', root.getFileSystem().getSeparator().charAt(0))).normalize();
@@ -107,6 +155,14 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
         return target;
     }
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: objectKey 输入参数。
+     * @return: 当前处理结果。
+     * @author: yigeyige99
+     */
     private static String safeKey(String objectKey) {
         try {
             return ObjectReference.requireLogicalKey(objectKey);
@@ -115,6 +171,13 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
         }
     }
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @return: 当前处理结果。
+     * @author: yigeyige99
+     */
     private static MessageDigest sha256() {
         try {
             return MessageDigest.getInstance("SHA-256");
@@ -123,6 +186,14 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
         }
     }
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: bytes 输入参数。
+     * @return: 当前处理结果。
+     * @author: yigeyige99
+     */
     private static String hex(byte[] bytes) {
         StringBuilder result = new StringBuilder(bytes.length * 2);
         for (byte value : bytes) {
@@ -131,6 +202,15 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
         return result.toString();
     }
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: source 输入参数。
+     * @param: target 输入参数。
+     * @throws: IOException 执行失败时抛出。
+     * @author: yigeyige99
+     */
     private static void moveIntoPlace(Path source, Path target) throws IOException {
         try {
             Files.move(source, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
@@ -139,6 +219,13 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
         }
     }
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: path 输入参数。
+     * @author: yigeyige99
+     */
     private static void deleteQuietly(Path path) {
         if (path == null) {
             return;

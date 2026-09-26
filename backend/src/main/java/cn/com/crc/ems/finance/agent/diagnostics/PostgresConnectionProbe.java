@@ -11,11 +11,12 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * Standalone, read-only PostgreSQL/pgvector connection probe.
  *
- * <p>The probe deliberately does not use Spring Boot configuration defaults. It
- * requires all connection values to be supplied by the process environment and
- * never prints the URL, username, password, or raw JDBC exception message.</p>
+ * @Description: 当前类型承载本模块的职责、边界与协作契约。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-09-26 19:35:36
  */
 public final class PostgresConnectionProbe {
 
@@ -29,9 +30,22 @@ public final class PostgresConnectionProbe {
 
     private static final Pattern VERSION_PATTERN = Pattern.compile("\\d+(?:\\.\\d+){0,2}");
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @author: yigeyige99
+     */
     private PostgresConnectionProbe() {
     }
 
+    /**
+     *
+     * @description: 启动当前应用或诊断程序。
+     *
+     * @param: args 输入参数。
+     * @author: yigeyige99
+     */
     public static void main(String[] args) {
         if (args.length > 0 && "--help".equals(args[0])) {
             printUsage(System.out);
@@ -121,6 +135,13 @@ public final class PostgresConnectionProbe {
         }
     }
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: output 输入参数。
+     * @author: yigeyige99
+     */
     private static void printUsage(PrintStream output) {
         output.println("PostgreSQL/pgvector probe");
         output.println("Required: FINANCE_AGENT_DB_URL, FINANCE_AGENT_DB_USERNAME, FINANCE_AGENT_DB_PASSWORD");
@@ -129,6 +150,15 @@ public final class PostgresConnectionProbe {
         output.println("Use --check-config to validate environment variables without connecting.");
     }
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: output 输入参数。
+     * @param: status 输入参数。
+     * @param: exception 输入参数。
+     * @author: yigeyige99
+     */
     private static void printSqlFailure(PrintStream output, String status, SQLException exception) {
         output.println("status=" + status);
         String sqlState = exception.getSQLState();
@@ -137,6 +167,16 @@ public final class PostgresConnectionProbe {
         }
     }
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: connection 输入参数。
+     * @param: sql 输入参数。
+     * @return: 当前处理结果。
+     * @throws: SQLException 执行失败时抛出。
+     * @author: yigeyige99
+     */
     private static String querySingleString(Connection connection, String sql) throws SQLException {
         String value = queryNullableString(connection, sql);
         if (value == null) {
@@ -145,12 +185,32 @@ public final class PostgresConnectionProbe {
         return value;
     }
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: connection 输入参数。
+     * @param: sql 输入参数。
+     * @return: 当前处理结果。
+     * @throws: SQLException 执行失败时抛出。
+     * @author: yigeyige99
+     */
     private static String queryNullableString(Connection connection, String sql) throws SQLException {
         try (Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(sql)) {
             return resultSet.next() ? resultSet.getString(1) : null;
         }
     }
 
+    /**
+     *
+     * @description: 执行当前职责所需的处理。
+     *
+     * @param: connection 输入参数。
+     * @param: sql 输入参数。
+     * @return: 当前处理结果。
+     * @throws: SQLException 执行失败时抛出。
+     * @author: yigeyige99
+     */
     private static int queryInt(Connection connection, String sql) throws SQLException {
         try (Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(sql)) {
             if (!resultSet.next()) {
@@ -161,10 +221,36 @@ public final class PostgresConnectionProbe {
     }
 
     @FunctionalInterface
+    /**
+     *
+     * @Description: 当前类型承载本模块的职责、边界与协作契约。
+     *
+     * @Version: 0.1.0
+     * @Author: yigeyige99
+     * @Date: 2026-09-26 19:35:36
+     */
     interface ConnectionOpener {
+        /**
+         *
+         * @description: 执行当前职责所需的处理。
+         *
+         * @param: url 输入参数。
+         * @param: username 输入参数。
+         * @param: password 输入参数。
+         * @return: 当前处理结果。
+         * @author: yigeyige99
+         */
         Connection open(String url, String username, String password) throws SQLException;
     }
 
+    /**
+     *
+     * @Description: 当前类型承载本模块的职责、边界与协作契约。
+     *
+     * @Version: 0.1.0
+     * @Author: yigeyige99
+     * @Date: 2026-09-26 19:35:36
+     */
     enum ProbeExitCode {
         OK(0),
         CONFIGURATION_ERROR(2),
@@ -180,14 +266,38 @@ public final class PostgresConnectionProbe {
             this.code = code;
         }
 
+        /**
+         *
+         * @description: 执行当前职责所需的处理。
+         *
+         * @return: 当前处理结果。
+         * @author: yigeyige99
+         */
         int code() {
             return code;
         }
     }
 
+    /**
+     *
+     * @Description: 当前类型承载本模块的职责、边界与协作契约。
+     *
+     * @Version: 0.1.0
+     * @Author: yigeyige99
+     * @Date: 2026-09-26 19:35:36
+     */
     record ProbeConfiguration(String url, String username, String password,
                               String expectedPostgresVersion, String expectedPgvectorVersion) {
 
+        /**
+         *
+         * @description: 执行当前职责所需的处理。
+         *
+         * @param: Map<String 输入参数。
+         * @param: environment 输入参数。
+         * @return: 当前处理结果。
+         * @author: yigeyige99
+         */
         static ProbeConfiguration fromEnvironment(Map<String, String> environment) {
             Objects.requireNonNull(environment, "environment");
             String url = required(environment, DB_URL);
@@ -200,6 +310,16 @@ public final class PostgresConnectionProbe {
             return new ProbeConfiguration(url, username, password, expectedPg, expectedPgvector);
         }
 
+        /**
+         *
+         * @description: 执行当前职责所需的处理。
+         *
+         * @param: Map<String 输入参数。
+         * @param: environment 输入参数。
+         * @param: key 输入参数。
+         * @return: 当前处理结果。
+         * @author: yigeyige99
+         */
         private static String required(Map<String, String> environment, String key) {
             String value = environment.get(key);
             if (value == null || value.isBlank()) {
@@ -208,6 +328,16 @@ public final class PostgresConnectionProbe {
             return value;
         }
 
+        /**
+         *
+         * @description: 执行当前职责所需的处理。
+         *
+         * @param: value 输入参数。
+         * @param: defaultValue 输入参数。
+         * @param: key 输入参数。
+         * @return: 当前处理结果。
+         * @author: yigeyige99
+         */
         private static String version(String value, String defaultValue, String key) {
             String resolved = value == null || value.isBlank() ? defaultValue : value;
             if (!VERSION_PATTERN.matcher(resolved).matches()) {
@@ -217,6 +347,14 @@ public final class PostgresConnectionProbe {
         }
     }
 
+    /**
+     *
+     * @Description: 当前类型承载本模块的职责、边界与协作契约。
+     *
+     * @Version: 0.1.0
+     * @Author: yigeyige99
+     * @Date: 2026-09-26 19:35:36
+     */
     static final class ProbeConfigurationException extends IllegalArgumentException {
         private final String key;
 
@@ -225,6 +363,13 @@ public final class PostgresConnectionProbe {
             this.key = key;
         }
 
+        /**
+         *
+         * @description: 执行当前职责所需的处理。
+         *
+         * @return: 当前处理结果。
+         * @author: yigeyige99
+         */
         String key() {
             return key;
         }
