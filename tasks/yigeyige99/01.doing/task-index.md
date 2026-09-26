@@ -39,7 +39,7 @@ source: development-workplan
 | 011A | P0 领域模型与数据库 | [CUSTOM-DATA-001](../03.achieved/20260926-补充数据库审计字段.md) | 补充数据库审计字段 | [20260926-补充数据库审计字段.md](../03.achieved/20260926-补充数据库审计字段.md) | 已完成 | `DEV-DATA-001` |
 | 012 | P0 领域模型与数据库 | [DEV-DATA-002](../03.achieved/20260925-dev-data-002-建立身份和运行版本模型.md) | 建立身份和运行版本模型 | [20260925-dev-data-002-建立身份和运行版本模型.md](../03.achieved/20260925-dev-data-002-建立身份和运行版本模型.md) | 已完成 | `DEV-DATA-001` |
 | 013 | P0 领域模型与数据库 | [DEV-DATA-003](../03.achieved/20260925-dev-data-003-建立任务、范围、前提和步骤模型.md) | 建立任务、范围、前提和步骤模型 | [20260925-dev-data-003-建立任务、范围、前提和步骤模型.md](../03.achieved/20260925-dev-data-003-建立任务、范围、前提和步骤模型.md) | 已完成 | `DEV-DATA-001` |
-| 014 | P0 领域模型与数据库 | [DEV-DATA-004](20260925-dev-data-004-建立证据、覆盖度和判断模型.md) | 建立证据、覆盖度和判断模型 | [20260925-dev-data-004-建立证据、覆盖度和判断模型.md](20260925-dev-data-004-建立证据、覆盖度和判断模型.md) | 未完成 | `DEV-DATA-003` |
+| 014 | P0 领域模型与数据库 | [DEV-DATA-004](20260925-dev-data-004-建立证据、覆盖度和判断模型.md) | 建立证据、覆盖度和判断模型 | [20260925-dev-data-004-建立证据、覆盖度和判断模型.md](20260925-dev-data-004-建立证据、覆盖度和判断模型.md) | 已完成 | `DEV-DATA-003` |
 | 015 | P0 领域模型与数据库 | [DEV-DATA-005](20260925-dev-data-005-建立决策包、复核、发布和交接模型.md) | 建立决策包、复核、发布和交接模型 | [20260925-dev-data-005-建立决策包、复核、发布和交接模型.md](20260925-dev-data-005-建立决策包、复核、发布和交接模型.md) | 未完成 | `DEV-DATA-003`、`DEV-DATA-004` |
 | 016 | P0 领域模型与数据库 | [DEV-DATA-006](20260925-dev-data-006-建立Harness状态与checkpoint模型.md) | 建立 Harness 状态与 checkpoint 模型 | [20260925-dev-data-006-建立Harness状态与checkpoint模型.md](20260925-dev-data-006-建立Harness状态与checkpoint模型.md) | 未完成 | `DEV-DATA-003` |
 | 017 | P0 领域模型与数据库 | [DEV-DATA-007](20260925-dev-data-007-建立审计和本地outbox.md) | 建立审计和本地 outbox | [20260925-dev-data-007-建立审计和本地outbox.md](20260925-dev-data-007-建立审计和本地outbox.md) | 未完成 | `DEV-DATA-002`、`DEV-DATA-003` |

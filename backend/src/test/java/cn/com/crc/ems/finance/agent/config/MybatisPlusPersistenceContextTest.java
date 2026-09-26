@@ -19,6 +19,9 @@ class MybatisPlusPersistenceContextTest {
         assertThat(applicationContext.containsBean("agentUserMapper")).isTrue();
         assertThat(applicationContext.containsBean("runtimeBundleMapper")).isTrue();
         assertThat(applicationContext.containsBean("investigationTaskMapper")).isTrue();
+        assertThat(applicationContext.containsBean("factSnapshotMapper")).isTrue();
+        assertThat(applicationContext.containsBean("coverageRecordMapper")).isTrue();
+        assertThat(applicationContext.containsBean("findingMapper")).isTrue();
         assertThat(applicationContext.containsBean("financeAgentJdbcTemplate")).isFalse();
     }
 }

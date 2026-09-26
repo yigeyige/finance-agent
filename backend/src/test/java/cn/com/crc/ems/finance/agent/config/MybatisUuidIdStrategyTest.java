@@ -13,6 +13,11 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.core.incrementer.DefaultIdentifierGenerator;
 
 import cn.com.crc.ems.finance.agent.governance.infrastructure.entity.RuntimeBundleEntity;
+import cn.com.crc.ems.finance.agent.evidence.infrastructure.entity.ComputationWitnessEntity;
+import cn.com.crc.ems.finance.agent.evidence.infrastructure.entity.CoverageRecordEntity;
+import cn.com.crc.ems.finance.agent.evidence.infrastructure.entity.FactSnapshotEntity;
+import cn.com.crc.ems.finance.agent.evidence.infrastructure.entity.FindingEntity;
+import cn.com.crc.ems.finance.agent.evidence.infrastructure.entity.ProfessionalConfirmationEntity;
 import cn.com.crc.ems.finance.agent.iam.infrastructure.entity.AgentUserEntity;
 import cn.com.crc.ems.finance.agent.iam.infrastructure.entity.RoleBindingEntity;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid;
@@ -37,7 +42,12 @@ class MybatisUuidIdStrategyTest {
             InvestigationStepEntity.class,
             StepApprovalEntity.class,
             TaskLeaseEntity.class,
-            ToolInvocationEntity.class);
+            ToolInvocationEntity.class,
+            FactSnapshotEntity.class,
+            CoverageRecordEntity.class,
+            FindingEntity.class,
+            ComputationWitnessEntity.class,
+            ProfessionalConfirmationEntity.class);
 
     @Test
     void allPersistenceIdsUseAssignUuidAndStringStorageType() throws NoSuchFieldException {

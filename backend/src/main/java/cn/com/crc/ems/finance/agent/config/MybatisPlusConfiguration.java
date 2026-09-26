@@ -15,7 +15,8 @@ import org.springframework.context.annotation.Configuration;
 @MapperScan({
         "cn.com.crc.ems.finance.agent.iam.infrastructure.mapper",
         "cn.com.crc.ems.finance.agent.governance.infrastructure.mapper",
-        "cn.com.crc.ems.finance.agent.task.infrastructure.mapper"
+        "cn.com.crc.ems.finance.agent.task.infrastructure.mapper",
+        "cn.com.crc.ems.finance.agent.evidence.infrastructure.mapper"
 })
 public class MybatisPlusConfiguration {
 }
