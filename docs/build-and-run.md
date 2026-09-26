@@ -97,4 +97,6 @@ Invoke-WebRequest http://localhost:8081/api/v1/diagnostics -Headers @{
 
 后端控制台日志使用 Spring Boot 结构化 JSON 格式，包含有限的 `traceId`、`taskId`、`stepId`、`invocationId` 上下文。日志字段过滤器会阻断密钥、密码、token、禁止字段以及完整 prompt/response/reasoning；人工验收时应确认这些原文不出现在日志中。
 
+对象存储边界：P0 决策包 JSON/HTML 的权威内容继续保存在 PostgreSQL；local/test 的对象网关只允许写入受控临时根目录，并受 `FINANCE_AGENT_STORAGE_MAX_BYTES` 限制。prod 未接入正式适配器时启动校验失败，禁用网关也不会静默写本地文件。
+
 本任务不提供 Compose 文件，不要求挂载 Docker socket，也不由应用创建数据库或管理员对象。

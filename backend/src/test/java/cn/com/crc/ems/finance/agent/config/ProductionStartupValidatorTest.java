@@ -41,6 +41,7 @@ class ProductionStartupValidatorTest {
         properties.getWorkspace().setRoot("/srv/finance-agent");
         properties.getIdentity().setMode(FinanceAgentProperties.IdentityMode.SSO);
         properties.getStorage().setMode(FinanceAgentProperties.StorageMode.OBJECT_STORE);
+        properties.getStorage().setAdapterId("s3");
         properties.getSource().setStub(false);
         properties.getFieldPolicy().setStrict(true);
 
@@ -57,5 +58,27 @@ class ProductionStartupValidatorTest {
         assertThat(properties.getDeepSeek().isStub()).isTrue();
         assertThat(properties.getIdentity().getMode()).isEqualTo(FinanceAgentProperties.IdentityMode.TEST);
         assertThat(properties.getStorage().getMode()).isEqualTo(FinanceAgentProperties.StorageMode.LOCAL);
+    }
+
+    @Test
+    void rejectsProductionWithoutFormalStorageAdapter() {
+        FinanceAgentProperties properties = new FinanceAgentProperties();
+        properties.getDatabase().setUrl("jdbc:postgresql://db/finance");
+        properties.getDatabase().setUsername("agent");
+        properties.getDatabase().setPassword("database-secret");
+        properties.getDeepSeek().setApiKey("deepseek-secret");
+        properties.getDeepSeek().setBaseUrl("https://api.deepseek.com");
+        properties.getDeepSeek().setStub(false);
+        properties.getWorkspace().setRoot("/srv/finance-agent");
+        properties.getIdentity().setMode(FinanceAgentProperties.IdentityMode.SSO);
+        properties.getStorage().setMode(FinanceAgentProperties.StorageMode.OBJECT_STORE);
+        properties.getStorage().setAdapterId("none");
+        properties.getSource().setStub(false);
+        properties.getFieldPolicy().setStrict(true);
+
+        assertThatThrownBy(() -> ProductionStartupValidator.validateProduction(properties))
+                .hasMessageContaining("finance-agent.storage.adapter-id")
+                .hasMessageNotContaining("database-secret")
+                .hasMessageNotContaining("deepseek-secret");
     }
 }

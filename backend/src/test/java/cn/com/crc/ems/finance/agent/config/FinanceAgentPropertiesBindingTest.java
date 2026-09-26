@@ -28,6 +28,9 @@ class FinanceAgentPropertiesBindingTest {
                 .withProperty("finance-agent.budget.max-cost", "12.50")
                 .withProperty("finance-agent.identity.mode", "sso")
                 .withProperty("finance-agent.storage.mode", "object-store")
+                .withProperty("finance-agent.storage.adapter-id", "s3")
+                .withProperty("finance-agent.storage.temporary-root", "./runtime/objects")
+                .withProperty("finance-agent.storage.max-bytes", "123456")
                 .withProperty("finance-agent.field-policy.strict", "true")
                 .withProperty("finance-agent.diagnostics.api-enabled", "true")
                 .withProperty("finance-agent.database.connect-timeout-seconds", "3")
@@ -46,6 +49,8 @@ class FinanceAgentPropertiesBindingTest {
         assertThat(properties.getFieldPolicy().isStrict()).isTrue();
         assertThat(properties.getIdentity().getMode()).isEqualTo(FinanceAgentProperties.IdentityMode.SSO);
         assertThat(properties.getStorage().getMode()).isEqualTo(FinanceAgentProperties.StorageMode.OBJECT_STORE);
+        assertThat(properties.getStorage().getAdapterId()).isEqualTo("s3");
+        assertThat(properties.getStorage().getMaxBytes()).isEqualTo(123456L);
         assertThat(properties.getDiagnostics().isApiEnabled()).isTrue();
         assertThat(properties.getDatabase().getConnectTimeoutSeconds()).isEqualTo(3);
     }

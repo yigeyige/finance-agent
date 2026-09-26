@@ -280,6 +280,10 @@ public class FinanceAgentProperties {
 
     public static class Storage {
         private StorageMode mode;
+        private String adapterId;
+        private String temporaryRoot;
+        @Positive
+        private long maxBytes = 10 * 1024 * 1024L;
 
         public StorageMode getMode() {
             return mode;
@@ -287,6 +291,30 @@ public class FinanceAgentProperties {
 
         public void setMode(StorageMode mode) {
             this.mode = mode;
+        }
+
+        public String getAdapterId() {
+            return adapterId;
+        }
+
+        public void setAdapterId(String adapterId) {
+            this.adapterId = adapterId;
+        }
+
+        public String getTemporaryRoot() {
+            return temporaryRoot;
+        }
+
+        public void setTemporaryRoot(String temporaryRoot) {
+            this.temporaryRoot = temporaryRoot;
+        }
+
+        public long getMaxBytes() {
+            return maxBytes;
+        }
+
+        public void setMaxBytes(long maxBytes) {
+            this.maxBytes = maxBytes;
         }
     }
 

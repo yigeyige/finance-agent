@@ -71,6 +71,9 @@ public class ProductionStartupValidator {
         if (storage == null || storage.getMode() != FinanceAgentProperties.StorageMode.OBJECT_STORE) {
             violations.add("finance-agent.storage.mode");
         }
+        if (storage == null || isBlank(storage.getAdapterId()) || isDevelopmentStorageAdapter(storage.getAdapterId())) {
+            violations.add("finance-agent.storage.adapter-id");
+        }
         if (source == null || source.isStub()) {
             violations.add("finance-agent.source.stub");
         }
@@ -85,6 +88,11 @@ public class ProductionStartupValidator {
 
     private static boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private static boolean isDevelopmentStorageAdapter(String value) {
+        return "none".equalsIgnoreCase(value) || "temporary".equalsIgnoreCase(value)
+                || "local".equalsIgnoreCase(value) || "memory".equalsIgnoreCase(value);
     }
 
 }

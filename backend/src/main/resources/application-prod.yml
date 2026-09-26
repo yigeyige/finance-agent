@@ -26,6 +26,9 @@ finance-agent:
     mode: ${FINANCE_AGENT_IDENTITY_MODE:sso}
   storage:
     mode: ${FINANCE_AGENT_STORAGE_MODE:object-store}
+    adapter-id: ${FINANCE_AGENT_STORAGE_ADAPTER_ID:none}
+    temporary-root: ${FINANCE_AGENT_STORAGE_TEMPORARY_ROOT:}
+    max-bytes: ${FINANCE_AGENT_STORAGE_MAX_BYTES:52428800}
   field-policy:
     strict: ${FINANCE_AGENT_FIELD_STRICT:true}
   diagnostics:
