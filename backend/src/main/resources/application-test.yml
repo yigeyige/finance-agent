@@ -11,6 +11,8 @@ finance-agent:
     base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
     model: ${DEEPSEEK_MODEL:deepseek-chat}
     stub: ${FINANCE_AGENT_DEEPSEEK_STUB:true}
+  source:
+    stub: ${FINANCE_AGENT_SOURCE_STUB:true}
   workspace:
     root: ${FINANCE_AGENT_WORKSPACE_ROOT:./.runtime/finance-agent-test}
   budget:

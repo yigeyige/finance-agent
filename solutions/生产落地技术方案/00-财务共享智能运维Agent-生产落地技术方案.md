@@ -387,6 +387,14 @@ flowchart LR
 
 只有一个模型，不自动切换。模型不可用时进入 `PAUSED_MODEL_UNAVAILABLE`，确定性查询、证据浏览和已生成成果仍可用。达到任务成本预算时停止模型步骤并转人工；预算、token 和调用结果只记录元数据。上下文超限时压缩引用式摘要，压缩失败则请求人工缩小范围。
 
+### 13.3 最小诊断与日志边界
+
+- 后端暴露 Actuator `health`，`liveness` 只反映进程；`readiness` 区分数据库、模型 Stub 和源 Stub，状态检查不创建数据库对象、不调用真实模型或源系统。
+- `GET /api/v1/diagnostics` 只返回总体状态、组件状态和 `traceId/taskId/stepId/invocationId`，不返回配置值、凭证、异常原文、完整 prompt/response 或 reasoning。
+- 每个 HTTP 请求只接受有限长度的安全上下文 ID；缺失的 trace/invocation 由服务生成，并写入 MDC 和响应头，线程结束时清理，避免串联到下一请求。
+- 控制台采用结构化 JSON 日志。日志字段使用白名单，密钥、密码、token、禁止字段和模型原文被拒绝或替换为 `[REDACTED]`；诊断日志只记录状态、组件和安全原因码。
+- 该能力用于启动后人工诊断和定位，不替代监控、告警、审计持久化或正式可观测性平台。
+
 ## 14. 接口和数据契约概览
 
 前端只调用版本化 REST API；源系统只通过适配器；模型只通过 `ModelGateway`。关键接口如下：

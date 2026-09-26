@@ -15,6 +15,7 @@ public class FinanceAgentProperties {
 
     private Database database = new Database();
     private DeepSeek deepSeek = new DeepSeek();
+    private Source source = new Source();
     private Workspace workspace = new Workspace();
     private Budget budget = new Budget();
     private Identity identity = new Identity();
@@ -35,6 +36,14 @@ public class FinanceAgentProperties {
 
     public void setDeepSeek(DeepSeek deepSeek) {
         this.deepSeek = deepSeek;
+    }
+
+    public Source getSource() {
+        return source;
+    }
+
+    public void setSource(Source source) {
+        this.source = source;
     }
 
     public Workspace getWorkspace() {
@@ -136,6 +145,18 @@ public class FinanceAgentProperties {
         public void setModel(String model) {
             this.model = model;
         }
+
+        public boolean isStub() {
+            return stub;
+        }
+
+        public void setStub(boolean stub) {
+            this.stub = stub;
+        }
+    }
+
+    public static class Source {
+        private boolean stub;
 
         public boolean isStub() {
             return stub;

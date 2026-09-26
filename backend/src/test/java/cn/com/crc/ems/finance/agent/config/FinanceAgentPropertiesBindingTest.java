@@ -21,6 +21,7 @@ class FinanceAgentPropertiesBindingTest {
                 .withProperty("finance-agent.deep-seek.base-url", "https://api.deepseek.com")
                 .withProperty("finance-agent.deep-seek.model", "deepseek-chat")
                 .withProperty("finance-agent.deep-seek.stub", "false")
+                .withProperty("finance-agent.source.stub", "true")
                 .withProperty("finance-agent.workspace.root", "./runtime")
                 .withProperty("finance-agent.budget.max-steps", "32")
                 .withProperty("finance-agent.budget.max-tokens", "12000")
@@ -37,6 +38,7 @@ class FinanceAgentPropertiesBindingTest {
         assertThat(properties.getBudget().getMaxTokens()).isEqualTo(12000);
         assertThat(properties.getBudget().getMaxCost()).isEqualByComparingTo(new BigDecimal("12.50"));
         assertThat(properties.getDeepSeek().isStub()).isFalse();
+        assertThat(properties.getSource().isStub()).isTrue();
         assertThat(properties.getFieldPolicy().isStrict()).isTrue();
     }
 }
