@@ -6,6 +6,9 @@ finance-agent:
     url: ${FINANCE_AGENT_DB_URL:}
     username: ${FINANCE_AGENT_DB_USERNAME:}
     password: ${FINANCE_AGENT_DB_PASSWORD:}
+    connect-timeout-seconds: ${FINANCE_AGENT_DB_CONNECT_TIMEOUT_SECONDS:2}
+    socket-timeout-seconds: ${FINANCE_AGENT_DB_SOCKET_TIMEOUT_SECONDS:2}
+    validation-timeout-seconds: ${FINANCE_AGENT_DB_VALIDATION_TIMEOUT_SECONDS:2}
   deep-seek:
     api-key: ${DEEPSEEK_API_KEY:}
     base-url: ${DEEPSEEK_BASE_URL:}
@@ -25,3 +28,5 @@ finance-agent:
     mode: ${FINANCE_AGENT_STORAGE_MODE:object-store}
   field-policy:
     strict: ${FINANCE_AGENT_FIELD_STRICT:true}
+  diagnostics:
+    api-enabled: ${FINANCE_AGENT_DIAGNOSTICS_API_ENABLED:false}

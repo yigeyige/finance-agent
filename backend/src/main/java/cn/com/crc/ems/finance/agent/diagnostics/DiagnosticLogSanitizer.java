@@ -11,7 +11,7 @@ public final class DiagnosticLogSanitizer {
 
     public static final String REDACTED = "[REDACTED]";
     private static final Set<String> ALLOWED_FIELDS = Set.of(
-            "event", "component", "status", "reason", "durationMs", "outcome");
+            "event", "component", "status", "reason", "durationMs", "outcome", "exceptionType", "databaseState");
     private static final Pattern FORBIDDEN_KEY = Pattern.compile(
             "(?i).*(secret|token|password|credential|api[-_]?key|prompt|response|reasoning|sql|authorization).*" );
     private static final Pattern FORBIDDEN_VALUE = Pattern.compile(

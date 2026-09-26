@@ -2,7 +2,12 @@ package cn.com.crc.ems.finance.agent.config;
 
 import java.math.BigDecimal;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Positive;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * Runtime configuration for the finance agent.
@@ -11,16 +16,27 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * prevents accidental exposure when a configuration object is included in diagnostics.</p>
  */
 @ConfigurationProperties(prefix = "finance-agent")
+@Validated
 public class FinanceAgentProperties {
 
+    @Valid
     private Database database = new Database();
+    @Valid
     private DeepSeek deepSeek = new DeepSeek();
+    @Valid
     private Source source = new Source();
+    @Valid
     private Workspace workspace = new Workspace();
+    @Valid
     private Budget budget = new Budget();
+    @Valid
     private Identity identity = new Identity();
+    @Valid
     private Storage storage = new Storage();
+    @Valid
     private FieldPolicy fieldPolicy = new FieldPolicy();
+    @Valid
+    private Diagnostics diagnostics = new Diagnostics();
 
     public Database getDatabase() {
         return database;
@@ -86,10 +102,24 @@ public class FinanceAgentProperties {
         this.fieldPolicy = fieldPolicy;
     }
 
+    public Diagnostics getDiagnostics() {
+        return diagnostics;
+    }
+
+    public void setDiagnostics(Diagnostics diagnostics) {
+        this.diagnostics = diagnostics;
+    }
+
     public static class Database {
         private String url;
         private String username;
         private String password;
+        @Positive
+        private int connectTimeoutSeconds = 2;
+        @Positive
+        private int socketTimeoutSeconds = 2;
+        @Positive
+        private int validationTimeoutSeconds = 2;
 
         public String getUrl() {
             return url;
@@ -113,6 +143,30 @@ public class FinanceAgentProperties {
 
         public void setPassword(String password) {
             this.password = password;
+        }
+
+        public int getConnectTimeoutSeconds() {
+            return connectTimeoutSeconds;
+        }
+
+        public void setConnectTimeoutSeconds(int connectTimeoutSeconds) {
+            this.connectTimeoutSeconds = connectTimeoutSeconds;
+        }
+
+        public int getSocketTimeoutSeconds() {
+            return socketTimeoutSeconds;
+        }
+
+        public void setSocketTimeoutSeconds(int socketTimeoutSeconds) {
+            this.socketTimeoutSeconds = socketTimeoutSeconds;
+        }
+
+        public int getValidationTimeoutSeconds() {
+            return validationTimeoutSeconds;
+        }
+
+        public void setValidationTimeoutSeconds(int validationTimeoutSeconds) {
+            this.validationTimeoutSeconds = validationTimeoutSeconds;
         }
     }
 
@@ -180,8 +234,11 @@ public class FinanceAgentProperties {
     }
 
     public static class Budget {
+        @Positive
         private int maxSteps;
+        @Positive
         private int maxTokens;
+        @DecimalMin("0.0")
         private BigDecimal maxCost = BigDecimal.ZERO;
 
         public int getMaxSteps() {
@@ -210,25 +267,25 @@ public class FinanceAgentProperties {
     }
 
     public static class Identity {
-        private String mode;
+        private IdentityMode mode;
 
-        public String getMode() {
+        public IdentityMode getMode() {
             return mode;
         }
 
-        public void setMode(String mode) {
+        public void setMode(IdentityMode mode) {
             this.mode = mode;
         }
     }
 
     public static class Storage {
-        private String mode;
+        private StorageMode mode;
 
-        public String getMode() {
+        public StorageMode getMode() {
             return mode;
         }
 
-        public void setMode(String mode) {
+        public void setMode(StorageMode mode) {
             this.mode = mode;
         }
     }
@@ -243,5 +300,29 @@ public class FinanceAgentProperties {
         public void setStrict(boolean strict) {
             this.strict = strict;
         }
+    }
+
+    public static class Diagnostics {
+        private boolean apiEnabled;
+
+        public boolean isApiEnabled() {
+            return apiEnabled;
+        }
+
+        public void setApiEnabled(boolean apiEnabled) {
+            this.apiEnabled = apiEnabled;
+        }
+    }
+
+    public enum IdentityMode {
+        TEST,
+        STUB,
+        SSO
+    }
+
+    public enum StorageMode {
+        LOCAL,
+        MEMORY,
+        OBJECT_STORE
     }
 }

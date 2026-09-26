@@ -2,12 +2,11 @@ package cn.com.crc.ems.finance.agent.config;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,6 +18,7 @@ public class ProductionStartupValidator {
     private final Environment environment;
     private final FinanceAgentProperties properties;
 
+    @Autowired
     public ProductionStartupValidator(Environment environment, FinanceAgentProperties properties) {
         this.environment = environment;
         this.properties = properties;
@@ -38,6 +38,7 @@ public class ProductionStartupValidator {
         List<String> violations = new ArrayList<>();
         FinanceAgentProperties.Database database = properties.getDatabase();
         FinanceAgentProperties.DeepSeek deepSeek = properties.getDeepSeek();
+        FinanceAgentProperties.Source source = properties.getSource();
         FinanceAgentProperties.Workspace workspace = properties.getWorkspace();
         FinanceAgentProperties.Identity identity = properties.getIdentity();
         FinanceAgentProperties.Storage storage = properties.getStorage();
@@ -64,11 +65,14 @@ public class ProductionStartupValidator {
         if (workspace == null || isBlank(workspace.getRoot())) {
             violations.add("finance-agent.workspace.root");
         }
-        if (identity == null || isDevelopmentMode(identity.getMode())) {
+        if (identity == null || identity.getMode() != FinanceAgentProperties.IdentityMode.SSO) {
             violations.add("finance-agent.identity.mode");
         }
-        if (storage == null || isLocalStorage(storage.getMode())) {
+        if (storage == null || storage.getMode() != FinanceAgentProperties.StorageMode.OBJECT_STORE) {
             violations.add("finance-agent.storage.mode");
+        }
+        if (source == null || source.isStub()) {
+            violations.add("finance-agent.source.stub");
         }
         if (fieldPolicy == null || !fieldPolicy.isStrict()) {
             violations.add("finance-agent.field-policy.strict");
@@ -83,19 +87,4 @@ public class ProductionStartupValidator {
         return value == null || value.isBlank();
     }
 
-    private static boolean isDevelopmentMode(String value) {
-        if (isBlank(value)) {
-            return true;
-        }
-        String normalized = value.toLowerCase(Locale.ROOT);
-        return "test".equals(normalized) || "stub".equals(normalized);
-    }
-
-    private static boolean isLocalStorage(String value) {
-        if (isBlank(value)) {
-            return true;
-        }
-        String normalized = value.toLowerCase(Locale.ROOT);
-        return "local".equals(normalized) || "memory".equals(normalized);
-    }
 }

@@ -3,6 +3,7 @@ package cn.com.crc.ems.finance.agent.diagnostics;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import cn.com.crc.ems.finance.agent.config.FinanceAgentProperties;
 
@@ -12,6 +13,7 @@ public final class SourceStubHealthIndicator implements HealthIndicator, Diagnos
 
     private final FinanceAgentProperties properties;
 
+    @Autowired
     public SourceStubHealthIndicator(FinanceAgentProperties properties) {
         this.properties = properties;
     }

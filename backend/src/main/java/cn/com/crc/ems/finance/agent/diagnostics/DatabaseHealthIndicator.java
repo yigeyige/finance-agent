@@ -3,7 +3,11 @@ package cn.com.crc.ems.finance.agent.diagnostics;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.stereotype.Component;
@@ -14,9 +18,11 @@ import cn.com.crc.ems.finance.agent.config.FinanceAgentProperties;
 @Component("database")
 public final class DatabaseHealthIndicator implements HealthIndicator, DiagnosticProbe {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseHealthIndicator.class);
     private final FinanceAgentProperties properties;
     private final ConnectionOpener connectionOpener;
 
+    @Autowired
     public DatabaseHealthIndicator(FinanceAgentProperties properties) {
         this(properties, DriverManager::getConnection);
     }
@@ -38,13 +44,13 @@ public final class DatabaseHealthIndicator implements HealthIndicator, Diagnosti
                 || isBlank(database.getPassword())) {
             return new DiagnosticComponentStatus(name(), "DOWN", "configuration_missing");
         }
-        try (Connection connection = connectionOpener.open(withShortTimeout(database.getUrl()),
-                database.getUsername(), database.getPassword())) {
-            if (connection.isValid(2)) {
+        try (Connection connection = connectionOpener.open(database.getUrl(), connectionProperties(database))) {
+            if (connection.isValid(database.getValidationTimeoutSeconds())) {
                 return new DiagnosticComponentStatus(name(), "UP", "read_only_probe_ok");
             }
             return new DiagnosticComponentStatus(name(), "DOWN", "connection_invalid");
         } catch (SQLException | RuntimeException exception) {
+            DiagnosticFailureTelemetry.log(LOGGER, name(), exception);
             return new DiagnosticComponentStatus(name(), "DOWN", "connection_failed");
         }
     }
@@ -60,15 +66,17 @@ public final class DatabaseHealthIndicator implements HealthIndicator, Diagnosti
         return value == null || value.isBlank();
     }
 
-    private static String withShortTimeout(String url) {
-        if (url.contains("connectTimeout=")) {
-            return url;
-        }
-        return url + (url.contains("?") ? "&" : "?") + "connectTimeout=2&socketTimeout=2";
+    private static Properties connectionProperties(FinanceAgentProperties.Database database) {
+        Properties connectionProperties = new Properties();
+        connectionProperties.setProperty("user", database.getUsername());
+        connectionProperties.setProperty("password", database.getPassword());
+        connectionProperties.setProperty("connectTimeout", String.valueOf(database.getConnectTimeoutSeconds()));
+        connectionProperties.setProperty("socketTimeout", String.valueOf(database.getSocketTimeoutSeconds()));
+        return connectionProperties;
     }
 
     @FunctionalInterface
     interface ConnectionOpener {
-        Connection open(String url, String username, String password) throws SQLException;
+        Connection open(String url, Properties properties) throws SQLException;
     }
 }

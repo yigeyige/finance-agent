@@ -13,12 +13,16 @@ class DiagnosticLogSanitizerTest {
         Map<String, String> result = DiagnosticLogSanitizer.sanitize(Map.of(
                 "event", "diagnostics_checked",
                 "status", "UP",
+                "exceptionType", "SQLException",
+                "databaseState", "08001",
                 "password", "do-not-print",
                 "prompt", "full prompt text",
                 "outcome", "bearer secret-token"));
 
         assertThat(result).containsEntry("event", "diagnostics_checked")
                 .containsEntry("status", "UP")
+                .containsEntry("exceptionType", "SQLException")
+                .containsEntry("databaseState", "08001")
                 .containsEntry("password", DiagnosticLogSanitizer.REDACTED)
                 .containsEntry("prompt", DiagnosticLogSanitizer.REDACTED)
                 .containsEntry("outcome", DiagnosticLogSanitizer.REDACTED)

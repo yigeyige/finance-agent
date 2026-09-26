@@ -28,7 +28,11 @@ class FinanceAgentPropertiesBindingTest {
                 .withProperty("finance-agent.budget.max-cost", "12.50")
                 .withProperty("finance-agent.identity.mode", "sso")
                 .withProperty("finance-agent.storage.mode", "object-store")
-                .withProperty("finance-agent.field-policy.strict", "true");
+                .withProperty("finance-agent.field-policy.strict", "true")
+                .withProperty("finance-agent.diagnostics.api-enabled", "true")
+                .withProperty("finance-agent.database.connect-timeout-seconds", "3")
+                .withProperty("finance-agent.database.socket-timeout-seconds", "4")
+                .withProperty("finance-agent.database.validation-timeout-seconds", "5");
 
         FinanceAgentProperties properties = Binder.get(environment)
                 .bind("finance-agent", Bindable.of(FinanceAgentProperties.class))
@@ -40,5 +44,9 @@ class FinanceAgentPropertiesBindingTest {
         assertThat(properties.getDeepSeek().isStub()).isFalse();
         assertThat(properties.getSource().isStub()).isTrue();
         assertThat(properties.getFieldPolicy().isStrict()).isTrue();
+        assertThat(properties.getIdentity().getMode()).isEqualTo(FinanceAgentProperties.IdentityMode.SSO);
+        assertThat(properties.getStorage().getMode()).isEqualTo(FinanceAgentProperties.StorageMode.OBJECT_STORE);
+        assertThat(properties.getDiagnostics().isApiEnabled()).isTrue();
+        assertThat(properties.getDatabase().getConnectTimeoutSeconds()).isEqualTo(3);
     }
 }

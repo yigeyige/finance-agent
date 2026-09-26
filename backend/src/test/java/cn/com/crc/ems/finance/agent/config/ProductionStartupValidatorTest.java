@@ -14,6 +14,7 @@ class ProductionStartupValidatorTest {
         properties.getDatabase().setPassword("database-secret");
         properties.getDeepSeek().setApiKey("deepseek-secret");
         properties.getDeepSeek().setStub(true);
+        properties.getSource().setStub(true);
 
         assertThatThrownBy(() -> ProductionStartupValidator.validateProduction(properties))
                 .isInstanceOf(IllegalStateException.class)
@@ -22,6 +23,7 @@ class ProductionStartupValidatorTest {
                 .hasMessageContaining("finance-agent.deep-seek.stub")
                 .hasMessageContaining("finance-agent.identity.mode")
                 .hasMessageContaining("finance-agent.storage.mode")
+                .hasMessageContaining("finance-agent.source.stub")
                 .hasMessageContaining("finance-agent.field-policy.strict")
                 .hasMessageNotContaining("database-secret")
                 .hasMessageNotContaining("deepseek-secret");
@@ -37,8 +39,9 @@ class ProductionStartupValidatorTest {
         properties.getDeepSeek().setBaseUrl("https://api.deepseek.com");
         properties.getDeepSeek().setStub(false);
         properties.getWorkspace().setRoot("/srv/finance-agent");
-        properties.getIdentity().setMode("sso");
-        properties.getStorage().setMode("object-store");
+        properties.getIdentity().setMode(FinanceAgentProperties.IdentityMode.SSO);
+        properties.getStorage().setMode(FinanceAgentProperties.StorageMode.OBJECT_STORE);
+        properties.getSource().setStub(false);
         properties.getFieldPolicy().setStrict(true);
 
         assertThatCode(() -> ProductionStartupValidator.validateProduction(properties)).doesNotThrowAnyException();
@@ -48,11 +51,11 @@ class ProductionStartupValidatorTest {
     void localDefaultsCanKeepStubAndLocalStorage() {
         FinanceAgentProperties properties = new FinanceAgentProperties();
         properties.getDeepSeek().setStub(true);
-        properties.getIdentity().setMode("test");
-        properties.getStorage().setMode("local");
+        properties.getIdentity().setMode(FinanceAgentProperties.IdentityMode.TEST);
+        properties.getStorage().setMode(FinanceAgentProperties.StorageMode.LOCAL);
 
         assertThat(properties.getDeepSeek().isStub()).isTrue();
-        assertThat(properties.getIdentity().getMode()).isEqualTo("test");
-        assertThat(properties.getStorage().getMode()).isEqualTo("local");
+        assertThat(properties.getIdentity().getMode()).isEqualTo(FinanceAgentProperties.IdentityMode.TEST);
+        assertThat(properties.getStorage().getMode()).isEqualTo(FinanceAgentProperties.StorageMode.LOCAL);
     }
 }

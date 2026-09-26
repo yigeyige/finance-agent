@@ -5,6 +5,8 @@ import java.util.LinkedHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,12 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 /** Read-only, non-sensitive diagnostics endpoint. */
 @RestController
 @RequestMapping("/api/v1/diagnostics")
+@ConditionalOnProperty(prefix = "finance-agent.diagnostics", name = "api-enabled", havingValue = "true")
 public final class DiagnosticsController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DiagnosticsController.class);
 
     private final DiagnosticHealthService healthService;
 
+    @Autowired
     public DiagnosticsController(DiagnosticHealthService healthService) {
         this.healthService = healthService;
     }
