@@ -24,6 +24,7 @@ finance-agent:
     max-cost: ${FINANCE_AGENT_MAX_COST:0}
   identity:
     mode: ${FINANCE_AGENT_IDENTITY_MODE:test}
+    seed-enabled: ${FINANCE_AGENT_IDENTITY_SEED_ENABLED:false}
   storage:
     mode: ${FINANCE_AGENT_STORAGE_MODE:memory}
     adapter-id: ${FINANCE_AGENT_STORAGE_ADAPTER_ID:temporary}

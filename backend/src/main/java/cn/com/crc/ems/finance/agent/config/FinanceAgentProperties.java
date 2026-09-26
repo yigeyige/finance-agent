@@ -318,6 +318,7 @@ public class FinanceAgentProperties {
      */
     public static class Identity {
         private IdentityMode mode;
+        private boolean seedEnabled;
 
         public IdentityMode getMode() {
             return mode;
@@ -325,6 +326,14 @@ public class FinanceAgentProperties {
 
         public void setMode(IdentityMode mode) {
             this.mode = mode;
+        }
+
+        public boolean isSeedEnabled() {
+            return seedEnabled;
+        }
+
+        public void setSeedEnabled(boolean seedEnabled) {
+            this.seedEnabled = seedEnabled;
         }
     }
 

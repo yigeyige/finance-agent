@@ -27,6 +27,7 @@ class FinanceAgentPropertiesBindingTest {
                 .withProperty("finance-agent.budget.max-tokens", "12000")
                 .withProperty("finance-agent.budget.max-cost", "12.50")
                 .withProperty("finance-agent.identity.mode", "sso")
+                .withProperty("finance-agent.identity.seed-enabled", "true")
                 .withProperty("finance-agent.storage.mode", "object-store")
                 .withProperty("finance-agent.storage.adapter-id", "s3")
                 .withProperty("finance-agent.storage.temporary-root", "./runtime/objects")
@@ -48,6 +49,7 @@ class FinanceAgentPropertiesBindingTest {
         assertThat(properties.getSource().isStub()).isTrue();
         assertThat(properties.getFieldPolicy().isStrict()).isTrue();
         assertThat(properties.getIdentity().getMode()).isEqualTo(FinanceAgentProperties.IdentityMode.SSO);
+        assertThat(properties.getIdentity().isSeedEnabled()).isTrue();
         assertThat(properties.getStorage().getMode()).isEqualTo(FinanceAgentProperties.StorageMode.OBJECT_STORE);
         assertThat(properties.getStorage().getAdapterId()).isEqualTo("s3");
         assertThat(properties.getStorage().getMaxBytes()).isEqualTo(123456L);
