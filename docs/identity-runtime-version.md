@@ -1,6 +1,6 @@
 # 身份与运行版本模型验证
 
-DEV-DATA-002 通过参数化 Spring JDBC 仓储访问 `iam.agent_user`、`iam.role_binding` 和 `governance.runtime_bundle`。合成数据默认关闭，仅在 `local` 或 `test` profile 配置 `FINANCE_AGENT_IDENTITY_SEED_ENABLED=true` 时执行一次幂等种子写入；`prod` profile 不注册种子执行器。
+DEV-DATA-002 通过 MyBatis-Plus 3.5.17 Mapper 仓储访问 `iam.agent_user`、`iam.role_binding` 和 `governance.runtime_bundle`。合成数据默认关闭，仅在 `local` 或 `test` profile 配置 `FINANCE_AGENT_IDENTITY_SEED_ENABLED=true` 时执行一次幂等种子写入；`prod` profile 不注册种子执行器。
 
 ## 数据库核对
 

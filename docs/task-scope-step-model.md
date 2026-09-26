@@ -1,6 +1,6 @@
 # 任务、范围、前提和步骤模型验证
 
-DEV-DATA-003 复用 V3/V8 迁移中的 task 表，通过参数化 Spring JDBC 仓储访问。范围修订只允许追加，任务更新携带 `row_version`，活动租约由部分唯一索引保护，工具调用由 `idempotency_key` 唯一约束保护。
+DEV-DATA-003 复用 V3/V8 迁移中的 task 表，通过 MyBatis-Plus 3.5.17 Mapper 仓储访问。范围修订只允许追加，任务更新携带 `row_version`，活动租约由部分唯一索引保护，工具调用由 `idempotency_key` 唯一约束保护。
 
 ## 约束核对
 
