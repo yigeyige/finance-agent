@@ -6,7 +6,7 @@
 ## Requirements
 ### Requirement: Versioned task scope persistence
 
-系统 SHALL 通过参数化 JDBC 仓储持久化任务、范围修订和前提，并将范围权限字段以带 `schemaVersion` 的 JSONB 对象保存；范围修订 SHALL 只追加，不提供原位更新。
+系统 SHALL 通过参数化 JDBC 仓储持久化任务、范围修订和前提，并将范围权限字段以带 `schemaVersion` 的 JSONB 对象保存；范围修订 SHALL 只追加，不提供原位更新；只有确认请求才能绑定新的当前范围修订。
 
 #### Scenario: Scope revision is append-only
 - **WHEN** 为任务提交新的范围修订
@@ -23,6 +23,10 @@
 #### Scenario: Trailing JSON content is rejected
 - **WHEN** 范围 JSON 在首个 JSON 值之后包含额外 JSON token 或其他非空内容
 - **THEN** 领域边界拒绝该值，不执行数据库更新
+
+#### Scenario: Unconfirmed revision is not current
+- **WHEN** 范围请求尚未通过确认应用服务
+- **THEN** 系统不更新任务的 `currentScopeRevisionId`，步骤审批和运行路径不能引用该请求
 
 ### Requirement: Step approval binding
 
@@ -59,4 +63,3 @@
 #### Scenario: Invocation status is auditable
 - **WHEN** 调用状态从 intent 进入运行或完成状态
 - **THEN** 仓储保存状态、时间、响应摘要或错误码，且不删除原始调用记录
-

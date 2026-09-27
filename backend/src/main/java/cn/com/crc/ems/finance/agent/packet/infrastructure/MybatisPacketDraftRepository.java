@@ -38,4 +38,12 @@ public class MybatisPacketDraftRepository implements PacketDraftRepository {
     public void insert(PacketDraft draft) {
         mapper.insert(MybatisPacketMappings.toEntity(draft));
     }
+
+    @Override
+    public int markStaleByScopeRevision(UUID taskId, UUID scopeRevisionId, UUID actorUserId,
+            java.time.Instant updatedAt) {
+        return mapper.markStaleByScopeRevision(cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(taskId),
+                cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(scopeRevisionId),
+                cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(actorUserId), updatedAt);
+    }
 }

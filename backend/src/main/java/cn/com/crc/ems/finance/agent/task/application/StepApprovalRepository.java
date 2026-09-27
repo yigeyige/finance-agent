@@ -13,4 +13,8 @@ public interface StepApprovalRepository {
 
     /** 追加步骤审批。 */
     void insert(StepApproval approval);
+
+    /** 将任务旧范围下仍生效的审批标记为 stale。 */
+    int markStaleByScopeRevision(UUID taskId, UUID scopeRevisionId, UUID actorUserId,
+            java.time.Instant updatedAt);
 }

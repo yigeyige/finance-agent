@@ -16,4 +16,8 @@ public interface PacketDraftRepository {
 
     /** 追加草稿，不提供原位修改。 */
     void insert(PacketDraft draft);
+
+    /** 将任务旧范围下的当前草稿标记为 stale。 */
+    int markStaleByScopeRevision(UUID taskId, UUID scopeRevisionId, UUID actorUserId,
+            java.time.Instant updatedAt);
 }

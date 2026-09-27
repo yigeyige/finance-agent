@@ -80,7 +80,7 @@ public final class TaskStateMachine {
         EnumMap<TaskStatus, Set<TaskStatus>> result = new EnumMap<>(TaskStatus.class);
         allow(result, TaskStatus.DRAFT, TaskStatus.WAITING_SCOPE_CONFIRMATION);
         allow(result, TaskStatus.WAITING_SCOPE_CONFIRMATION, TaskStatus.READY);
-        allow(result, TaskStatus.READY, TaskStatus.WAITING_STEP_APPROVAL);
+        allow(result, TaskStatus.READY, TaskStatus.WAITING_SCOPE_CONFIRMATION, TaskStatus.WAITING_STEP_APPROVAL);
         allow(result, TaskStatus.WAITING_STEP_APPROVAL, TaskStatus.RUNNING_STEP, TaskStatus.STALE_APPROVAL);
         allow(result, TaskStatus.RUNNING_STEP, TaskStatus.ANALYZING, TaskStatus.FAILED_RECOVERABLE,
                 TaskStatus.PAUSED_MODEL_UNAVAILABLE, TaskStatus.PAUSED_BUDGET, TaskStatus.PAUSED_SOURCE_UNAVAILABLE);

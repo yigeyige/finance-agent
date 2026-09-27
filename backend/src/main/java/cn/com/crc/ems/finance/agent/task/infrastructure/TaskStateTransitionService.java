@@ -12,6 +12,7 @@ import cn.com.crc.ems.finance.agent.task.application.TaskStateEventRepository;
 import cn.com.crc.ems.finance.agent.task.application.TaskStateTransitionCommand;
 import cn.com.crc.ems.finance.agent.task.application.TaskStateTransitionResult;
 import cn.com.crc.ems.finance.agent.task.domain.InvestigationTask;
+import cn.com.crc.ems.finance.agent.task.domain.InvalidTaskTransitionException;
 import cn.com.crc.ems.finance.agent.task.domain.TaskStateEvent;
 import cn.com.crc.ems.finance.agent.task.domain.TaskStateMachine;
 import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
@@ -55,7 +56,12 @@ public class TaskStateTransitionService {
                 .orElseThrow(() -> new RepositoryEntityNotFoundException("investigation task not found"));
         stateMachine.transition(current.status(), command.targetStatus(), command.reason(),
                 command.approvalStillValid());
-        InvestigationTask updated = updatedTask(current, command.targetStatus(), command.occurredAt());
+        if (requiresConfirmedScope(command.targetStatus()) && current.currentScopeRevisionId() == null
+                && command.scopeRevisionId() == null) {
+            throw new InvalidTaskTransitionException("confirmed scope is required before step execution");
+        }
+        InvestigationTask updated = updatedTask(current, command.targetStatus(), command.scopeRevisionId(),
+                command.occurredAt());
         taskRepository.updateWithVersionOrThrow(updated, current.rowVersion());
         TaskStateEvent event = new TaskStateEvent(UuidGenerator.newUuid(), current.taskId(), current.status(),
                 command.targetStatus(), command.reason(), command.actorUserId(), command.occurredAt(),
@@ -64,11 +70,21 @@ public class TaskStateTransitionService {
         return new TaskStateTransitionResult(updated, event);
     }
 
-    private static InvestigationTask updatedTask(InvestigationTask current, TaskStatus target, Instant occurredAt) {
+    private static boolean requiresConfirmedScope(TaskStatus target) {
+        return target == TaskStatus.WAITING_STEP_APPROVAL || target == TaskStatus.RUNNING_STEP
+                || target == TaskStatus.ANALYZING || target == TaskStatus.WAITING_PROFESSIONAL_CONFIRMATION
+                || target == TaskStatus.DRAFT_PACKET || target == TaskStatus.WAITING_REVIEW
+                || target == TaskStatus.RECHECKING_SCOPE || target == TaskStatus.READY_TO_PUBLISH
+                || target == TaskStatus.PUBLISHED || target == TaskStatus.HANDED_OFF || target == TaskStatus.CLOSED;
+    }
+
+    private static InvestigationTask updatedTask(InvestigationTask current, TaskStatus target,
+            java.util.UUID scopeRevisionId, Instant occurredAt) {
         Instant closedAt = target == TaskStatus.CLOSED || target == TaskStatus.CANCELLED
                         ? occurredAt : current.closedAt();
         return new InvestigationTask(current.taskId(), current.title(), current.originalQuestion(),
-                current.initiatorUserId(), target, current.runtimeBundleId(), current.currentScopeRevisionId(),
+                current.initiatorUserId(), target, current.runtimeBundleId(),
+                scopeRevisionId == null ? current.currentScopeRevisionId() : scopeRevisionId,
                 current.currentStepId(), current.createdAt(), occurredAt, current.rowVersion() + 1, closedAt,
                 current.createdBy(), current.updatedBy());
     }

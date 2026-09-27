@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://task-draft-request/1.0.0",
+  "title": "Task draft request",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "originalQuestion", "initiatorUserId", "runtimeBundleId"],
+  "properties": {
+    "title": {"type": "string", "minLength": 1, "maxLength": 300},
+    "originalQuestion": {"type": "string", "minLength": 1, "maxLength": 8000},
+    "initiatorUserId": {"type": "string", "format": "uuid"},
+    "runtimeBundleId": {"type": "string", "format": "uuid"}
+  }
+}

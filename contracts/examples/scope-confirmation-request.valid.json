@@ -1,0 +1,11 @@
+{
+  "systemCode": "FIN-SYN",
+  "objectSelector": {"module": "approval"},
+  "effectiveTimeRange": {"from": "2026-01-01", "to": "2026-12-31"},
+  "includedPaths": ["workflow.approvers"],
+  "excludedPaths": [],
+  "allowedReadFields": ["workflow.approvers.userId"],
+  "allowedRetainFields": ["workflow.id", "workflow.approvers.userId"],
+  "allowedModelFields": ["workflow.approvers.userId"],
+  "schemaVersion": "scope-v1"
+}

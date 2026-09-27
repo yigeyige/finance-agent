@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://task-premise-request/1.0.0",
+  "title": "Task premise request",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["premiseType", "subjectKey", "statement", "sourceDescription"],
+  "properties": {
+    "premiseType": {"type": "string", "minLength": 1, "maxLength": 50},
+    "subjectKey": {"type": "string", "minLength": 1, "maxLength": 200},
+    "statement": {"type": "string", "minLength": 1, "maxLength": 2000},
+    "sourceDescription": {"type": "string", "minLength": 1, "maxLength": 2000}
+  }
+}

@@ -23,6 +23,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/ActorUserId"
           }
         ],
         "requestBody": {
@@ -30,7 +33,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "../json-schema/task-1.0.0.schema.json"
+                "$ref": "../json-schema/task-draft-request-1.0.0.schema.json"
               }
             }
           }
@@ -41,7 +44,98 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "../json-schema/task-1.0.0.schema.json"
+                  "$ref": "../json-schema/task-intake-response-1.0.0.schema.json"
+                }
+              }
+            }
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ContractError"
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{taskId}/premises": {
+      "post": {
+        "operationId": "addTaskPremise",
+        "security": [
+          {
+            "unifiedAuth": ["OPERATOR"]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/ActorUserId"
+          },
+          {
+            "$ref": "#/components/parameters/TaskId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../json-schema/task-premise-request-1.0.0.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Premise appended"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ContractError"
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{taskId}/scope-confirmations": {
+      "post": {
+        "operationId": "confirmTaskScope",
+        "security": [
+          {
+            "unifiedAuth": ["OPERATOR"]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/ActorUserId"
+          },
+          {
+            "$ref": "#/components/parameters/TaskId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../json-schema/scope-confirmation-request-1.0.0.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Immutable scope revision confirmed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../json-schema/task-intake-response-1.0.0.schema.json"
                 }
               }
             }
@@ -165,6 +259,15 @@
           "type": "string",
           "minLength": 16,
           "maxLength": 200
+        }
+      },
+      "ActorUserId": {
+        "name": "X-Actor-User-Id",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
         }
       },
       "TaskId": {

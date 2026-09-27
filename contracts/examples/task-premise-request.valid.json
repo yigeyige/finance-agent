@@ -1,0 +1,6 @@
+{
+  "premiseType": "OPERATOR_PROVIDED",
+  "subjectKey": "EMP-SYN-001",
+  "statement": "合成人员已离职",
+  "sourceDescription": "运维人员在任务发起时提供"
+}

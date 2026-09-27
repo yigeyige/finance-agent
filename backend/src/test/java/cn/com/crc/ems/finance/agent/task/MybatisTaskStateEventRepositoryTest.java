@@ -17,6 +17,7 @@ import cn.com.crc.ems.finance.agent.governance.domain.AuditEvent;
 import cn.com.crc.ems.finance.agent.task.domain.TaskStateEvent;
 import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
 import cn.com.crc.ems.finance.agent.task.infrastructure.MybatisTaskStateEventRepository;
+import cn.com.crc.ems.finance.agent.task.infrastructure.TaskAuditEventAppender;
 
 /** 验证状态事件通过现有审计摘要链落库。 */
 class MybatisTaskStateEventRepositoryTest {
@@ -31,7 +32,7 @@ class MybatisTaskStateEventRepositoryTest {
                 TaskStatus.WAITING_SCOPE_CONFIRMATION, "submit-scope", UUID.randomUUID(),
                 Instant.parse("2026-09-27T01:00:00Z"), 1);
 
-        assertThat(new MybatisTaskStateEventRepository(audit).append(event)).isEqualTo(event);
+        assertThat(new MybatisTaskStateEventRepository(new TaskAuditEventAppender(audit)).append(event)).isEqualTo(event);
         var captured = org.mockito.ArgumentCaptor.forClass(AuditEvent.class);
         verify(audit).append(captured.capture());
         assertThat(captured.getValue().eventType()).isEqualTo("TASK_STATE_CHANGED");

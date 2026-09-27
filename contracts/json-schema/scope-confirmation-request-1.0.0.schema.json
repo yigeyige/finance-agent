@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://scope-confirmation-request/1.0.0",
+  "title": "Scope confirmation request",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["systemCode", "objectSelector", "effectiveTimeRange", "includedPaths", "excludedPaths", "allowedReadFields", "allowedRetainFields", "allowedModelFields", "schemaVersion"],
+  "properties": {
+    "systemCode": {"type": "string", "minLength": 1, "maxLength": 100},
+    "objectSelector": {"type": "object", "additionalProperties": true},
+    "effectiveTimeRange": {"type": ["object", "array"], "additionalProperties": true},
+    "includedPaths": {"type": ["object", "array"], "additionalProperties": true},
+    "excludedPaths": {"type": ["object", "array"], "additionalProperties": true},
+    "allowedReadFields": {"type": ["object", "array"], "additionalProperties": true},
+    "allowedRetainFields": {"type": ["object", "array"], "additionalProperties": true},
+    "allowedModelFields": {"type": ["object", "array"], "additionalProperties": true},
+    "schemaVersion": {"type": "string", "minLength": 1, "maxLength": 30}
+  }
+}
