@@ -2,6 +2,8 @@ package cn.com.crc.ems.finance.agent.shared.infrastructure;
 
 import java.util.UUID;
 
+import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
+
 /**
  *
  * @Description: 统一处理 MyBatis-Plus 字符串主键与领域 UUID 之间的持久化映射。
@@ -24,7 +26,7 @@ public final class PersistenceUuid {
      * @author: yigeyige99
      */
     public static String toStorage(UUID value) {
-        return value == null ? null : value.toString();
+        return UuidGenerator.toStorage(value);
     }
 
     /**
@@ -36,17 +38,6 @@ public final class PersistenceUuid {
      * @author: yigeyige99
      */
     public static UUID toDomain(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        String normalized = value.trim();
-        if (normalized.length() == 32) {
-            normalized = normalized.substring(0, 8) + "-"
-                    + normalized.substring(8, 12) + "-"
-                    + normalized.substring(12, 16) + "-"
-                    + normalized.substring(16, 20) + "-"
-                    + normalized.substring(20);
-        }
-        return UUID.fromString(normalized);
+        return UuidGenerator.parse(value);
     }
 }

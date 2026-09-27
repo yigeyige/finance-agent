@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
+import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJson;
+
 /**
  *
  * @Description: 带 schema 版本的 JSON 文档值对象，使用 Jackson 严格校验 JSON 容器。
@@ -41,6 +43,11 @@ public record VersionedJson(String schemaVersion, String json) {
         if (!parsed.isObject()) {
             throw new IllegalArgumentException("json must be an object");
         }
+    }
+
+    /** 返回使用共享规则编码的 canonical JSON 值。 */
+    public CanonicalJson canonical() {
+        return CanonicalJson.of(json);
     }
 
     /**
