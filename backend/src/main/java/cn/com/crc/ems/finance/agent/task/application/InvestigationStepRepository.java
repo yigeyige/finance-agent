@@ -20,4 +20,8 @@ public interface InvestigationStepRepository {
 
     /** 追加调查步骤。 */
     void insert(InvestigationStep step);
+
+    /** 更新步骤审批状态并记录审计操作者和时间。 */
+    int updateStatus(UUID stepId, cn.com.crc.ems.finance.agent.task.domain.StepStatus status,
+            UUID actorUserId, java.time.Instant updatedAt);
 }

@@ -1,0 +1,7 @@
+{
+  "steps": [
+    {"goal": "读取当前生效配置并核对审批链", "recommended": true},
+    {"goal": "比较相邻版本差异", "recommended": false},
+    {"goal": "枚举受影响对象引用", "recommended": false}
+  ]
+}

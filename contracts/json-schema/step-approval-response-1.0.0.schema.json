@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://step-approval-response/1.0.0",
+  "title": "Step Approval Response",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["taskId", "stepId", "approvalId", "revisionNo", "status", "approvalDigest", "expiresAt", "rowVersion", "decision"],
+  "properties": {
+    "taskId": {"type": "string", "format": "uuid"},
+    "stepId": {"type": ["string", "null"], "format": "uuid"},
+    "approvalId": {"type": ["string", "null"], "format": "uuid"},
+    "revisionNo": {"type": ["integer", "null"], "minimum": 1},
+    "status": {"type": "string", "enum": ["ACTIVE", "REJECTED"]},
+    "approvalDigest": {"type": ["string", "null"], "pattern": "^[a-fA-F0-9]{64}$"},
+    "expiresAt": {"type": ["string", "null"], "format": "date-time"},
+    "rowVersion": {"type": "integer", "minimum": 0},
+    "decision": {"type": "string", "enum": ["APPROVED", "REJECTED"]}
+  }
+}

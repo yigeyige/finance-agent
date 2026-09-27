@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://step-approval-request/1.0.0",
+  "title": "Step Approval Request",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["stepId", "goalHash", "sourceBindingId", "scopeRevisionId", "fieldPolicyVersion", "queryTemplateVersion", "maxCalls", "expectedRowVersion", "decision"],
+  "properties": {
+    "stepId": {"type": "string", "format": "uuid"},
+    "goalHash": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+    "sourceBindingId": {"type": "string", "format": "uuid"},
+    "scopeRevisionId": {"type": "string", "format": "uuid"},
+    "fieldPolicyVersion": {"type": "string", "minLength": 1, "maxLength": 80},
+    "queryTemplateVersion": {"type": "string", "minLength": 1, "maxLength": 80},
+    "maxCalls": {"type": "integer", "minimum": 1, "maximum": 100},
+    "expiresAt": {"type": ["string", "null"], "format": "date-time"},
+    "expectedRowVersion": {"type": "integer", "minimum": 0},
+    "decision": {"type": "string", "enum": ["APPROVED", "REJECTED"]}
+  }
+}

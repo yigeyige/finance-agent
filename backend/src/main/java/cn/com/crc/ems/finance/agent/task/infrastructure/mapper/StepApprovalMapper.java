@@ -18,4 +18,10 @@ public interface StepApprovalMapper extends BaseMapper<StepApprovalEntity> {
             + "WHERE task_id = CAST(#{taskId} AS uuid))")
     int markStaleByScopeRevision(@Param("taskId") String taskId, @Param("scopeRevisionId") String scopeRevisionId,
             @Param("actorUserId") String actorUserId, @Param("updatedAt") java.time.Instant updatedAt);
+
+    /** 仅允许活动审批转为 REVOKED，保留历史 revision。 */
+    @Update("UPDATE task.step_approval SET status = 'REVOKED', updated_by = CAST(#{actorUserId} AS uuid), "
+            + "updated_at = #{updatedAt} WHERE approval_id = CAST(#{approvalId} AS uuid) AND status = 'ACTIVE'")
+    int revoke(@Param("approvalId") String approvalId, @Param("actorUserId") String actorUserId,
+            @Param("updatedAt") java.time.Instant updatedAt);
 }

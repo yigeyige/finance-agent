@@ -1,6 +1,7 @@
 package cn.com.crc.ems.finance.agent.task.infrastructure;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
@@ -30,6 +31,11 @@ public class MybatisStepApprovalRepository implements StepApprovalRepository {
     }
 
     @Override
+    public Optional<StepApproval> findById(UUID approvalId) {
+        return Optional.ofNullable(mapper.selectById(approvalId)).map(MybatisTaskMappings::toDomain);
+    }
+
+    @Override
     public void insert(StepApproval approval) {
         mapper.insert(MybatisTaskMappings.toEntity(approval));
     }
@@ -39,6 +45,12 @@ public class MybatisStepApprovalRepository implements StepApprovalRepository {
             java.time.Instant updatedAt) {
         return mapper.markStaleByScopeRevision(cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(taskId),
                 cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(scopeRevisionId),
+                cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(actorUserId), updatedAt);
+    }
+
+    @Override
+    public int revoke(UUID approvalId, UUID actorUserId, java.time.Instant updatedAt) {
+        return mapper.revoke(cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(approvalId),
                 cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(actorUserId), updatedAt);
     }
 }

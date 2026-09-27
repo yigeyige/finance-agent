@@ -1,8 +1,11 @@
 package cn.com.crc.ems.finance.agent.task.infrastructure.mapper;
 
+import java.util.UUID;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
@@ -20,4 +23,10 @@ public interface InvestigationStepMapper extends BaseMapper<InvestigationStepEnt
             + "LIMIT 1 FOR UPDATE OF s, t SKIP LOCKED")
     InvestigationStepEntity selectNextForUpdateSkipLocked(@Param("taskStatus") String taskStatus,
             @Param("stepStatus") String stepStatus);
+
+    /** 更新步骤状态，避免在应用层直接拼接 SQL。 */
+    @Update("UPDATE task.investigation_step SET status = #{status}, updated_by = #{actorUserId}, "
+            + "updated_at = #{updatedAt} WHERE step_id = #{stepId}")
+    int updateStatus(@Param("stepId") UUID stepId, @Param("status") String status,
+            @Param("actorUserId") UUID actorUserId, @Param("updatedAt") java.time.Instant updatedAt);
 }

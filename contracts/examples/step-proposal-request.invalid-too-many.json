@@ -1,0 +1,8 @@
+{
+  "steps": [
+    {"goal": "步骤一", "recommended": true},
+    {"goal": "步骤二", "recommended": false},
+    {"goal": "步骤三", "recommended": false},
+    {"goal": "步骤四", "recommended": false}
+  ]
+}

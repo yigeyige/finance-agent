@@ -162,6 +162,9 @@
             "$ref": "#/components/parameters/IdempotencyKey"
           },
           {
+            "$ref": "#/components/parameters/ActorUserId"
+          },
+          {
             "$ref": "#/components/parameters/TaskId"
           }
         ],
@@ -170,14 +173,63 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "../json-schema/step-approval-1.0.0.schema.json"
+                "$ref": "../json-schema/step-approval-request-1.0.0.schema.json"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Approval revision created"
+            "description": "Approval revision created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../json-schema/step-approval-response-1.0.0.schema.json"
+                }
+              }
+            }
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ContractError"
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{taskId}/step-proposals": {
+      "post": {
+        "operationId": "createStepProposal",
+        "security": [
+          {
+            "unifiedAuth": ["OPERATOR"]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/ActorUserId"
+          },
+          {
+            "$ref": "#/components/parameters/TaskId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../json-schema/step-proposal-request-1.0.0.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bounded step proposal created"
           },
           "409": {
             "$ref": "#/components/responses/Conflict"

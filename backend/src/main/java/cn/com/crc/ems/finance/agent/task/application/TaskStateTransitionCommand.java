@@ -7,11 +7,17 @@ import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
 
 /** 请求推进任务状态的应用命令。 */
 public record TaskStateTransitionCommand(UUID taskId, TaskStatus targetStatus, String reason,
-        UUID actorUserId, Instant occurredAt, boolean approvalStillValid, UUID scopeRevisionId) {
+        UUID actorUserId, Instant occurredAt, boolean approvalStillValid, UUID scopeRevisionId,
+        UUID stepId) {
 
     public TaskStateTransitionCommand(UUID taskId, TaskStatus targetStatus, String reason,
             UUID actorUserId, Instant occurredAt, boolean approvalStillValid) {
         this(taskId, targetStatus, reason, actorUserId, occurredAt, approvalStillValid, null);
+    }
+
+    public TaskStateTransitionCommand(UUID taskId, TaskStatus targetStatus, String reason,
+            UUID actorUserId, Instant occurredAt, boolean approvalStillValid, UUID scopeRevisionId) {
+        this(taskId, targetStatus, reason, actorUserId, occurredAt, approvalStillValid, scopeRevisionId, null);
     }
 
     public TaskStateTransitionCommand {

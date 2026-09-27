@@ -48,4 +48,10 @@ public class MybatisInvestigationStepRepository implements InvestigationStepRepo
     public void insert(InvestigationStep step) {
         mapper.insert(MybatisTaskMappings.toEntity(step));
     }
+
+    @Override
+    public int updateStatus(UUID stepId, cn.com.crc.ems.finance.agent.task.domain.StepStatus status,
+            UUID actorUserId, java.time.Instant updatedAt) {
+        return mapper.updateStatus(stepId, status.name(), actorUserId, updatedAt);
+    }
 }
