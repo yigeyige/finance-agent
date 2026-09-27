@@ -1,7 +1,7 @@
 ---
 id: 20260925-dev-data-007
 title: "建立审计和本地 outbox"
-status: todo
+status: done
 priority: high
 owner: ""
 created_at: 2026-09-25
@@ -24,11 +24,11 @@ source_task: DEV-DATA-007
 
 ## 目标
 
-- [ ] 实现 `audit_event` 和 `outbox_event`。
-- [ ] 审计事件使用前序摘要链和规范化 payload。
-- [ ] 只记录必要元数据，不复制证据原文。
-- [ ] 发布事务可同库写入审计和 outbox。
-- [ ] 交付并核对以下产物：迁移、审计追加接口、outbox 仓储。
+- [x] 实现 `audit_event` 和 `outbox_event`。
+- [x] 审计事件使用前序摘要链和规范化 payload。
+- [x] 只记录必要元数据，不复制证据原文。
+- [x] 发布事务可同库写入审计和 outbox。
+- [x] 交付并核对以下产物：迁移、审计追加接口、outbox 仓储。
 
 ## 验收标准
 
@@ -49,3 +49,6 @@ source_task: DEV-DATA-007
 ## 执行记录
 
 - 2026-09-25：从开发任务基线 `DEV-DATA-007` 拆分为独立 task；当前状态为 `todo`，尚未开始开发。
+- 2026-09-27：完成审计摘要链、规范化 payload、outbox 幂等模型、V10 迁移、MyBatis-Plus 仓储和本地事务写入器；定向 13 项测试通过。
+- 2026-09-27：后端编译通过，全量测试 79 项通过；OpenSpec `audit-outbox-persistence` 任务清单已全部完成，等待用户确认归档。
+- 2026-09-27：用户确认归档；已同步 OpenSpec 主规格并归档 `audit-outbox-persistence`，任务文件移入 `03.achieved/`。
