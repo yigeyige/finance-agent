@@ -28,6 +28,13 @@ public class MybatisInvestigationTaskRepository implements InvestigationTaskRepo
     }
 
     @Override
+    public Optional<InvestigationTask> findByIdForUpdate(UUID taskId) {
+        return Optional.ofNullable(mapper.selectByIdForUpdate(
+                cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(taskId)))
+                .map(MybatisTaskMappings::toDomain);
+    }
+
+    @Override
     public void insert(InvestigationTask task) {
         mapper.insert(MybatisTaskMappings.toEntity(task));
     }
@@ -35,6 +42,7 @@ public class MybatisInvestigationTaskRepository implements InvestigationTaskRepo
     @Override
     public boolean updateWithVersion(InvestigationTask task, long expectedRowVersion) {
         InvestigationTaskEntity entity = MybatisTaskMappings.toEntity(task);
+        entity.rowVersion = expectedRowVersion + 1;
         return mapper.update(entity, new UpdateWrapper<InvestigationTaskEntity>().eq("task_id", task.taskId())
                 .eq("row_version", expectedRowVersion)) == 1;
     }

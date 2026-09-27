@@ -1,13 +1,13 @@
 ---
 id: 20260925-dev-data-009
 title: "实现 PostgreSQL 仓储事务边界"
-status: todo
+status: done
 priority: high
 owner: ""
 created_at: 2026-09-25
 type: development
 source: development-workplan
-openspec_change: finance-agent-development-task-baseline
+openspec_change: postgres-repository-transaction-boundary
 source_task: DEV-DATA-009
 ---
 
@@ -24,10 +24,10 @@ source_task: DEV-DATA-009
 
 ## 目标
 
-- [ ] 使用 Spring JDBC/显式 SQL 实现仓储。
-- [ ] 定义任务锁、发布事务、租约领取和只读查询事务。
-- [ ] 禁止 controller/Harness 直接访问 JDBC。
-- [ ] 交付并核对以下产物：仓储适配器、事务服务、数据库异常到领域错误映射。
+- [x] 使用项目当前 MyBatis-Plus 基线实现参数化显式 PostgreSQL SQL。
+- [x] 定义任务锁、发布事务、租约领取和只读查询事务。
+- [x] 禁止 controller/Harness 直接访问 JDBC。
+- [x] 交付并核对以下产物：仓储适配器、事务服务、数据库异常到领域错误映射。
 
 ## 验收标准
 
@@ -41,9 +41,12 @@ source_task: DEV-DATA-009
 ## 来源与关联
 
 - 来源任务：`DEV-DATA-009`
-- OpenSpec 变更：`finance-agent-development-task-baseline`
+- OpenSpec 变更：`postgres-repository-transaction-boundary`
 - 目标代码仓库：`D:\Work\CR_git\emsld\finance_agent`
 
 ## 执行记录
 
 - 2026-09-25：从开发任务基线 `DEV-DATA-009` 拆分为独立 task；当前状态为 `todo`，尚未开始开发。
+- 2026-09-27：按当前 MyBatis-Plus 3.5.17 技术基线新增任务行锁、就绪步骤 `FOR UPDATE SKIP LOCKED` SQL、租约领取事务、原子发布事务、只读查询事务和 PostgreSQL 异常映射。
+- 2026-09-27：新增 SQL/事务契约测试；后端编译通过，定向测试通过，全量测试 91 项通过；OpenSpec `postgres-repository-transaction-boundary` 清单完成，等待用户确认归档。
+- 2026-09-27：已同步主规格并归档 OpenSpec `postgres-repository-transaction-boundary`；任务文件移入 `03.achieved/`。

@@ -15,6 +15,9 @@ public interface InvestigationStepRepository {
     /** 查询任务的有序步骤。 */
     List<InvestigationStep> findByTaskId(UUID taskId);
 
+    /** 在当前事务中按 PostgreSQL 行锁语义领取下一步。 */
+    Optional<InvestigationStep> findNextForUpdateSkipLocked(String taskStatus, String stepStatus);
+
     /** 追加调查步骤。 */
     void insert(InvestigationStep step);
 }

@@ -36,6 +36,15 @@ public class MybatisInvestigationStepRepository implements InvestigationStepRepo
     }
 
     @Override
+    public Optional<InvestigationStep> findNextForUpdateSkipLocked(String taskStatus, String stepStatus) {
+        if (taskStatus == null || taskStatus.isBlank() || stepStatus == null || stepStatus.isBlank()) {
+            throw new IllegalArgumentException("taskStatus and stepStatus are required");
+        }
+        return Optional.ofNullable(mapper.selectNextForUpdateSkipLocked(taskStatus, stepStatus))
+                .map(MybatisTaskMappings::toDomain);
+    }
+
+    @Override
     public void insert(InvestigationStep step) {
         mapper.insert(MybatisTaskMappings.toEntity(step));
     }
