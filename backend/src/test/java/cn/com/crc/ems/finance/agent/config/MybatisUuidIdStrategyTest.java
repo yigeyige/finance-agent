@@ -13,6 +13,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.core.incrementer.DefaultIdentifierGenerator;
 
 import cn.com.crc.ems.finance.agent.governance.infrastructure.entity.RuntimeBundleEntity;
+import cn.com.crc.ems.finance.agent.harness.infrastructure.entity.CheckpointEntity;
+import cn.com.crc.ems.finance.agent.harness.infrastructure.entity.PlanRevisionEntity;
+import cn.com.crc.ems.finance.agent.harness.infrastructure.entity.SessionStateEntity;
+import cn.com.crc.ems.finance.agent.harness.infrastructure.entity.WorkspaceRefEntity;
 import cn.com.crc.ems.finance.agent.evidence.infrastructure.entity.ComputationWitnessEntity;
 import cn.com.crc.ems.finance.agent.evidence.infrastructure.entity.CoverageRecordEntity;
 import cn.com.crc.ems.finance.agent.evidence.infrastructure.entity.FactSnapshotEntity;
@@ -55,7 +59,11 @@ class MybatisUuidIdStrategyTest {
             PacketDraftEntity.class,
             PacketReviewEntity.class,
             PacketRevisionEntity.class,
-            HandoffEntity.class);
+            HandoffEntity.class,
+            SessionStateEntity.class,
+            CheckpointEntity.class,
+            PlanRevisionEntity.class,
+            WorkspaceRefEntity.class);
 
     @Test
     void allPersistenceIdsUseAssignUuidAndStringStorageType() throws NoSuchFieldException {

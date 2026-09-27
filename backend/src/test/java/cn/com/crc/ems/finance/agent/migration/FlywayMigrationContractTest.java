@@ -16,7 +16,7 @@ class FlywayMigrationContractTest {
 
     @Test
     void migrationFilesContainRequiredSchemasAndNoPlatformDdl() throws IOException {
-        String sql = IntStream.rangeClosed(1, 8)
+        String sql = IntStream.rangeClosed(1, 9)
                 .mapToObj(version -> read("db/migration/V" + version + "__" + suffix(version) + ".sql"))
                 .reduce("", (left, right) -> left + "\n" + right);
 
@@ -50,6 +50,7 @@ class FlywayMigrationContractTest {
             case 6 -> "harness";
             case 7 -> "knowledge";
             case 8 -> "audit_fields";
+            case 9 -> "harness_plan_workspace";
             default -> throw new IllegalArgumentException("unsupported migration version");
         };
     }
