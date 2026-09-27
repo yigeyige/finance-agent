@@ -16,5 +16,16 @@ public record TaskLease(UUID leaseId, UUID taskId, UUID stepId, String ownerInst
         if (ownerInstance == null || ownerInstance.isBlank()) {
             throw new IllegalArgumentException("ownerInstance must not be blank");
         }
+        if (expiresAt.isBefore(heartbeatAt)) {
+            throw new IllegalArgumentException("expiresAt must not be before heartbeatAt");
+        }
+    }
+
+    /** 判断租约是否已经严格早于观察时刻，等于时刻仍视为有效。 */
+    public boolean isExpiredAt(Instant observedAt) {
+        if (observedAt == null) {
+            throw new IllegalArgumentException("observedAt is required");
+        }
+        return expiresAt.isBefore(observedAt) && releasedAt == null;
     }
 }

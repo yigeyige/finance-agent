@@ -41,6 +41,7 @@ import cn.com.crc.ems.finance.agent.task.infrastructure.TransactionalTaskExecuti
 import cn.com.crc.ems.finance.agent.task.infrastructure.MybatisInvestigationTaskRepository;
 import cn.com.crc.ems.finance.agent.task.infrastructure.mapper.InvestigationTaskMapper;
 import cn.com.crc.ems.finance.agent.task.infrastructure.mapper.InvestigationStepMapper;
+import cn.com.crc.ems.finance.agent.task.infrastructure.mapper.TaskLeaseMapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 
 /** 验证 PostgreSQL 锁 SQL、事务入口和数据库异常映射契约。 */
@@ -58,6 +59,9 @@ class PostgresRepositoryTransactionContractTest {
                 .doesNotContain("+");
         assertThat(stepClaimSql).contains("#{taskStatus}", "#{stepStatus}", "ORDER BY s.created_at ASC, s.step_id ASC",
                 "LIMIT 1 FOR UPDATE OF s, t SKIP LOCKED").doesNotContain("+");
+        String expiredLeaseSql = selectSql(TaskLeaseMapper.class, "selectExpired", Instant.class, int.class);
+        assertThat(expiredLeaseSql).contains("released_at IS NULL", "expires_at < #{observedAt}",
+                "ORDER BY expires_at ASC, lease_id ASC", "LIMIT #{limit}").doesNotContain("+");
     }
 
     @Test

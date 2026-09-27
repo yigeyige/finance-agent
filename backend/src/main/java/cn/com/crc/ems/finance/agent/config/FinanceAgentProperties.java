@@ -3,7 +3,11 @@ package cn.com.crc.ems.finance.agent.config;
 import java.math.BigDecimal;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -39,6 +43,8 @@ public class FinanceAgentProperties {
     private FieldPolicy fieldPolicy = new FieldPolicy();
     @Valid
     private Diagnostics diagnostics = new Diagnostics();
+    @Valid
+    private Worker worker = new Worker();
 
     public Database getDatabase() {
         return database;
@@ -112,6 +118,14 @@ public class FinanceAgentProperties {
         this.diagnostics = diagnostics;
     }
 
+    public Worker getWorker() {
+        return worker;
+    }
+
+    public void setWorker(Worker worker) {
+        this.worker = worker;
+    }
+
     /**
      *
      * @Description: 当前类型承载本模块的职责、边界与协作契约。
@@ -130,6 +144,9 @@ public class FinanceAgentProperties {
         private int socketTimeoutSeconds = 2;
         @Positive
         private int validationTimeoutSeconds = 2;
+        @Min(1)
+        @Max(64)
+        private int connectionPoolSize = 10;
 
         public String getUrl() {
             return url;
@@ -177,6 +194,14 @@ public class FinanceAgentProperties {
 
         public void setValidationTimeoutSeconds(int validationTimeoutSeconds) {
             this.validationTimeoutSeconds = validationTimeoutSeconds;
+        }
+
+        public int getConnectionPoolSize() {
+            return connectionPoolSize;
+        }
+
+        public void setConnectionPoolSize(int connectionPoolSize) {
+            this.connectionPoolSize = connectionPoolSize;
         }
     }
 
@@ -422,6 +447,118 @@ public class FinanceAgentProperties {
 
         public void setApiEnabled(boolean apiEnabled) {
             this.apiEnabled = apiEnabled;
+        }
+    }
+
+    /**
+     *
+     * @Description: PostgreSQL Worker 的开关、租约和有限资源配置。
+     *
+     * @Version: 0.1.0
+     * @Author: yigeyige99
+     * @Date: 2026-09-28 10:10:00
+     */
+    public static class Worker {
+        private boolean enabled;
+        @NotBlank
+        private String ownerInstance = "local-worker";
+        @Min(1)
+        @Max(64)
+        private int workerCount = 1;
+        @Min(1)
+        @Max(64)
+        private int connectionPoolSize = 4;
+        @Min(1)
+        @Max(10000)
+        private int queueCapacity = 16;
+        @Min(10)
+        @Max(600000)
+        private long pollIntervalMillis = 1000;
+        @Min(100)
+        @Max(3600000)
+        private long leaseDurationMillis = 30000;
+        @Min(10)
+        @Max(1800000)
+        private long heartbeatIntervalMillis = 10000;
+        @Min(100)
+        @Max(3600000)
+        private long shutdownGracePeriodMillis = 30000;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getOwnerInstance() {
+            return ownerInstance;
+        }
+
+        public void setOwnerInstance(String ownerInstance) {
+            this.ownerInstance = ownerInstance;
+        }
+
+        public int getWorkerCount() {
+            return workerCount;
+        }
+
+        public void setWorkerCount(int workerCount) {
+            this.workerCount = workerCount;
+        }
+
+        public int getConnectionPoolSize() {
+            return connectionPoolSize;
+        }
+
+        public void setConnectionPoolSize(int connectionPoolSize) {
+            this.connectionPoolSize = connectionPoolSize;
+        }
+
+        public int getQueueCapacity() {
+            return queueCapacity;
+        }
+
+        public void setQueueCapacity(int queueCapacity) {
+            this.queueCapacity = queueCapacity;
+        }
+
+        public long getPollIntervalMillis() {
+            return pollIntervalMillis;
+        }
+
+        public void setPollIntervalMillis(long pollIntervalMillis) {
+            this.pollIntervalMillis = pollIntervalMillis;
+        }
+
+        public long getLeaseDurationMillis() {
+            return leaseDurationMillis;
+        }
+
+        public void setLeaseDurationMillis(long leaseDurationMillis) {
+            this.leaseDurationMillis = leaseDurationMillis;
+        }
+
+        public long getHeartbeatIntervalMillis() {
+            return heartbeatIntervalMillis;
+        }
+
+        public void setHeartbeatIntervalMillis(long heartbeatIntervalMillis) {
+            this.heartbeatIntervalMillis = heartbeatIntervalMillis;
+        }
+
+        public long getShutdownGracePeriodMillis() {
+            return shutdownGracePeriodMillis;
+        }
+
+        public void setShutdownGracePeriodMillis(long shutdownGracePeriodMillis) {
+            this.shutdownGracePeriodMillis = shutdownGracePeriodMillis;
+        }
+
+        @AssertTrue(message = "worker heartbeat interval must be shorter than lease duration")
+        public boolean isHeartbeatBeforeLeaseExpiry() {
+            return heartbeatIntervalMillis < leaseDurationMillis;
         }
     }
 

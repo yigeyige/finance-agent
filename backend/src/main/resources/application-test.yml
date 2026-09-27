@@ -9,6 +9,7 @@ finance-agent:
     connect-timeout-seconds: ${FINANCE_AGENT_DB_CONNECT_TIMEOUT_SECONDS:2}
     socket-timeout-seconds: ${FINANCE_AGENT_DB_SOCKET_TIMEOUT_SECONDS:2}
     validation-timeout-seconds: ${FINANCE_AGENT_DB_VALIDATION_TIMEOUT_SECONDS:2}
+    connection-pool-size: ${FINANCE_AGENT_API_CONNECTION_POOL_SIZE:10}
   deep-seek:
     api-key: ${DEEPSEEK_API_KEY:}
     base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
@@ -34,3 +35,13 @@ finance-agent:
     strict: ${FINANCE_AGENT_FIELD_STRICT:true}
   diagnostics:
     api-enabled: ${FINANCE_AGENT_DIAGNOSTICS_API_ENABLED:false}
+  worker:
+    enabled: ${FINANCE_AGENT_WORKER_ENABLED:false}
+    owner-instance: ${FINANCE_AGENT_WORKER_OWNER_INSTANCE:test-worker}
+    worker-count: ${FINANCE_AGENT_WORKER_COUNT:1}
+    connection-pool-size: ${FINANCE_AGENT_WORKER_CONNECTION_POOL_SIZE:4}
+    queue-capacity: ${FINANCE_AGENT_WORKER_QUEUE_CAPACITY:4}
+    poll-interval-millis: ${FINANCE_AGENT_WORKER_POLL_INTERVAL_MILLIS:1000}
+    lease-duration-millis: ${FINANCE_AGENT_WORKER_LEASE_DURATION_MILLIS:30000}
+    heartbeat-interval-millis: ${FINANCE_AGENT_WORKER_HEARTBEAT_INTERVAL_MILLIS:10000}
+    shutdown-grace-period-millis: ${FINANCE_AGENT_WORKER_SHUTDOWN_GRACE_PERIOD_MILLIS:30000}

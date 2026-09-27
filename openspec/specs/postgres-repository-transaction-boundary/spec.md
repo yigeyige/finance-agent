@@ -8,7 +8,7 @@
 
 ### Requirement: PostgreSQL repository lock and transaction boundaries
 
-系统 SHALL 通过 MyBatis-Plus Mapper 和 Spring 事务服务集中实现 PostgreSQL 锁、写事务和只读事务；Controller/Harness 不得直接访问数据库。
+系统 SHALL 通过 MyBatis-Plus Mapper 和 Spring 事务服务集中实现 PostgreSQL 锁、写事务和只读事务；Controller/Harness 不得直接访问数据库。就绪步骤领取、任务/步骤状态推进和活动租约创建 SHALL 位于同一个短写事务中，等待人工或未获批步骤不得进入领取事务。
 
 #### Scenario: Task lock protects a multi-repository use case
 
@@ -18,7 +18,12 @@
 #### Scenario: Ready step claiming avoids worker blocking
 
 - **WHEN** 多个 Worker 同时领取可执行步骤
-- **THEN** 领取查询使用 `FOR UPDATE SKIP LOCKED` 和稳定排序，已被其他事务锁定的步骤被跳过
+- **THEN** 领取查询使用 `FOR UPDATE SKIP LOCKED` 和稳定排序，已被其他事务锁定的步骤被跳过，领取状态变化与租约写入在同一事务提交
+
+#### Scenario: Claim rolls back as one unit
+
+- **WHEN** 租约插入、步骤状态更新或任务状态推进任一操作失败
+- **THEN** 当前领取事务回滚，不留下孤立租约或半更新状态
 
 #### Scenario: Lease uniqueness remains the final concurrency guard
 
@@ -34,6 +39,11 @@
 
 - **WHEN** 查询任务、租约或已发布修订
 - **THEN** 通过 `readOnly=true` 事务服务执行，不隐式加入写事务
+
+#### Scenario: Expired takeover is serialized by task lock
+
+- **WHEN** 多个 Worker 同时接管同一过期租约
+- **THEN** 任务行锁使接管串行化，只有一个新租约提交成功，其他 Worker 看到新的活动租约并退出
 
 ### Requirement: Repository failure mapping is explicit
 

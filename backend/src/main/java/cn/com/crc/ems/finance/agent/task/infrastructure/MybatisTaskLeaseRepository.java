@@ -1,6 +1,7 @@
 package cn.com.crc.ems.finance.agent.task.infrastructure;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,20 +32,49 @@ public class MybatisTaskLeaseRepository implements TaskLeaseRepository {
     }
 
     @Override
+    public List<TaskLease> findExpired(Instant observedAt, int limit) {
+        if (observedAt == null || limit < 1 || limit > 1000) {
+            throw new IllegalArgumentException("observedAt and bounded positive limit are required");
+        }
+        return mapper.selectExpired(observedAt, limit).stream().map(MybatisTaskMappings::toDomain).toList();
+    }
+
+    @Override
     public void acquire(TaskLease lease) {
         mapper.insert(MybatisTaskMappings.toEntity(lease));
     }
 
     @Override
     public boolean heartbeat(UUID leaseId, Instant heartbeatAt, Instant expiresAt, UUID actorId) {
-        return mapper.update(null, new UpdateWrapper<TaskLeaseEntity>().eq("lease_id", leaseId).isNull("released_at")
+        return heartbeat(leaseId, null, heartbeatAt, expiresAt, actorId);
+    }
+
+    @Override
+    public boolean heartbeat(UUID leaseId, String ownerInstance, Instant heartbeatAt, Instant expiresAt, UUID actorId) {
+        UpdateWrapper<TaskLeaseEntity> update = activeLease(leaseId, ownerInstance)
                 .set("heartbeat_at", heartbeatAt).set("expires_at", expiresAt).set("updated_at", heartbeatAt)
-                .set("updated_by", actorId)) == 1;
+                .set("updated_by", actorId);
+        return mapper.update(null, update) == 1;
     }
 
     @Override
     public boolean release(UUID leaseId, Instant releasedAt, UUID actorId) {
-        return mapper.update(null, new UpdateWrapper<TaskLeaseEntity>().eq("lease_id", leaseId).isNull("released_at")
-                .set("released_at", releasedAt).set("updated_at", releasedAt).set("updated_by", actorId)) == 1;
+        return release(leaseId, null, releasedAt, actorId);
+    }
+
+    @Override
+    public boolean release(UUID leaseId, String ownerInstance, Instant releasedAt, UUID actorId) {
+        UpdateWrapper<TaskLeaseEntity> update = activeLease(leaseId, ownerInstance)
+                .set("released_at", releasedAt).set("updated_at", releasedAt).set("updated_by", actorId);
+        return mapper.update(null, update) == 1;
+    }
+
+    private UpdateWrapper<TaskLeaseEntity> activeLease(UUID leaseId, String ownerInstance) {
+        UpdateWrapper<TaskLeaseEntity> update = new UpdateWrapper<TaskLeaseEntity>().eq("lease_id", leaseId)
+                .isNull("released_at");
+        if (ownerInstance != null) {
+            update.eq("owner_instance", ownerInstance);
+        }
+        return update;
     }
 }

@@ -25,6 +25,19 @@ class FinanceAgentPropertiesValidationTest {
                 });
     }
 
+    @Test
+    void rejectsHeartbeatThatCanExpireBeforeItRuns() {
+        contextRunner.withPropertyValues(
+                        "finance-agent.budget.max-steps=1",
+                        "finance-agent.budget.max-tokens=1",
+                        "finance-agent.worker.lease-duration-millis=1000",
+                        "finance-agent.worker.heartbeat-interval-millis=1000")
+                .run(context -> {
+                    assertThat(context).hasFailed();
+                    assertThat(context.getStartupFailure()).hasStackTraceContaining("heartbeatBeforeLeaseExpiry");
+                });
+    }
+
     @Configuration(proxyBeanMethods = false)
     @EnableConfigurationProperties(FinanceAgentProperties.class)
     static class PropertiesConfiguration {

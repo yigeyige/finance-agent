@@ -55,5 +55,7 @@ class FinanceAgentPropertiesBindingTest {
         assertThat(properties.getStorage().getMaxBytes()).isEqualTo(123456L);
         assertThat(properties.getDiagnostics().isApiEnabled()).isTrue();
         assertThat(properties.getDatabase().getConnectTimeoutSeconds()).isEqualTo(3);
+        assertThat(properties.getWorker().isEnabled()).isFalse();
+        assertThat(properties.getWorker().getWorkerCount()).isEqualTo(1);
     }
 }
