@@ -20,6 +20,10 @@ import cn.com.crc.ems.finance.agent.evidence.infrastructure.entity.FindingEntity
 import cn.com.crc.ems.finance.agent.evidence.infrastructure.entity.ProfessionalConfirmationEntity;
 import cn.com.crc.ems.finance.agent.iam.infrastructure.entity.AgentUserEntity;
 import cn.com.crc.ems.finance.agent.iam.infrastructure.entity.RoleBindingEntity;
+import cn.com.crc.ems.finance.agent.packet.infrastructure.entity.HandoffEntity;
+import cn.com.crc.ems.finance.agent.packet.infrastructure.entity.PacketDraftEntity;
+import cn.com.crc.ems.finance.agent.packet.infrastructure.entity.PacketReviewEntity;
+import cn.com.crc.ems.finance.agent.packet.infrastructure.entity.PacketRevisionEntity;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid;
 import cn.com.crc.ems.finance.agent.task.infrastructure.entity.InvestigationStepEntity;
 import cn.com.crc.ems.finance.agent.task.infrastructure.entity.InvestigationTaskEntity;
@@ -47,7 +51,11 @@ class MybatisUuidIdStrategyTest {
             CoverageRecordEntity.class,
             FindingEntity.class,
             ComputationWitnessEntity.class,
-            ProfessionalConfirmationEntity.class);
+            ProfessionalConfirmationEntity.class,
+            PacketDraftEntity.class,
+            PacketReviewEntity.class,
+            PacketRevisionEntity.class,
+            HandoffEntity.class);
 
     @Test
     void allPersistenceIdsUseAssignUuidAndStringStorageType() throws NoSuchFieldException {
