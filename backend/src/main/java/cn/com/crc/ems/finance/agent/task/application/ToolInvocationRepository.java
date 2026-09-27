@@ -18,4 +18,11 @@ public interface ToolInvocationRepository {
     /** 更新调用状态和结果摘要。 */
     boolean updateStatus(String idempotencyKey, InvocationStatus status, String responseDigest,
             String errorCode, Instant completedAt, Instant updatedAt, java.util.UUID actorId);
+
+    /** 仅当数据库中的状态仍为 expectedStatus 时推进状态，防止覆盖并发终态。 */
+    default boolean updateStatusIfCurrent(String idempotencyKey, InvocationStatus expectedStatus,
+            InvocationStatus targetStatus, String responseDigest, String errorCode, Instant completedAt,
+            Instant updatedAt, java.util.UUID actorId) {
+        return updateStatus(idempotencyKey, targetStatus, responseDigest, errorCode, completedAt, updatedAt, actorId);
+    }
 }

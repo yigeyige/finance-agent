@@ -2,9 +2,9 @@ package cn.com.crc.ems.finance.agent.task;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentCaptor.forClass;
 
 import java.time.Instant;
 import java.util.List;
@@ -57,5 +57,21 @@ class MybatisTaskRepositoryContractTest {
         new MybatisToolInvocationRepository(mapper).findByIdempotencyKey("intent-1");
 
         verify(mapper).selectOne(any(QueryWrapper.class));
+    }
+
+    @Test
+    void invocationStatusUpdateUsesExpectedStatePredicate() {
+        ToolInvocationMapper mapper = org.mockito.Mockito.mock(ToolInvocationMapper.class);
+        when(mapper.update(any(), any(UpdateWrapper.class))).thenReturn(1);
+
+        boolean updated = new MybatisToolInvocationRepository(mapper).updateStatusIfCurrent("intent-1",
+                cn.com.crc.ems.finance.agent.task.domain.InvocationStatus.INTENT_RECORDED,
+                cn.com.crc.ems.finance.agent.task.domain.InvocationStatus.RUNNING, null, null, null,
+                Instant.now(), UUID.randomUUID());
+
+        assertThat(updated).isTrue();
+        var wrapper = forClass(UpdateWrapper.class);
+        verify(mapper).update(any(), wrapper.capture());
+        assertThat(wrapper.getValue().getSqlSegment()).contains("status");
     }
 }

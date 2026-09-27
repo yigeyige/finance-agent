@@ -49,6 +49,11 @@ public class TransactionalPacketPublisher {
         if (command == null) {
             throw new IllegalArgumentException("command is required");
         }
+        // 发布命令携带不可变 revisionId；提交成功后的重复请求直接重放原修订。
+        var existingRevision = revisionRepository.findById(command.revision().packetRevisionId());
+        if (existingRevision.isPresent()) {
+            return existingRevision.get();
+        }
         var task = taskRepository.findByIdForUpdate(command.taskId())
                 .orElseThrow(() -> new RepositoryEntityNotFoundException("investigation task not found"));
         if (task.status() != TaskStatus.READY_TO_PUBLISH) {

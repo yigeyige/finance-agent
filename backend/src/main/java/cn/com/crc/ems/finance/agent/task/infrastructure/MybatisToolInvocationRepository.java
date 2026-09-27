@@ -43,4 +43,14 @@ public class MybatisToolInvocationRepository implements ToolInvocationRepository
                 .set("status", status.name()).set("response_digest", responseDigest).set("error_code", errorCode)
                 .set("completed_at", completedAt).set("updated_at", updatedAt).set("updated_by", actorId)) == 1;
     }
+
+    @Override
+    public boolean updateStatusIfCurrent(String idempotencyKey, InvocationStatus expectedStatus,
+            InvocationStatus targetStatus, String responseDigest, String errorCode, Instant completedAt,
+            Instant updatedAt, UUID actorId) {
+        return mapper.update(null, new UpdateWrapper<ToolInvocationEntity>().eq("idempotency_key", idempotencyKey)
+                .eq("status", expectedStatus.name()).set("status", targetStatus.name())
+                .set("response_digest", responseDigest).set("error_code", errorCode)
+                .set("completed_at", completedAt).set("updated_at", updatedAt).set("updated_by", actorId)) == 1;
+    }
 }

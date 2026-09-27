@@ -127,6 +127,29 @@ class PostgresRepositoryTransactionContractTest {
     }
 
     @Test
+    void alreadyCommittedPublicationReplaysSameRevision() {
+        InvestigationTaskRepository tasks = mock(InvestigationTaskRepository.class);
+        PacketRevisionRepository revisions = mock(PacketRevisionRepository.class);
+        AuditOutboxTransaction auditOutbox = mock(AuditOutboxTransaction.class);
+        UUID taskId = UUID.randomUUID();
+        PacketRevision revision = revision(taskId);
+        when(revisions.findById(revision.packetRevisionId())).thenReturn(Optional.of(revision));
+        AuditEvent audit = AuditEvent.create(UUID.randomUUID(), taskId, UUID.randomUUID(), "PACKET_PUBLISHED", "packet",
+                revision.packetRevisionId().toString(), new VersionedJson("audit-payload-v1", "{}"), NOW, null, null, NOW,
+                null, NOW);
+        OutboxEvent outbox = new OutboxEvent(UUID.randomUUID(), "packet", revision.packetRevisionId().toString(),
+                "PACKET_PUBLISHED", "packet-published-replay", new VersionedJson("outbox-payload-v1", "{}"), NOW,
+                null, 0, null, null, NOW);
+
+        PublishTransactionCommand command = new PublishTransactionCommand(taskId,
+                task(taskId, TaskStatus.PUBLISHED, 4), revision, audit, outbox);
+
+        assertThat(new TransactionalPacketPublisher(tasks, revisions, auditOutbox).publish(command))
+                .isSameAs(revision);
+        verify(revisions).findById(revision.packetRevisionId());
+    }
+
+    @Test
     void readOnlyFacadeDeclaresReadOnlyTransactions() throws Exception {
         Method method = PostgresReadOnlyQueryService.class.getMethod("findTask", UUID.class);
         assertThat(method.getAnnotation(Transactional.class).readOnly()).isTrue();
