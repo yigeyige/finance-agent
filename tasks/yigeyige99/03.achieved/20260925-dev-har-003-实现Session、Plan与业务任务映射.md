@@ -1,13 +1,13 @@
 ---
 id: 20260925-dev-har-003
 title: "实现 Session、Plan 与业务任务映射"
-status: todo
+status: completed
 priority: high
-owner: ""
+owner: yigeyige99
 created_at: 2026-09-25
 type: development
 source: development-workplan
-openspec_change: finance-agent-development-task-baseline
+openspec_change: harness-session-plan-mapping
 source_task: DEV-HAR-003
 ---
 
@@ -24,11 +24,11 @@ source_task: DEV-HAR-003
 
 ## 目标
 
-- [ ] session 绑定 task/user/runtime bundle/scope。
-- [ ] 将 Harness plan 映射为计划修订。
-- [ ] 只把当前逻辑步骤转成审批卡。
-- [ ] 一个推荐、最多两个备选。
-- [ ] 交付并核对以下产物：Session 服务、Plan 映射器、计划 API 和 schema。
+- [x] session 绑定 task/user/runtime bundle/scope。
+- [x] 将 Harness plan 映射为计划修订。
+- [x] 只把当前逻辑步骤转成审批卡。
+- [x] 一个推荐、最多两个备选。
+- [x] 交付并核对以下产物：Session 服务、Plan 映射器、计划 API 和 schema。
 
 ## 验收标准
 
@@ -49,3 +49,4 @@ source_task: DEV-HAR-003
 ## 执行记录
 
 - 2026-09-25：从开发任务基线 `DEV-HAR-003` 拆分为独立 task；当前状态为 `todo`，尚未开始开发。
+- 2026-09-28：完成 session/task/user/runtime bundle/scope 绑定、追加式计划修订和严格 plan 映射；跨任务、额外字段和推荐数量错误均拒绝，映射不自动执行或预取；通过定向测试、`mvn -q verify`、Surefire 汇总检查和 `openspec validate --strict`。
