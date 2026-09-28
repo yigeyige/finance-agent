@@ -67,6 +67,9 @@ export interface PublishedPacketHandoff { handoffId: string; packetRevisionId: s
 export interface PublishedPacketResponse { taskId: string; packetRevisionId: string; revisionNo: number; canonicalJson: string; htmlSnapshot: string; contentDigest: string; checkedAt: string; sourceVersions: string; coverageSummary: string; limitations: string; publishedBy: string; publishedAt: string; taskStatus: TaskStatus; closedAt: string | null; handoff: PublishedPacketHandoff | null }
 export interface PacketHandoffResponse { taskId: string; packetRevisionId: string; handoffId: string; ownerReference: string; externalProcessReference: string | null; downstreamStatus: string; taskStatus: TaskStatus; handedOffAt: string }
 export interface TaskClosureResponse { taskId: string; taskStatus: TaskStatus; closedAt: string; handoffId: string; remediationComplete: false }
+export interface TaskDiagnosticStep { stepId: string; sequenceNo: number; goal: string; status: string }
+export interface TaskDiagnosticLease { status: 'NONE' | 'ACTIVE' | 'EXPIRED'; heartbeatAt: string | null; expiresAt: string | null }
+export interface TaskDiagnosticResponse { taskId: string; taskStatus: TaskStatus; currentStep: TaskDiagnosticStep | null; lease: TaskDiagnosticLease; approvalValid: boolean; pauseReason: string | null; lastErrorCode: string | null; manualReconciliationRequired: boolean; recoveryActions: string[] }
 
 const TASK_RESPONSE_FIELDS = ['taskId', 'title', 'status', 'rowVersion', 'currentScopeRevisionId', 'createdAt', 'premiseId', 'scopeRevisionNo', 'scopeDigest']
 const PUBLIC_EVENT_FIELDS = ['taskId', 'userId', 'sequence', 'eventType', 'status', 'publicReason', 'resultReference', 'occurredAt']

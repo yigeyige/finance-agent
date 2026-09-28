@@ -2,6 +2,7 @@ package cn.com.crc.ems.finance.agent.task.application;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.task.domain.InvocationStatus;
 import cn.com.crc.ems.finance.agent.task.domain.ToolInvocation;
@@ -11,6 +12,11 @@ public interface ToolInvocationRepository {
 
     /** 按幂等键查询原调用。 */
     Optional<ToolInvocation> findByIdempotencyKey(String idempotencyKey);
+
+    /** 查询任务最近一次工具调用摘要，供诊断只读汇总使用。 */
+    default Optional<ToolInvocation> findLatestByTaskId(UUID taskId) {
+        return Optional.empty();
+    }
 
     /** 追加调用意图。 */
     void insert(ToolInvocation invocation);

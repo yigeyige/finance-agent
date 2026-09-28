@@ -5,6 +5,7 @@ import WorkbenchHome from '../views/WorkbenchHome.vue'
 import EvidenceOverview from '../views/EvidenceOverview.vue'
 import PacketDraft from '../views/PacketDraft.vue'
 import PublishedPacket from '../views/PublishedPacket.vue'
+import TaskDiagnostics from '../views/TaskDiagnostics.vue'
 import { hasPermission } from '../services/identity'
 
 Vue.use(Router)
@@ -43,6 +44,12 @@ const router = new Router({
       name: 'published-packet',
       component: PublishedPacket,
       meta: { title: '已发布决策包', permission: 'PUBLISHED_PACKET_READ' },
+    },
+    {
+      path: '/tasks/:taskId/diagnostics',
+      name: 'task-diagnostics',
+      component: TaskDiagnostics,
+      meta: { title: '任务诊断', permission: 'TASK_READ' },
     },
   ],
 })

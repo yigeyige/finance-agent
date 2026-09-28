@@ -32,6 +32,13 @@ public class MybatisToolInvocationRepository implements ToolInvocationRepository
     }
 
     @Override
+    public Optional<ToolInvocation> findLatestByTaskId(UUID taskId) {
+        return mapper.selectList(new QueryWrapper<ToolInvocationEntity>().eq("task_id", taskId)
+                        .orderByDesc("started_at").last("LIMIT 1"))
+                .stream().findFirst().map(MybatisTaskMappings::toDomain);
+    }
+
+    @Override
     public void insert(ToolInvocation invocation) {
         mapper.insert(MybatisTaskMappings.toEntity(invocation));
     }
