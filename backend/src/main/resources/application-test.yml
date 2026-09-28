@@ -13,7 +13,7 @@ finance-agent:
   deep-seek:
     api-key: ${DEEPSEEK_API_KEY:}
     base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
-    model: ${DEEPSEEK_MODEL:deepseek-chat}
+    model: ${DEEPSEEK_MODEL:deepseek-flash}
     stub: ${FINANCE_AGENT_DEEPSEEK_STUB:true}
   source:
     stub: ${FINANCE_AGENT_SOURCE_STUB:true}

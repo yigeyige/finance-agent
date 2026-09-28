@@ -214,6 +214,9 @@ public class FinanceAgentProperties {
      * @Date: 2026-09-26 19:35:25
      */
     public static class DeepSeek {
+        public static final String DEFAULT_BASE_URL = "https://api.deepseek.com";
+        public static final String DEFAULT_MODEL = "deepseek-flash";
+
         private String apiKey;
         private String baseUrl;
         private String model;

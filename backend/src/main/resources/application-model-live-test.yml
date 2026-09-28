@@ -1,0 +1,12 @@
+spring:
+  config:
+    activate:
+      on-profile: model-live-test
+
+# 该 profile 仅由用户手动触发；默认 local/test 不访问真实 DeepSeek。
+finance-agent:
+  deep-seek:
+    api-key: ${DEEPSEEK_API_KEY:}
+    base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
+    model: ${DEEPSEEK_MODEL:deepseek-flash}
+    stub: false

@@ -1,13 +1,13 @@
 ---
 id: 20260925-dev-har-007
 title: "实现 DeepSeek OpenAI 兼容适配器"
-status: todo
+status: completed
 priority: high
-owner: ""
+owner: yigeyige99
 created_at: 2026-09-25
 type: development
 source: development-workplan
-openspec_change: finance-agent-development-task-baseline
+openspec_change: deepseek-openai-adapter
 source_task: DEV-HAR-007
 ---
 
@@ -24,10 +24,10 @@ source_task: DEV-HAR-007
 
 ## 目标
 
-- [ ] base URL 默认 `https://api.deepseek.com`，model 默认 `deepseek-flash`，Chat Completions，API Key 环境变量。
-- [ ] 支持 JSON Schema/工具调用、超时、取消、token 和响应模型元数据。
-- [ ] 不实现自动模型切换。
-- [ ] 交付并核对以下产物：DeepSeek 配置、模型适配器、手工 live-test profile 和说明。
+- [x] base URL 默认 `https://api.deepseek.com`，model 默认 `deepseek-flash`，Chat Completions，API Key 环境变量。
+- [x] 支持 JSON Schema/工具调用、超时、取消、token 和响应模型元数据。
+- [x] 不实现自动模型切换。
+- [x] 交付并核对以下产物：DeepSeek 配置、模型适配器、手工 live-test profile 和说明。
 
 ## 验收标准
 
@@ -49,3 +49,4 @@ source_task: DEV-HAR-007
 ## 执行记录
 
 - 2026-09-25：从开发任务基线 `DEV-HAR-007` 拆分为独立 task；当前状态为 `todo`，尚未开始开发。
+- 2026-09-28：完成 DeepSeek OpenAI Chat Completions 适配器、离线 HTTP Stub 契约测试、手工 live-test profile 与说明；通过定向测试、`mvn -q verify`、Surefire 失败扫描和严格 OpenSpec 校验。
