@@ -10,7 +10,7 @@
         <template v-else-if="activeStep === 1"><el-form-item label="前提类型"><el-input v-model.trim="form.premiseType" /></el-form-item><el-form-item label="前提主体"><el-input v-model.trim="form.subjectKey" /></el-form-item><el-form-item label="前提说明"><el-input v-model.trim="form.statement" type="textarea" :rows="3" /></el-form-item><el-form-item label="来源说明"><el-input v-model.trim="form.sourceDescription" type="textarea" :rows="3" /></el-form-item><el-button type="primary" :loading="saving" @click="savePremise">保存前提并进入范围确认</el-button></template>
         <template v-else><el-form-item label="系统编码"><el-input v-model.trim="form.systemCode" placeholder="例如：FIN-SYN" /></el-form-item><el-form-item v-for="field in scopeFields" :key="field.key" :label="field.label"><el-input v-model.trim="form[field.key]" type="textarea" :rows="2" /></el-form-item><el-form-item label="契约版本"><el-input v-model.trim="form.schemaVersion" /></el-form-item><el-button type="primary" :loading="saving" @click="saveScope">确认范围修订</el-button></template>
       </el-form>
-      <div v-if="task && task.scopeRevisionNo" class="execution-panel">
+        <div v-if="task && task.scopeRevisionNo" class="execution-panel">
         <el-divider content-position="left">计划与审批</el-divider>
         <p class="panel-hint">只展示计划目标、范围绑定、调用上限和公开结果，不展示推理链或原始模型响应。</p>
         <el-form label-position="top"><el-form-item label="推荐步骤"><el-input v-model.trim="planGoals[0]" placeholder="填写一个推荐的可执行步骤" /></el-form-item><el-form-item label="备选步骤一"><el-input v-model.trim="planGoals[1]" /></el-form-item><el-form-item label="备选步骤二"><el-input v-model.trim="planGoals[2]" /></el-form-item><el-button type="primary" :loading="saving" @click="submitPlan">提交计划</el-button></el-form>

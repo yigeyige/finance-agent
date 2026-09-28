@@ -60,6 +60,7 @@ export interface EvidenceWitness { algorithmVersion: string; ruleSetVersion: str
 export interface EvidenceConfirmation { confirmationId: string; confirmedBy: string; confirmedAt: string; scopeRevisionId: string; decision: 'CONFIRM' | 'REJECT' | 'NEEDS_MORE_EVIDENCE'; rationale: string; evidenceRefs: string }
 export interface EvidenceFinding { findingId: string; findingType: string; statement: string; judgmentMode: string; effectiveClass: string; status: string; scopeRevisionId: string; witness: EvidenceWitness | null; confirmation: EvidenceConfirmation | null }
 export interface EvidenceOverview { taskId: string; snapshots: EvidenceSnapshot[]; coverages: EvidenceCoverage[]; findings: EvidenceFinding[] }
+export interface PacketDraftResponse { taskId: string; draftId: string; draftNo: number; scopeRevisionId: string; runtimeBundleId: string; status: string; canonicalJson: string; contentDigest: string; htmlSnapshot: string; createdAt: string }
 
 const TASK_RESPONSE_FIELDS = ['taskId', 'title', 'status', 'rowVersion', 'currentScopeRevisionId', 'createdAt', 'premiseId', 'scopeRevisionNo', 'scopeDigest']
 const PUBLIC_EVENT_FIELDS = ['taskId', 'userId', 'sequence', 'eventType', 'status', 'publicReason', 'resultReference', 'occurredAt']

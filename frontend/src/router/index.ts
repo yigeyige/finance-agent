@@ -3,6 +3,7 @@ import Router from 'vue-router'
 
 import WorkbenchHome from '../views/WorkbenchHome.vue'
 import EvidenceOverview from '../views/EvidenceOverview.vue'
+import PacketDraft from '../views/PacketDraft.vue'
 import { hasPermission } from '../services/identity'
 
 Vue.use(Router)
@@ -29,6 +30,12 @@ const router = new Router({
       name: 'evidence-overview',
       component: EvidenceOverview,
       meta: { title: '证据与覆盖度', permission: 'TASK_READ' },
+    },
+    {
+      path: '/tasks/:taskId/packet-draft',
+      name: 'packet-draft',
+      component: PacketDraft,
+      meta: { title: '决策包草稿', permission: 'TASK_WRITE' },
     },
   ],
 })
