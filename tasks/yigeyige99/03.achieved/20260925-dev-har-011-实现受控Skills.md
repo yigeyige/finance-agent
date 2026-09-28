@@ -1,13 +1,13 @@
 ---
 id: 20260925-dev-har-011
 title: "实现受控 Skills"
-status: todo
+status: done
 priority: medium
 owner: ""
 created_at: 2026-09-25
 type: development
 source: development-workplan
-openspec_change: finance-agent-development-task-baseline
+openspec_change: controlled-skills
 source_task: DEV-HAR-011
 ---
 
@@ -24,10 +24,10 @@ source_task: DEV-HAR-011
 
 ## 目标
 
-- [ ] 建立技能包元数据、DRAFT/TESTED/PUBLISHED/RETIRED 生命周期、内容摘要和工具权限。
-- [ ] 提供一个不访问真实数据的合成调查技能。
-- [ ] 运行任务冻结技能版本。
-- [ ] 交付并核对以下产物：Skill catalog、加载器、示例技能和审批记录。
+- [x] 建立技能包元数据、DRAFT/TESTED/PUBLISHED/RETIRED 生命周期、内容摘要和工具权限。
+- [x] 提供一个不访问真实数据的合成调查技能。
+- [x] 运行任务冻结技能版本。
+- [x] 交付并核对以下产物：Skill catalog、加载器、示例技能和审批记录。
 
 ## 验收标准
 
@@ -47,3 +47,5 @@ source_task: DEV-HAR-011
 ## 执行记录
 
 - 2026-09-25：从开发任务基线 `DEV-HAR-011` 拆分为独立 task；当前状态为 `todo`，尚未开始开发。
+- 2026-09-29：完成不可变 Skill 包元数据、DRAFT/TESTED/PUBLISHED/RETIRED 生命周期、内容/测试摘要、审批事件、工具/字段权限子集校验、发布加载和任务/runtime bundle 版本冻结；新增无真实数据访问的确定性合成调查 Skill。
+- 2026-09-29：新增生命周期、未发布/退役/摘要篡改/权限超集、版本漂移和合成输出契约测试；定向测试通过。
