@@ -13,6 +13,7 @@ import cn.com.crc.ems.finance.agent.evidence.application.ComputationWitnessRepos
 import cn.com.crc.ems.finance.agent.evidence.application.CoverageRecordRepository;
 import cn.com.crc.ems.finance.agent.evidence.application.FactSnapshotRepository;
 import cn.com.crc.ems.finance.agent.evidence.application.FindingRepository;
+import cn.com.crc.ems.finance.agent.evidence.application.ProfessionalConfirmationRepository;
 import cn.com.crc.ems.finance.agent.iam.application.IdentityContext;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 
@@ -25,14 +26,16 @@ public final class EvidenceOverviewController {
     private final CoverageRecordRepository coverageRepository;
     private final FindingRepository findingRepository;
     private final ComputationWitnessRepository witnessRepository;
+    private final ProfessionalConfirmationRepository confirmationRepository;
 
     public EvidenceOverviewController(FactSnapshotRepository snapshotRepository,
             CoverageRecordRepository coverageRepository, FindingRepository findingRepository,
-            ComputationWitnessRepository witnessRepository) {
+            ComputationWitnessRepository witnessRepository, ProfessionalConfirmationRepository confirmationRepository) {
         this.snapshotRepository = snapshotRepository;
         this.coverageRepository = coverageRepository;
         this.findingRepository = findingRepository;
         this.witnessRepository = witnessRepository;
+        this.confirmationRepository = confirmationRepository;
     }
 
     /** 查询已批准范围内的证据链；VIEWER 在发布前不允许访问。 */
@@ -44,6 +47,7 @@ public final class EvidenceOverviewController {
         }
         return EvidenceOverviewResponse.of(taskId, snapshotRepository.findByTaskId(taskId),
                 coverageRepository.findByTaskId(taskId), findingRepository.findByTaskId(taskId),
-                findingId -> witnessRepository.findByFindingId(findingId).orElse(null));
+                findingId -> witnessRepository.findByFindingId(findingId).orElse(null),
+                findingId -> confirmationRepository.findByFindingId(findingId).orElse(null));
     }
 }

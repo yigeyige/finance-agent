@@ -3,6 +3,7 @@ package cn.com.crc.ems.finance.agent.evidence.infrastructure;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.time.Instant;
 
 import org.springframework.stereotype.Repository;
 
@@ -10,6 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
 import cn.com.crc.ems.finance.agent.evidence.application.FindingRepository;
 import cn.com.crc.ems.finance.agent.evidence.domain.Finding;
+import cn.com.crc.ems.finance.agent.evidence.domain.FindingStatus;
 import cn.com.crc.ems.finance.agent.evidence.infrastructure.entity.FindingEntity;
 import cn.com.crc.ems.finance.agent.evidence.infrastructure.mapper.FindingMapper;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid;
@@ -39,5 +41,12 @@ public class MybatisFindingRepository implements FindingRepository {
     @Override
     public void insert(Finding finding) {
         mapper.insert(MybatisEvidenceMappings.toEntity(finding));
+    }
+
+    @Override
+    public boolean updateStatus(UUID findingId, FindingStatus status, UUID updatedBy, Instant updatedAt) {
+        return mapper.update(null, new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<FindingEntity>()
+                .eq("finding_id", PersistenceUuid.toStorage(findingId)).set("status", status.name())
+                .set("updated_by", updatedBy).set("updated_at", updatedAt)) > 0;
     }
 }
