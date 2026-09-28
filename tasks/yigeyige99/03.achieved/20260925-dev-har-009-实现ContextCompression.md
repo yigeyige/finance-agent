@@ -1,13 +1,13 @@
 ---
 id: 20260925-dev-har-009
 title: "实现 Context Compression"
-status: todo
+status: completed
 priority: medium
-owner: ""
+owner: yigeyige99
 created_at: 2026-09-25
 type: development
 source: development-workplan
-openspec_change: finance-agent-development-task-baseline
+openspec_change: context-compression
 source_task: DEV-HAR-009
 ---
 
@@ -24,10 +24,10 @@ source_task: DEV-HAR-009
 
 ## 目标
 
-- [ ] 压缩输出只含任务/范围/前提/证据/finding/current step 引用和摘要。
-- [ ] 验证引用存在与 digest 匹配。
-- [ ] 压缩摘要不能升级为证据。
-- [ ] 交付并核对以下产物：压缩配置、结构化摘要 schema、验证器。
+- [x] 压缩输出只含任务/范围/前提/证据/finding/current step 引用和摘要。
+- [x] 验证引用存在与 digest 匹配。
+- [x] 压缩摘要不能升级为证据。
+- [x] 交付并核对以下产物：压缩配置、结构化摘要 schema、验证器。
 
 ## 验收标准
 
@@ -47,3 +47,4 @@ source_task: DEV-HAR-009
 ## 执行记录
 
 - 2026-09-25：从开发任务基线 `DEV-HAR-009` 拆分为独立 task；当前状态为 `todo`，尚未开始开发。
+- 2026-09-29：完成结构化压缩配置、引用摘要 schema、authoritative digest 校验、未知项完整性校验和人工缩小范围失败门禁；通过定向测试、`mvn -q verify`、Surefire 失败扫描和严格 OpenSpec 校验。
