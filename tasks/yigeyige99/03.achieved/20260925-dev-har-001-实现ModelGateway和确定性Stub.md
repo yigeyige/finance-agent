@@ -1,13 +1,13 @@
 ---
 id: 20260925-dev-har-001
 title: "实现 ModelGateway 和确定性 Stub"
-status: todo
+status: completed
 priority: high
-owner: ""
+owner: yigeyige99
 created_at: 2026-09-25
 type: development
 source: development-workplan
-openspec_change: finance-agent-development-task-baseline
+openspec_change: model-gateway-deterministic-stub
 source_task: DEV-HAR-001
 ---
 
@@ -24,9 +24,9 @@ source_task: DEV-HAR-001
 
 ## 目标
 
-- [ ] 定义 `ModelGateway`、用途、模板版本、AllowedContext、输出 schema、预算和取消。
-- [ ] Stub 按输入 fixture 生成稳定步骤提议和草稿，不伪造自然语言智能。
-- [ ] 交付并核对以下产物：接口、Stub、模型元数据记录和 schema 校验器。
+- [x] 定义 `ModelGateway`、用途、模板版本、AllowedContext、输出 schema、预算和取消。
+- [x] Stub 按输入 fixture 生成稳定步骤提议和草稿，不伪造自然语言智能。
+- [x] 交付并核对以下产物：接口、Stub、模型元数据记录和 schema 校验器。
 
 ## 验收标准
 
@@ -46,3 +46,4 @@ source_task: DEV-HAR-001
 ## 执行记录
 
 - 2026-09-25：从开发任务基线 `DEV-HAR-001` 拆分为独立 task；当前状态为 `todo`，尚未开始开发。
+- 2026-09-28：完成 ModelGateway 契约、AllowedContext 敏感字段边界、确定性 fixture Stub、严格步骤提议 schema、预算/取消错误边界和契约测试；通过定向测试、`mvn -q verify`、Surefire 汇总检查和 `openspec validate --strict`。
