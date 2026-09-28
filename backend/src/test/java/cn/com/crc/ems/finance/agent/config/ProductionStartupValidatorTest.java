@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
 class ProductionStartupValidatorTest {
@@ -38,7 +40,7 @@ class ProductionStartupValidatorTest {
         properties.getDeepSeek().setApiKey("deepseek-secret");
         properties.getDeepSeek().setBaseUrl("https://api.deepseek.com");
         properties.getDeepSeek().setStub(false);
-        properties.getWorkspace().setRoot("/srv/finance-agent");
+        properties.getWorkspace().setRoot(Path.of("srv", "finance-agent").toAbsolutePath().toString());
         properties.getIdentity().setMode(FinanceAgentProperties.IdentityMode.SSO);
         properties.getStorage().setMode(FinanceAgentProperties.StorageMode.OBJECT_STORE);
         properties.getStorage().setAdapterId("s3");
@@ -69,7 +71,7 @@ class ProductionStartupValidatorTest {
         properties.getDeepSeek().setApiKey("deepseek-secret");
         properties.getDeepSeek().setBaseUrl("https://api.deepseek.com");
         properties.getDeepSeek().setStub(false);
-        properties.getWorkspace().setRoot("/srv/finance-agent");
+        properties.getWorkspace().setRoot(Path.of("srv", "finance-agent").toAbsolutePath().toString());
         properties.getIdentity().setMode(FinanceAgentProperties.IdentityMode.SSO);
         properties.getStorage().setMode(FinanceAgentProperties.StorageMode.OBJECT_STORE);
         properties.getStorage().setAdapterId("none");

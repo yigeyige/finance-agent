@@ -2,6 +2,7 @@ package cn.com.crc.ems.finance.agent.config;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.nio.file.Path;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.core.env.Environment;
@@ -79,6 +80,19 @@ public class ProductionStartupValidator {
         }
         if (workspace == null || isBlank(workspace.getRoot())) {
             violations.add("finance-agent.workspace.root");
+        } else if (!Path.of(workspace.getRoot()).isAbsolute()) {
+            violations.add("finance-agent.workspace.root.absolute");
+        }
+        if (workspace == null || workspace.getMaxBytes() <= 0) {
+            violations.add("finance-agent.workspace.max-bytes");
+        }
+        if (workspace == null || workspace.getMaxFileBytes() <= 0
+                || (workspace.getMaxBytes() > 0 && workspace.getMaxFileBytes() > workspace.getMaxBytes())) {
+            violations.add("finance-agent.workspace.max-file-bytes");
+        }
+        if (workspace == null || workspace.getAllowedMediaTypes() == null
+                || workspace.getAllowedMediaTypes().isEmpty()) {
+            violations.add("finance-agent.workspace.allowed-media-types");
         }
         if (identity == null || identity.getMode() != FinanceAgentProperties.IdentityMode.SSO) {
             violations.add("finance-agent.identity.mode");

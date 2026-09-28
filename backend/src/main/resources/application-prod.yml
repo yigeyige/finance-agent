@@ -18,6 +18,9 @@ finance-agent:
     stub: ${FINANCE_AGENT_SOURCE_STUB:false}
   workspace:
     root: ${FINANCE_AGENT_WORKSPACE_ROOT:}
+    max-bytes: ${FINANCE_AGENT_WORKSPACE_MAX_BYTES:52428800}
+    max-file-bytes: ${FINANCE_AGENT_WORKSPACE_MAX_FILE_BYTES:10485760}
+    allowed-media-types: ${FINANCE_AGENT_WORKSPACE_ALLOWED_MEDIA_TYPES:application/json,text/plain,text/csv}
   budget:
     max-steps: ${FINANCE_AGENT_MAX_STEPS:20}
     max-tokens: ${FINANCE_AGENT_MAX_TOKENS:16000}

@@ -1,6 +1,7 @@
 package cn.com.crc.ems.finance.agent.config;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
@@ -285,6 +286,11 @@ public class FinanceAgentProperties {
      */
     public static class Workspace {
         private String root;
+        @Positive
+        private long maxBytes = 10 * 1024 * 1024L;
+        @Positive
+        private long maxFileBytes = 5 * 1024 * 1024L;
+        private Set<String> allowedMediaTypes = Set.of("application/json", "text/plain", "text/csv");
 
         public String getRoot() {
             return root;
@@ -292,6 +298,30 @@ public class FinanceAgentProperties {
 
         public void setRoot(String root) {
             this.root = root;
+        }
+
+        public long getMaxBytes() {
+            return maxBytes;
+        }
+
+        public void setMaxBytes(long maxBytes) {
+            this.maxBytes = maxBytes;
+        }
+
+        public long getMaxFileBytes() {
+            return maxFileBytes;
+        }
+
+        public void setMaxFileBytes(long maxFileBytes) {
+            this.maxFileBytes = maxFileBytes;
+        }
+
+        public Set<String> getAllowedMediaTypes() {
+            return allowedMediaTypes;
+        }
+
+        public void setAllowedMediaTypes(Set<String> allowedMediaTypes) {
+            this.allowedMediaTypes = allowedMediaTypes == null ? Set.of() : Set.copyOf(allowedMediaTypes);
         }
     }
 

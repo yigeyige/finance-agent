@@ -23,6 +23,9 @@ class FinanceAgentPropertiesBindingTest {
                 .withProperty("finance-agent.deep-seek.stub", "false")
                 .withProperty("finance-agent.source.stub", "true")
                 .withProperty("finance-agent.workspace.root", "./runtime")
+                .withProperty("finance-agent.workspace.max-bytes", "456789")
+                .withProperty("finance-agent.workspace.max-file-bytes", "123456")
+                .withProperty("finance-agent.workspace.allowed-media-types", "application/json,text/plain")
                 .withProperty("finance-agent.budget.max-steps", "32")
                 .withProperty("finance-agent.budget.max-tokens", "12000")
                 .withProperty("finance-agent.budget.max-cost", "12.50")
@@ -53,6 +56,10 @@ class FinanceAgentPropertiesBindingTest {
         assertThat(properties.getStorage().getMode()).isEqualTo(FinanceAgentProperties.StorageMode.OBJECT_STORE);
         assertThat(properties.getStorage().getAdapterId()).isEqualTo("s3");
         assertThat(properties.getStorage().getMaxBytes()).isEqualTo(123456L);
+        assertThat(properties.getWorkspace().getMaxBytes()).isEqualTo(456789L);
+        assertThat(properties.getWorkspace().getMaxFileBytes()).isEqualTo(123456L);
+        assertThat(properties.getWorkspace().getAllowedMediaTypes()).containsExactlyInAnyOrder("application/json",
+                "text/plain");
         assertThat(properties.getDiagnostics().isApiEnabled()).isTrue();
         assertThat(properties.getDatabase().getConnectTimeoutSeconds()).isEqualTo(3);
         assertThat(properties.getWorker().isEnabled()).isFalse();
