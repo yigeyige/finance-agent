@@ -10,9 +10,11 @@ import org.springframework.stereotype.Service;
 
 import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 import cn.com.crc.ems.finance.agent.source.application.ConfigSourceAdapter;
+import cn.com.crc.ems.finance.agent.source.application.ApprovedQuery;
 import cn.com.crc.ems.finance.agent.source.application.SourceCatalog;
 import cn.com.crc.ems.finance.agent.source.application.SourcePage;
 import cn.com.crc.ems.finance.agent.source.application.SourceQuery;
+import cn.com.crc.ems.finance.agent.source.application.ScopePage;
 import cn.com.crc.ems.finance.agent.source.application.SyntheticScenario;
 
 /** 固定模板、固定 seed、完全离线的合成财务配置源。 */
@@ -51,6 +53,16 @@ public class SyntheticConfigSourceAdapter implements ConfigSourceAdapter {
         List<Map<String, Object>> records = new ArrayList<>(data.subList(from, to));
         String digest = Sha256Digest.hex(records.toString() + "|" + seed + "|" + scenario);
         return new SourcePage(records, page, size, to < data.size(), VERSION, digest, scenario.name(), (long) data.size());
+    }
+
+    @Override
+    public ScopePage<Map<String, Object>> query(ApprovedQuery query) {
+        if (!catalog.version().equals(query.catalogVersion())) {
+            throw new IllegalArgumentException("source catalog version is not approved");
+        }
+        SourcePage page = query(new SourceQuery(query.templateCode(), query.parameters()), SyntheticScenario.BASELINE, 0);
+        return new ScopePage<>(page.records(), page.page(), page.hasNext(),
+                page.hasNext() ? "page-" + (page.page() + 1) : null, page.sourceVersion(), page.resultDigest());
     }
 
     private static List<Map<String, Object>> scenarioData(SyntheticScenario scenario, long seed) {

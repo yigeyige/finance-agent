@@ -6,4 +6,6 @@ public interface ConfigSourceAdapter {
     SourceCatalog catalog();
 
     SourcePage query(SourceQuery query, SyntheticScenario scenario, long seed);
+
+    ScopePage<java.util.Map<String, Object>> query(ApprovedQuery query);
 }
