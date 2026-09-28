@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import cn.com.crc.ems.finance.agent.shared.domain.UtcTime;
+import cn.com.crc.ems.finance.agent.iam.application.IdentityContext;
 import cn.com.crc.ems.finance.agent.task.application.ApprovalDecision;
 import cn.com.crc.ems.finance.agent.task.application.CreateStepApprovalCommand;
 import cn.com.crc.ems.finance.agent.task.application.ProposeStepsCommand;
@@ -49,9 +50,10 @@ public final class StepProposalController {
     /** 保存有界步骤提议。 */
     @PostMapping("/{taskId}/step-proposals")
     public ResponseEntity<StepProposalResponse> propose(@PathVariable UUID taskId,
-            @Valid @RequestBody StepProposalRequest request, @RequestHeader("X-Actor-User-Id") UUID actorUserId,
+            @Valid @RequestBody StepProposalRequest request, @RequestHeader(value = "X-Actor-User-Id", required = false) UUID actorUserId,
             @RequestHeader("Idempotency-Key") String idempotencyKey) {
         requireIdempotencyKey(idempotencyKey);
+        actorUserId = trustedActor(actorUserId);
         var items = request.steps().stream()
                 .map(item -> new cn.com.crc.ems.finance.agent.task.application.StepProposalItem(item.goal(),
                         Boolean.TRUE.equals(item.recommended())))
@@ -64,9 +66,10 @@ public final class StepProposalController {
     /** 保存或复用步骤审批 revision。 */
     @PostMapping("/{taskId}/step-approvals")
     public ResponseEntity<StepApprovalResponse> approve(@PathVariable UUID taskId,
-            @Valid @RequestBody StepApprovalRequest request, @RequestHeader("X-Actor-User-Id") UUID actorUserId,
+            @Valid @RequestBody StepApprovalRequest request, @RequestHeader(value = "X-Actor-User-Id", required = false) UUID actorUserId,
             @RequestHeader("Idempotency-Key") String idempotencyKey) {
         requireIdempotencyKey(idempotencyKey);
+        actorUserId = trustedActor(actorUserId);
         StepApprovalResult result = approvalService.approve(new CreateStepApprovalCommand(taskId, request.stepId(),
                 request.goalHash(), request.sourceBindingId(), request.scopeRevisionId(), request.fieldPolicyVersion(),
                 request.queryTemplateVersion(), request.maxCalls(), request.expiresAt(), request.expectedRowVersion(),
@@ -77,9 +80,10 @@ public final class StepProposalController {
     /** 撤销活动审批，保留审批历史。 */
     @DeleteMapping("/{taskId}/step-approvals/{approvalId}")
     public ResponseEntity<Void> revoke(@PathVariable UUID taskId, @PathVariable UUID approvalId,
-            @RequestHeader("X-Actor-User-Id") UUID actorUserId,
+            @RequestHeader(value = "X-Actor-User-Id", required = false) UUID actorUserId,
             @RequestHeader("Idempotency-Key") String idempotencyKey) {
         requireIdempotencyKey(idempotencyKey);
+        actorUserId = trustedActor(actorUserId);
         approvalService.revoke(new RevokeStepApprovalCommand(taskId, approvalId, actorUserId,
                 UtcTime.now(applicationClock)));
         return ResponseEntity.noContent().build();
@@ -89,5 +93,10 @@ public final class StepProposalController {
         if (value == null || value.isBlank() || value.length() < 16 || value.length() > 200) {
             throw new IllegalArgumentException("Idempotency-Key must contain 16 to 200 characters");
         }
+    }
+
+    /** 优先使用安全上下文，保留独立控制器测试的旧头兼容路径。 */
+    private static UUID trustedActor(UUID legacyActorUserId) {
+        return IdentityContext.current() == null ? legacyActorUserId : IdentityContext.require().userId();
     }
 }

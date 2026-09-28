@@ -6,6 +6,11 @@ export type TaskStatus = (typeof TASK_STATUSES)[number]
 export const TASK_EVENT_TYPES = ['TASK_STATUS_CHANGED', 'APPROVAL_REQUIRED', 'TOOL_PROGRESS', 'PUBLIC_REASON', 'RESULT_REFERENCE', 'TASK_PUBLISHED'] as const
 export type TaskEventType = (typeof TASK_EVENT_TYPES)[number]
 
+export const ROLE_CODES = ['OPERATOR', 'VIEWER', 'PLATFORM_ADMIN'] as const
+export type RoleCode = (typeof ROLE_CODES)[number]
+export const IDENTITY_PERMISSIONS = ['TASK_READ', 'TASK_WRITE', 'TASK_EVENTS_READ', 'PUBLISHED_PACKET_READ', 'CONFIG_MANAGE'] as const
+export type IdentityPermission = (typeof IDENTITY_PERMISSIONS)[number]
+
 export interface TaskResponse {
   taskId: string
   title: string
@@ -36,8 +41,18 @@ export interface ApiErrorPayload {
   traceId: string | null
 }
 
+export interface CurrentIdentityResponse {
+  userId: string
+  authSubject: string
+  displayName: string
+  roles: RoleCode[]
+  permissions: IdentityPermission[]
+  testIdentity: boolean
+}
+
 const TASK_RESPONSE_FIELDS = ['taskId', 'title', 'status', 'rowVersion', 'currentScopeRevisionId', 'createdAt', 'premiseId', 'scopeRevisionNo', 'scopeDigest']
 const PUBLIC_EVENT_FIELDS = ['taskId', 'userId', 'sequence', 'eventType', 'status', 'publicReason', 'resultReference', 'occurredAt']
+const IDENTITY_FIELDS = ['userId', 'authSubject', 'displayName', 'roles', 'permissions', 'testIdentity']
 
 /** 校验对象并拒绝契约外字段，避免未声明状态流入页面。 */
 export function assertObjectFields(value: unknown, fields: readonly string[], label: string): Record<string, unknown> {
@@ -96,6 +111,26 @@ export function parsePublicTaskEvent(value: unknown): PublicTaskEvent {
     publicReason: nullableString(record.publicReason),
     resultReference: nullableString(record.resultReference),
     occurredAt: requireString(record.occurredAt, '事件时间'),
+  }
+}
+
+/** 校验当前身份响应并收窄角色和权限枚举。 */
+export function parseCurrentIdentity(value: unknown): CurrentIdentityResponse {
+  const record = assertObjectFields(value, IDENTITY_FIELDS, '身份响应')
+  if (!Array.isArray(record.roles) || !record.roles.every((role) => typeof role === 'string' && (ROLE_CODES as readonly string[]).includes(role))) {
+    throw new Error('身份角色格式无法识别，请联系管理员同步接口契约')
+  }
+  if (!Array.isArray(record.permissions) || !record.permissions.every((permission) => typeof permission === 'string' && (IDENTITY_PERMISSIONS as readonly string[]).includes(permission))) {
+    throw new Error('身份权限格式无法识别，请联系管理员同步接口契约')
+  }
+  if (typeof record.testIdentity !== 'boolean') throw new Error('身份模式格式无法识别，请稍后重试')
+  return {
+    userId: requireString(record.userId, '用户标识'),
+    authSubject: requireString(record.authSubject, '认证主体'),
+    displayName: requireString(record.displayName, '显示名称'),
+    roles: record.roles as RoleCode[],
+    permissions: record.permissions as IdentityPermission[],
+    testIdentity: record.testIdentity,
   }
 }
 

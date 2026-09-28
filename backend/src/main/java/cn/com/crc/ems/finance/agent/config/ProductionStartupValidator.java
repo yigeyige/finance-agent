@@ -97,6 +97,9 @@ public class ProductionStartupValidator {
         if (identity == null || identity.getMode() != FinanceAgentProperties.IdentityMode.SSO) {
             violations.add("finance-agent.identity.mode");
         }
+        if (identity != null && identity.isSeedEnabled()) {
+            violations.add("finance-agent.identity.seed-enabled");
+        }
         if (storage == null || storage.getMode() != FinanceAgentProperties.StorageMode.OBJECT_STORE) {
             violations.add("finance-agent.storage.mode");
         }

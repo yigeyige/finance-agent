@@ -56,9 +56,18 @@ export async function postJson<TResponse, TRequest>(
 function withRequestHeaders(config?: AxiosRequestConfig, options?: ApiRequestOptions): AxiosRequestConfig {
   const headers = { ...(config?.headers ?? {}) }
   headers['X-Request-Id'] = options?.requestId ?? createRequestId()
+  const testIdentity = readTestIdentity()
+  if (testIdentity) headers['X-Test-Identity'] = testIdentity
   if (options?.idempotencyKey) headers['Idempotency-Key'] = options.idempotencyKey
   if (options?.rowVersion !== undefined) headers['If-Match'] = String(options.rowVersion)
   return { ...config, headers }
+}
+
+/** 读取 local/test 身份选择，生产构建不发送测试标识。 */
+function readTestIdentity(): string | undefined {
+  if (import.meta.env.VITE_IDENTITY_MODE === 'prod' || typeof localStorage === 'undefined') return undefined
+  const value = localStorage.getItem('finance-agent.test-identity')
+  return value === 'operator' || value === 'viewer' || value === 'platform-admin' ? value : 'operator'
 }
 
 /** 将 Axios 或网络异常收敛为可识别的中文 API 错误。 */

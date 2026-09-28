@@ -14,6 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import jakarta.validation.Valid;
 import cn.com.crc.ems.finance.agent.shared.domain.UtcTime;
+import cn.com.crc.ems.finance.agent.iam.application.IdentityContext;
 import cn.com.crc.ems.finance.agent.task.application.AddTaskPremiseCommand;
 import cn.com.crc.ems.finance.agent.task.application.ConfirmScopeCommand;
 import cn.com.crc.ems.finance.agent.task.application.CreateTaskDraftCommand;
@@ -35,9 +36,10 @@ public final class TaskIntakeController {
 
     @PostMapping
     public ResponseEntity<TaskIntakeResponse> createTask(@Valid @RequestBody CreateTaskRequest request,
-            @RequestHeader("X-Actor-User-Id") UUID actorUserId,
+            @RequestHeader(value = "X-Actor-User-Id", required = false) UUID actorUserId,
             @RequestHeader("Idempotency-Key") String idempotencyKey) {
         requireIdempotencyKey(idempotencyKey);
+        actorUserId = trustedActor(actorUserId);
         var task = intakeService.createTask(new CreateTaskDraftCommand(request.title(), request.originalQuestion(),
                 request.initiatorUserId(), request.runtimeBundleId(), actorUserId, UtcTime.now(applicationClock)));
         return ResponseEntity.created(UriComponentsBuilder.fromPath("/api/v1/tasks/{taskId}")
@@ -46,9 +48,10 @@ public final class TaskIntakeController {
 
     @PostMapping("/{taskId}/premises")
     public ResponseEntity<TaskIntakeResponse> addPremise(@PathVariable UUID taskId,
-            @Valid @RequestBody AddPremiseRequest request, @RequestHeader("X-Actor-User-Id") UUID actorUserId,
+            @Valid @RequestBody AddPremiseRequest request, @RequestHeader(value = "X-Actor-User-Id", required = false) UUID actorUserId,
             @RequestHeader("Idempotency-Key") String idempotencyKey) {
         requireIdempotencyKey(idempotencyKey);
+        actorUserId = trustedActor(actorUserId);
         var premise = intakeService.addPremise(new AddTaskPremiseCommand(taskId, request.premiseType(),
                 request.subjectKey(), request.statement(), actorUserId, request.sourceDescription(),
                 UtcTime.now(applicationClock)));
@@ -58,9 +61,10 @@ public final class TaskIntakeController {
 
     @PostMapping("/{taskId}/scope-confirmations")
     public ResponseEntity<TaskIntakeResponse> confirmScope(@PathVariable UUID taskId,
-            @Valid @RequestBody ConfirmScopeRequest request, @RequestHeader("X-Actor-User-Id") UUID actorUserId,
+            @Valid @RequestBody ConfirmScopeRequest request, @RequestHeader(value = "X-Actor-User-Id", required = false) UUID actorUserId,
             @RequestHeader("Idempotency-Key") String idempotencyKey) {
         requireIdempotencyKey(idempotencyKey);
+        actorUserId = trustedActor(actorUserId);
         ScopeConfirmationResult result = intakeService.confirmScope(new ConfirmScopeCommand(taskId,
                 request.systemCode(), request.objectSelector().toString(), request.effectiveTimeRange().toString(),
                 request.includedPaths().toString(), request.excludedPaths().toString(),
@@ -74,5 +78,10 @@ public final class TaskIntakeController {
         if (value == null || value.isBlank() || value.length() < 16 || value.length() > 200) {
             throw new IllegalArgumentException("Idempotency-Key must contain 16 to 200 characters");
         }
+    }
+
+    /** 优先使用安全上下文，保留独立控制器测试的旧头兼容路径。 */
+    private static UUID trustedActor(UUID legacyActorUserId) {
+        return IdentityContext.current() == null ? legacyActorUserId : IdentityContext.require().userId();
     }
 }
