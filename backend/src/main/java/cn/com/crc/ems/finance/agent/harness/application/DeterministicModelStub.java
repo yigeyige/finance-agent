@@ -84,7 +84,7 @@ public final class DeterministicModelStub implements ModelGateway {
         String outputDigest = digest(CanonicalJsonCodec.canonicalize(fixture.output()));
         String inputDigest = context.digest();
         ModelMetadata metadata = new ModelMetadata(modelBindingVersion, template.version(), context.evidenceIds(),
-                digest(String.join(",", context.allowedFields().stream().sorted().toList())), inputDigest,
+                context.fieldDigest(), inputDigest,
                 outputDigest, fixture.tokens(), Duration.ofNanos(System.nanoTime() - started).toMillis(),
                 "STOP", true);
         return new ModelResult<>(value, metadata);

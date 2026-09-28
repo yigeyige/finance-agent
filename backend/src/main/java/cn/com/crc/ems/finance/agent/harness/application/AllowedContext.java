@@ -48,6 +48,11 @@ public record AllowedContext(JsonNode projectedEvidence, Set<String> evidenceIds
         }
     }
 
+    /** 返回仅由允许字段名称组成的摘要，供调用元数据追踪字段清单。 */
+    public String fieldDigest() {
+        return digestText(String.join(",", allowedFields.stream().sorted().toList()));
+    }
+
     private static Set<String> immutableTextSet(Set<String> values, String field) {
         if (values == null) {
             throw new IllegalArgumentException(field + " is required");
@@ -60,6 +65,15 @@ public record AllowedContext(JsonNode projectedEvidence, Set<String> evidenceIds
     private static void requireText(String value, String field) {
         if (value == null || value.isBlank() || value.length() > 200) {
             throw new IllegalArgumentException(field + " must be non-blank and at most 200 characters");
+        }
+    }
+
+    private static String digestText(String value) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
         }
     }
 }

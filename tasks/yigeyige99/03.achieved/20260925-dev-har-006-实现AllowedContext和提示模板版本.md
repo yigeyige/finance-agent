@@ -1,13 +1,13 @@
 ---
 id: 20260925-dev-har-006
 title: "实现 AllowedContext 和提示模板版本"
-status: todo
+status: completed
 priority: high
-owner: ""
+owner: yigeyige99
 created_at: 2026-09-25
 type: development
 source: development-workplan
-openspec_change: finance-agent-development-task-baseline
+openspec_change: allowed-context-template-catalog
 source_task: DEV-HAR-006
 ---
 
@@ -24,10 +24,10 @@ source_task: DEV-HAR-006
 
 ## 目标
 
-- [ ] 只从已裁剪证据、任务元数据和允许的确认内容构造上下文。
-- [ ] 模板版本化并进入 runtime bundle。
-- [ ] 禁止 RAG/记忆作为当前事实。
-- [ ] 交付并核对以下产物：上下文构造器、模板目录、字段清单摘要和校验器。
+- [x] 只从已裁剪证据、任务元数据和允许的确认内容构造上下文。
+- [x] 模板版本化并进入 runtime bundle。
+- [x] 禁止 RAG/记忆作为当前事实。
+- [x] 交付并核对以下产物：上下文构造器、模板目录、字段清单摘要和校验器。
 
 ## 验收标准
 
@@ -47,3 +47,4 @@ source_task: DEV-HAR-006
 ## 执行记录
 
 - 2026-09-25：从开发任务基线 `DEV-HAR-006` 拆分为独立 task；当前状态为 `todo`，尚未开始开发。
+- 2026-09-28：完成任务边界上下文构造、字段摘要、提示模板目录与 runtime bundle 发布校验；通过定向测试、`mvn -q verify`、Surefire 失败扫描和严格 OpenSpec 校验。
