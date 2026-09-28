@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import io.agentscope.core.formatter.ResponseFormat;
 import io.agentscope.core.message.Msg;
 import io.agentscope.core.message.MsgRole;
+import io.agentscope.core.message.ThinkingBlock;
 import io.agentscope.core.model.ChatResponse;
 import io.agentscope.core.model.GenerateOptions;
 
@@ -73,10 +74,27 @@ class DeepSeekOpenAiAdapterTest {
         assertThat(response.getId()).isEqualTo("stub-response");
         assertThat(response.getUsage().getTotalTokens()).isEqualTo(5);
         assertThat(response.getFinishReason()).isEqualTo("stop");
+        assertThat(response.getContent()).noneMatch(block -> block instanceof ThinkingBlock);
         assertThat(requestBody.get()).contains("\"model\":\"deepseek-flash\"");
         assertThat(requestBody.get()).contains("\"stream\":false");
+        assertThat(requestBody.get()).contains("\"reasoning_effort\":\"high\"");
+        assertThat(requestBody.get()).contains("\"thinking\":{\"type\":\"enabled\"}");
         assertThat(authorization.get()).isEqualTo("Bearer secret-key");
         assertThat(requestBody.get()).doesNotContain("secret-key");
+    }
+
+    @Test
+    void forwardsThinkingOnlyToTheNextProviderRequest() {
+        FinanceAgentProperties.DeepSeek settings = settings("secret-key");
+        DeepSeekOpenAiAdapter adapter = new DeepSeekOpenAiAdapter(settings);
+        Msg assistant = Msg.builder().role(MsgRole.ASSISTANT)
+                .content(List.of(ThinkingBlock.builder().thinking("loop-reasoning-marker").build()))
+                .build();
+
+        adapter.stream(List.of(assistant), List.of(), adapter.options(Duration.ofSeconds(2), null, null, null))
+                .blockLast(Duration.ofSeconds(5));
+
+        assertThat(requestBody.get()).contains("loop-reasoning-marker");
     }
 
     @Test
@@ -130,7 +148,8 @@ class DeepSeekOpenAiAdapterTest {
         }
         return "{\"id\":\"stub-response\",\"object\":\"chat.completion\",\"created\":1,"
                 + "\"model\":\"deepseek-flash\",\"choices\":[{\"index\":0,"
-                + "\"message\":{\"role\":\"assistant\",\"content\":\"ok\"},"
+                + "\"message\":{\"role\":\"assistant\",\"content\":\"ok\","
+                + "\"reasoning_content\":\"response-reasoning-marker\"},"
                 + "\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":3,"
                 + "\"completion_tokens\":2,\"total_tokens\":5}}";
     }

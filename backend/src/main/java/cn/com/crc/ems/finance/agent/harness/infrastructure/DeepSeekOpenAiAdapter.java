@@ -1,6 +1,8 @@
 package cn.com.crc.ems.finance.agent.harness.infrastructure;
 
 import java.time.Duration;
+import java.util.concurrent.CancellationException;
+import java.util.Map;
 import java.util.List;
 import java.util.Objects;
 
@@ -11,12 +13,16 @@ import io.agentscope.core.model.ChatResponse;
 import io.agentscope.core.model.ExecutionConfig;
 import io.agentscope.core.model.GenerateOptions;
 import io.agentscope.core.model.Model;
+import io.agentscope.core.model.ModelException;
 import io.agentscope.core.model.ToolChoice;
 import io.agentscope.core.model.ToolSchema;
 import io.agentscope.core.formatter.ResponseFormat;
 import io.agentscope.extensions.model.openai.OpenAIChatModel;
+import io.agentscope.extensions.model.openai.formatter.DeepSeekFormatter;
+import io.agentscope.extensions.model.openai.exception.OpenAIException;
 
 import cn.com.crc.ems.finance.agent.config.FinanceAgentProperties;
+import cn.com.crc.ems.finance.agent.harness.application.ThinkingContentFilter;
 
 /**
  * DeepSeek OpenAI Chat Completions 适配器；复用 AgentScope 的 HTTP、工具和结构化输出实现。
@@ -41,6 +47,7 @@ public final class DeepSeekOpenAiAdapter {
                 .endpointPath(CHAT_COMPLETIONS_PATH)
                 .modelName(modelName)
                 .stream(false)
+                .formatter(new DeepSeekFormatter())
                 .nativeStructuredOutput(true)
                 .nativeStructuredOutputWithTools(true)
                 .build();
@@ -75,6 +82,9 @@ public final class DeepSeekOpenAiAdapter {
                 .baseUrl(baseUrl)
                 .endpointPath(CHAT_COMPLETIONS_PATH)
                 .stream(false)
+                .reasoningEffort("high")
+                .additionalBodyParam("thinking", Map.of("type", "enabled"))
+                .additionalBodyParam("include_reasoning", true)
                 .executionConfig(ExecutionConfig.builder().timeout(timeout).maxAttempts(1).build());
         if (responseFormat != null) {
             builder.responseFormat(responseFormat);
@@ -94,7 +104,9 @@ public final class DeepSeekOpenAiAdapter {
         Objects.requireNonNull(messages, "messages are required");
         Objects.requireNonNull(tools, "tools are required");
         Objects.requireNonNull(options, "options are required");
-        return model.stream(List.copyOf(messages), List.copyOf(tools), options);
+        return model.stream(List.copyOf(messages), List.copyOf(tools), options)
+                .map(ThinkingContentFilter::filterResponse)
+                .onErrorMap(this::sanitizeFailure);
     }
 
     private static String requireSecret(String apiKey) {
@@ -106,5 +118,32 @@ public final class DeepSeekOpenAiAdapter {
 
     private static String valueOrDefault(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private RuntimeException sanitizeFailure(Throwable failure) {
+        if (failure instanceof CancellationException) {
+            return (CancellationException) failure;
+        }
+        if (failure instanceof ModelException modelException
+                && "DeepSeek model call failed".equals(modelException.getMessage())) {
+            return modelException;
+        }
+        String message = "DeepSeek model call failed";
+        OpenAIException openAiException = findOpenAiException(failure);
+        if (openAiException != null && openAiException.getStatusCode() != null) {
+            message += " with status " + openAiException.getStatusCode();
+        }
+        return new ModelException(message, modelName, "deepseek");
+    }
+
+    private static OpenAIException findOpenAiException(Throwable failure) {
+        Throwable current = failure;
+        while (current != null) {
+            if (current instanceof OpenAIException openAiException) {
+                return openAiException;
+            }
+            current = current.getCause();
+        }
+        return null;
     }
 }
