@@ -43,6 +43,9 @@ public class IdentityResolver {
             return null;
         }
         String testIdentity = request.getHeader("X-Test-Identity");
+        if (testIdentity == null) {
+            testIdentity = request.getParameter("testIdentity");
+        }
         UUID userId = TEST_IDENTITIES.get(testIdentity == null ? "" : testIdentity.trim().toLowerCase());
         return userId == null ? null : agentUserRepository.findById(userId).map(this::toIdentity).orElse(null);
     }

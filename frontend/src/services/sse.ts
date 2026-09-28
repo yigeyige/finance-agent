@@ -33,6 +33,10 @@ export function openSse<TMessage = PublicTaskEvent>(url: string, handlers: SseHa
 /** 创建连接并在命名事件到达时校验和推进游标。 */
 function createEventSource<TMessage>(url: string, cursor: number | undefined, handlers: SseHandlers<TMessage>, onCursor: (cursor: number) => void): EventSource {
   const target = new URL(url, window.location.origin)
+  if (typeof localStorage !== 'undefined') {
+    const testIdentity = localStorage.getItem('finance-agent.test-identity')
+    if (testIdentity) target.searchParams.set('testIdentity', testIdentity)
+  }
   if (cursor !== undefined) target.searchParams.set('lastEventId', String(cursor))
   const eventSource = new EventSource(target.toString())
   eventSource.onopen = () => handlers.onOpen?.()

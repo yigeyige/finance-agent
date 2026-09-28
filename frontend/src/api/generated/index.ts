@@ -50,6 +50,11 @@ export interface CurrentIdentityResponse {
   testIdentity: boolean
 }
 
+export interface StepProposalItem { goal: string; recommended: boolean }
+export interface StepView { stepId: string; sequenceNo: number; goal: string; recommended: boolean; status: string }
+export interface StepProposalResponse { taskId: string; status: TaskStatus; rowVersion: number; scopeRevisionId: string | null; currentStepId: string | null; steps: StepView[] }
+export interface StepApprovalResponse { taskId: string; stepId: string | null; approvalId: string | null; revisionNo: number | null; status: string; approvalDigest: string | null; expiresAt: string | null; rowVersion: number; decision: string }
+
 const TASK_RESPONSE_FIELDS = ['taskId', 'title', 'status', 'rowVersion', 'currentScopeRevisionId', 'createdAt', 'premiseId', 'scopeRevisionNo', 'scopeDigest']
 const PUBLIC_EVENT_FIELDS = ['taskId', 'userId', 'sequence', 'eventType', 'status', 'publicReason', 'resultReference', 'occurredAt']
 const IDENTITY_FIELDS = ['userId', 'authSubject', 'displayName', 'roles', 'permissions', 'testIdentity']
