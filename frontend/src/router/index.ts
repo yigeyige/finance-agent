@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 
 import WorkbenchHome from '../views/WorkbenchHome.vue'
+import EvidenceOverview from '../views/EvidenceOverview.vue'
 import { hasPermission } from '../services/identity'
 
 Vue.use(Router)
@@ -22,6 +23,12 @@ const router = new Router({
       name: 'configuration',
       component: WorkbenchHome,
       meta: { title: '配置管理', permission: 'CONFIG_MANAGE' },
+    },
+    {
+      path: '/tasks/:taskId/evidence',
+      name: 'evidence-overview',
+      component: EvidenceOverview,
+      meta: { title: '证据与覆盖度', permission: 'TASK_READ' },
     },
   ],
 })

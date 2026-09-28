@@ -54,6 +54,11 @@ export interface StepProposalItem { goal: string; recommended: boolean }
 export interface StepView { stepId: string; sequenceNo: number; goal: string; recommended: boolean; status: string }
 export interface StepProposalResponse { taskId: string; status: TaskStatus; rowVersion: number; scopeRevisionId: string | null; currentStepId: string | null; steps: StepView[] }
 export interface StepApprovalResponse { taskId: string; stepId: string | null; approvalId: string | null; revisionNo: number | null; status: string; approvalDigest: string | null; expiresAt: string | null; rowVersion: number; decision: string }
+export interface EvidenceSnapshot { snapshotId: string; stepId: string; sourceObjectType: string; sourceObjectKey: string; checkedAt: string; effectiveFrom: string | null; effectiveTo: string | null; effectiveClass: string; sourceVersion: string; resultDigest: string; fieldPolicyVersion: string; schemaVersion: string }
+export interface EvidenceCoverage { coverageId: string; stepId: string; queryTemplateVersion: string; pageCount: number | null; expectedTotal: number | null; observedTotal: number | null; traversedPaths: string; uncoveredPaths: string; failures: string; sourceWatermark: string; resultSetDigest: string; completeness: 'COMPLETE' | 'PARTIAL' | 'UNKNOWN'; checkedAt: string }
+export interface EvidenceWitness { algorithmVersion: string; ruleSetVersion: string; inputDigest: string; outputDigest: string; snapshotIds: string; computedAt: string; recomputeStatus: string }
+export interface EvidenceFinding { findingId: string; findingType: string; statement: string; judgmentMode: string; effectiveClass: string; status: string; scopeRevisionId: string; witness: EvidenceWitness | null }
+export interface EvidenceOverview { taskId: string; snapshots: EvidenceSnapshot[]; coverages: EvidenceCoverage[]; findings: EvidenceFinding[] }
 
 const TASK_RESPONSE_FIELDS = ['taskId', 'title', 'status', 'rowVersion', 'currentScopeRevisionId', 'createdAt', 'premiseId', 'scopeRevisionNo', 'scopeDigest']
 const PUBLIC_EVENT_FIELDS = ['taskId', 'userId', 'sequence', 'eventType', 'status', 'publicReason', 'resultReference', 'occurredAt']
