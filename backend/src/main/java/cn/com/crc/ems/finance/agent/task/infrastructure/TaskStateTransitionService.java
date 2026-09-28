@@ -61,7 +61,7 @@ public class TaskStateTransitionService {
             throw new InvalidTaskTransitionException("confirmed scope is required before step execution");
         }
         InvestigationTask updated = updatedTask(current, command.targetStatus(), command.scopeRevisionId(),
-                command.stepId(), command.occurredAt());
+                command.stepId(), command.occurredAt(), command.actorUserId());
         taskRepository.updateWithVersionOrThrow(updated, current.rowVersion());
         TaskStateEvent event = new TaskStateEvent(UuidGenerator.newUuid(), current.taskId(), current.status(),
                 command.targetStatus(), command.reason(), command.actorUserId(), command.occurredAt(),
@@ -79,7 +79,7 @@ public class TaskStateTransitionService {
     }
 
     private static InvestigationTask updatedTask(InvestigationTask current, TaskStatus target,
-            java.util.UUID scopeRevisionId, java.util.UUID stepId, Instant occurredAt) {
+            java.util.UUID scopeRevisionId, java.util.UUID stepId, Instant occurredAt, java.util.UUID actorUserId) {
         Instant closedAt = target == TaskStatus.CLOSED || target == TaskStatus.CANCELLED
                         ? occurredAt : current.closedAt();
         return new InvestigationTask(current.taskId(), current.title(), current.originalQuestion(),
@@ -87,6 +87,6 @@ public class TaskStateTransitionService {
                 scopeRevisionId == null ? current.currentScopeRevisionId() : scopeRevisionId,
                 stepId == null ? current.currentStepId() : stepId, current.createdAt(), occurredAt,
                 current.rowVersion() + 1, closedAt,
-                current.createdBy(), current.updatedBy());
+                current.createdBy(), actorUserId == null ? current.updatedBy() : actorUserId);
     }
 }

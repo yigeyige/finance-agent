@@ -4,6 +4,7 @@ import Router from 'vue-router'
 import WorkbenchHome from '../views/WorkbenchHome.vue'
 import EvidenceOverview from '../views/EvidenceOverview.vue'
 import PacketDraft from '../views/PacketDraft.vue'
+import PublishedPacket from '../views/PublishedPacket.vue'
 import { hasPermission } from '../services/identity'
 
 Vue.use(Router)
@@ -36,6 +37,12 @@ const router = new Router({
       name: 'packet-draft',
       component: PacketDraft,
       meta: { title: '决策包草稿', permission: 'TASK_WRITE' },
+    },
+    {
+      path: '/tasks/:taskId/published',
+      name: 'published-packet',
+      component: PublishedPacket,
+      meta: { title: '已发布决策包', permission: 'PUBLISHED_PACKET_READ' },
     },
   ],
 })
