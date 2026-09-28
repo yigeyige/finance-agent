@@ -1,13 +1,13 @@
 ---
 id: 20260925-dev-har-004
 title: "集成 Permission/HITL 与工具网关"
-status: todo
+status: completed
 priority: high
-owner: ""
+owner: yigeyige99
 created_at: 2026-09-25
 type: development
 source: development-workplan
-openspec_change: finance-agent-development-task-baseline
+openspec_change: permission-hitl-tool-bridge
 source_task: DEV-HAR-004
 ---
 
@@ -24,11 +24,11 @@ source_task: DEV-HAR-004
 
 ## 目标
 
-- [ ] Harness permission 在工具请求处暂停。
-- [ ] 业务层生成审批卡。
-- [ ] 批准后仍经业务 ToolGateway 二次守卫。
-- [ ] 拒绝/过期返回结构化事件。
-- [ ] 交付并核对以下产物：permission middleware、HITL bridge、工具适配器。
+- [x] Harness permission 在工具请求处暂停。
+- [x] 业务层生成审批卡。
+- [x] 批准后仍经业务 ToolGateway 二次守卫。
+- [x] 拒绝/过期返回结构化事件。
+- [x] 交付并核对以下产物：permission middleware、HITL bridge、工具适配器。
 
 ## 验收标准
 
@@ -48,3 +48,4 @@ source_task: DEV-HAR-004
 ## 执行记录
 
 - 2026-09-25：从开发任务基线 `DEV-HAR-004` 拆分为独立 task；当前状态为 `todo`，尚未开始开发。
+- 2026-09-28：完成 Harness Permission middleware、短期待审批 HITL bridge、批准后业务 ToolGateway 二次守卫及结构化拒绝/过期事件；通过定向测试、`mvn -q verify`、Surefire 汇总检查和 `openspec validate --strict`。
