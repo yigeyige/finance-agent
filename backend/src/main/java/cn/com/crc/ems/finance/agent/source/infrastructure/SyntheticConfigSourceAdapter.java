@@ -50,7 +50,7 @@ public class SyntheticConfigSourceAdapter implements ConfigSourceAdapter {
         int to = Math.min(from + size, data.size());
         List<Map<String, Object>> records = new ArrayList<>(data.subList(from, to));
         String digest = Sha256Digest.hex(records.toString() + "|" + seed + "|" + scenario);
-        return new SourcePage(records, page, size, to < data.size(), VERSION, digest, scenario.name());
+        return new SourcePage(records, page, size, to < data.size(), VERSION, digest, scenario.name(), (long) data.size());
     }
 
     private static List<Map<String, Object>> scenarioData(SyntheticScenario scenario, long seed) {
