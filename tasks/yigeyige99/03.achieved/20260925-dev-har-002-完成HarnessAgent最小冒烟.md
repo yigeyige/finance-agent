@@ -1,13 +1,13 @@
 ---
 id: 20260925-dev-har-002
 title: "完成 HarnessAgent 最小冒烟"
-status: todo
+status: completed
 priority: high
-owner: ""
+owner: yigeyige99
 created_at: 2026-09-25
 type: development
 source: development-workplan
-openspec_change: finance-agent-development-task-baseline
+openspec_change: harness-agent-smoke
 source_task: DEV-HAR-002
 ---
 
@@ -24,9 +24,9 @@ source_task: DEV-HAR-002
 
 ## 目标
 
-- [ ] 使用 AgentScope Java 2.0.3 `HarnessAgent`、Stub 模型、本地 workspace 和默认状态存储，验证 session、一次调用、事件流和重连。
-- [ ] 记录实际 API 与设计差异。
-- [ ] 交付并核对以下产物：Harness factory、冒烟入口、兼容性记录。
+- [x] 使用 AgentScope Java 2.0.3 `HarnessAgent`、Stub 模型、本地 workspace 和默认状态存储，验证 session、一次调用、事件流和重连。
+- [x] 记录实际 API 与设计差异。
+- [x] 交付并核对以下产物：Harness factory、冒烟入口、兼容性记录。
 
 ## 验收标准
 
@@ -47,3 +47,4 @@ source_task: DEV-HAR-002
 ## 执行记录
 
 - 2026-09-25：从开发任务基线 `DEV-HAR-002` 拆分为独立 task；当前状态为 `todo`，尚未开始开发。
+- 2026-09-28：基于 AgentScope 2.0.3 实际 API 完成 HarnessAgent factory、本地 Stub 模型、显式身份/workspace 绑定和连续调用冒烟；兼容性结论为使用 `HarnessAgent.builder`、`RuntimeContext`、`InMemoryAgentStateStore`，未代表生产持久化；定向测试、`mvn -q verify`、Surefire 汇总检查和 `openspec validate --strict` 通过。
