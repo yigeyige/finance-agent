@@ -1,13 +1,13 @@
 ---
 id: 20260925-dev-har-005
 title: "实现 PostgreSQL Harness 状态适配"
-status: todo
+status: completed
 priority: high
-owner: ""
+owner: yigeyige99
 created_at: 2026-09-25
 type: development
 source: development-workplan
-openspec_change: finance-agent-development-task-baseline
+openspec_change: postgres-harness-state-adapter
 source_task: DEV-HAR-005
 ---
 
@@ -24,11 +24,11 @@ source_task: DEV-HAR-005
 
 ## 目标
 
-- [ ] 先确认 AgentScope 2.0.3 `AgentStateStore`/相关 SPI。
-- [ ] 优先实现直接 PostgreSQL 适配。
-- [ ] 若 SPI 不足，使用受支持扩展点和业务侧状态映射，保留差异记录。
-- [ ] 以 user/session 定位并关联 task。
-- [ ] 交付并核对以下产物：状态适配器、序列化版本、迁移/仓储、兼容性决策记录。
+- [x] 先确认 AgentScope 2.0.3 `AgentStateStore`/相关 SPI。
+- [x] 优先实现直接 PostgreSQL 适配。
+- [x] 若 SPI 不足，使用受支持扩展点和业务侧状态映射，保留差异记录。
+- [x] 以 user/session 定位并关联 task。
+- [x] 交付并核对以下产物：状态适配器、序列化版本、迁移/仓储、兼容性决策记录。
 
 ## 验收标准
 
@@ -49,3 +49,4 @@ source_task: DEV-HAR-005
 ## 执行记录
 
 - 2026-09-25：从开发任务基线 `DEV-HAR-005` 拆分为独立 task；当前状态为 `todo`，尚未开始开发。
+- 2026-09-28：确认 AgentScope 2.0.3 `AgentStateStore` SPI 后，复用现有 `harness.session_state` MyBatis-Plus 仓储实现 PostgreSQL 适配；新增 Jackson 版本化状态 codec、摘要/runtime 版本失败关闭及契约测试。通过定向测试、`mvn -q verify`、Surefire 汇总检查和 `openspec validate --strict`；进程重启人工验证留给用户。

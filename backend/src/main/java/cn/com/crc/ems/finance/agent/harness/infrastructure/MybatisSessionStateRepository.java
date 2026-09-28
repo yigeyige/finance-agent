@@ -32,6 +32,13 @@ public class MybatisSessionStateRepository implements SessionStateRepository {
     }
 
     @Override
+    public Optional<SessionState> findBySessionIdAndUserId(UUID sessionId, UUID userId) {
+        return Optional.ofNullable(mapper.selectOne(new QueryWrapper<SessionStateEntity>()
+                        .eq("session_id", sessionId).eq("user_id", userId)))
+                .map(MybatisHarnessMappings::toDomain);
+    }
+
+    @Override
     public void insert(SessionState sessionState) {
         mapper.insert(MybatisHarnessMappings.toEntity(sessionState));
     }
@@ -48,7 +55,19 @@ public class MybatisSessionStateRepository implements SessionStateRepository {
         entity.stateDigest = stateRef.digest();
         entity.updatedBy = updatedBy;
         entity.updatedAt = updatedAt;
-        return mapper.update(entity, new QueryWrapper<SessionStateEntity>().eq("session_id", sessionId)
+                return mapper.update(entity, new QueryWrapper<SessionStateEntity>().eq("session_id", sessionId)
                         .eq("task_id", taskId).eq("user_id", userId)) > 0;
+    }
+
+    @Override
+    public boolean delete(UUID sessionId, UUID taskId, UUID userId) {
+        return mapper.delete(new QueryWrapper<SessionStateEntity>().eq("session_id", sessionId)
+                .eq("task_id", taskId).eq("user_id", userId)) > 0;
+    }
+
+    @Override
+    public java.util.Set<UUID> listSessionIds(UUID userId) {
+        return mapper.selectList(new QueryWrapper<SessionStateEntity>().eq("user_id", userId))
+                .stream().map(entity -> UUID.fromString(entity.sessionId)).collect(java.util.stream.Collectors.toSet());
     }
 }
