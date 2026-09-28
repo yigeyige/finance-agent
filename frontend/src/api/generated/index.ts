@@ -62,6 +62,7 @@ export interface EvidenceFinding { findingId: string; findingType: string; state
 export interface EvidenceOverview { taskId: string; snapshots: EvidenceSnapshot[]; coverages: EvidenceCoverage[]; findings: EvidenceFinding[] }
 export interface PacketDraftResponse { taskId: string; draftId: string; draftNo: number; scopeRevisionId: string; runtimeBundleId: string; status: string; canonicalJson: string; contentDigest: string; htmlSnapshot: string; createdAt: string }
 export interface PacketReviewResponse { taskId: string; draftId: string; contentDigest: string; scopeRevisionId: string; runtimeBundleId: string; decision: 'APPROVE' | 'REJECT'; reviewerUserId: string; reviewedAt: string; comment: string | null }
+export interface PacketPublicationResponse { taskId: string; published: boolean; taskStatus: string; packetRevisionId: string | null; revisionNo: number | null; contentDigest: string | null; recheckDecision: string | null; recheckDigest: string | null; checkedAt: string | null; diffs: Array<{ objectKey: string; changes: string[] }> }
 
 const TASK_RESPONSE_FIELDS = ['taskId', 'title', 'status', 'rowVersion', 'currentScopeRevisionId', 'createdAt', 'premiseId', 'scopeRevisionNo', 'scopeDigest']
 const PUBLIC_EVENT_FIELDS = ['taskId', 'userId', 'sequence', 'eventType', 'status', 'publicReason', 'resultReference', 'occurredAt']

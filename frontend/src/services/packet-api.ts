@@ -1,4 +1,4 @@
-import { PacketDraftResponse, PacketReviewResponse } from '../api/generated'
+import { PacketDraftResponse, PacketPublicationResponse, PacketReviewResponse } from '../api/generated'
 import { postJson } from './http'
 
 export interface PacketDraftPayload {
@@ -27,6 +27,25 @@ export interface PacketReviewPayload { contentDigest: string; scopeRevisionId: s
 /** 提交绑定摘要、范围和运行版本的草稿复核。 */
 export function reviewPacketDraft(taskId: string, draftId: string, payload: PacketReviewPayload): Promise<PacketReviewResponse> {
   return postJson<PacketReviewResponse, PacketReviewPayload>(`/v1/tasks/${taskId}/packet-drafts/${draftId}/reviews`, payload, undefined, { idempotencyKey: createIdempotencyKey() })
+}
+
+export interface PacketPublicationPayload {
+  draftId: string
+  publicationId: string
+  contentDigest: string
+  scopeRevisionId: string
+  runtimeBundleId: string
+  canonicalJson: string
+  htmlSnapshot: string
+  sourceVersions: string
+  coverageSummary: string
+  baseline: unknown[]
+  current: unknown[]
+}
+
+/** 触发发布前全量重查，并在无变化时提交不可变发布修订。 */
+export function publishPacket(taskId: string, payload: PacketPublicationPayload): Promise<PacketPublicationResponse> {
+  return postJson<PacketPublicationResponse, PacketPublicationPayload>(`/v1/tasks/${taskId}/packet-publications`, payload, undefined, { idempotencyKey: createIdempotencyKey() })
 }
 
 function createIdempotencyKey(): string {
