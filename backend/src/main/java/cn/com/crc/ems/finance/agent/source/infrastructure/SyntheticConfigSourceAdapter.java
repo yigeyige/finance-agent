@@ -66,8 +66,15 @@ public class SyntheticConfigSourceAdapter implements ConfigSourceAdapter {
     }
 
     private static List<Map<String, Object>> scenarioData(SyntheticScenario scenario, long seed) {
+        if (scenario == SyntheticScenario.COMPLETE_NO_MATCH) {
+            return List.of();
+        }
+        if (scenario == SyntheticScenario.PARTIAL_NO_MATCH) {
+            return List.of(record("EMP-SYN-001", "REF-SYN-UNKNOWN-ONLY-001", "UNKNOWN"));
+        }
         List<Map<String, Object>> data = new ArrayList<>(BASE);
         switch (scenario) {
+            case PAGINATION_FAILURE -> data.add(record("EMP-SYN-001", "REF-SYN-PAGE-003", "CURRENT"));
             case CROSS_SOURCE_CONFLICT -> data.add(record("EMP-SYN-001", "REF-SYN-CONFLICT-001", "CONFLICT"));
             case FUTURE_REFERENCE -> data.add(record("EMP-SYN-001", "REF-SYN-FUTURE-002", "FUTURE"));
             case UNKNOWN_GAP -> data.add(record("EMP-SYN-001", "REF-SYN-UNKNOWN-001", "UNKNOWN"));

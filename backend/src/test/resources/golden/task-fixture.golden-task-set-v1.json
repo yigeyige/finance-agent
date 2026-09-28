@@ -1,0 +1,73 @@
+{
+  "fixtureVersion": "golden-task-set-v1",
+  "seed": 17,
+  "sourceVersion": "synthetic-config-v1",
+  "ruleSetVersion": "rules.personnel-reference.v1",
+  "packetSchemaVersion": "packet-v1",
+  "scenarios": [
+    {
+      "id": "baseline-current-future",
+      "sourceScenario": "BASELINE",
+      "expectedCoverage": "COMPLETE",
+      "expectedFinding": "CURRENT_EFFECTIVE",
+      "expectedWitness": "MATCHED",
+      "expectedPacketSections": ["problem", "premises", "scope", "sources", "facts", "computations", "professionalJudgments", "recommendations", "businessConfirmations", "validationPreparation", "handoff"]
+    },
+    {
+      "id": "complete-no-match",
+      "sourceScenario": "COMPLETE_NO_MATCH",
+      "expectedCoverage": "COMPLETE",
+      "expectedFinding": "UNDETERMINED",
+      "expectedWitness": "MATCHED",
+      "expectedPacketSections": ["problem", "premises", "scope", "sources", "facts", "computations", "professionalJudgments", "recommendations", "businessConfirmations", "validationPreparation", "handoff"]
+    },
+    {
+      "id": "partial-no-match",
+      "sourceScenario": "PARTIAL_NO_MATCH",
+      "expectedCoverage": "PARTIAL",
+      "expectedFinding": "UNDETERMINED",
+      "expectedWitness": "NOT_RUN",
+      "expectedPacketSections": ["problem", "premises", "scope", "sources", "facts", "computations", "professionalJudgments", "recommendations", "businessConfirmations", "validationPreparation", "handoff"]
+    },
+    {
+      "id": "unknown-gap",
+      "sourceScenario": "UNKNOWN_GAP",
+      "expectedCoverage": "PARTIAL",
+      "expectedFinding": "CURRENT_EFFECTIVE",
+      "expectedWitness": "MATCHED",
+      "expectedPacketSections": ["problem", "premises", "scope", "sources", "facts", "computations", "professionalJudgments", "recommendations", "businessConfirmations", "validationPreparation", "handoff"]
+    },
+    {
+      "id": "cross-source-conflict",
+      "sourceScenario": "CROSS_SOURCE_CONFLICT",
+      "expectedCoverage": "PARTIAL",
+      "expectedFinding": "CURRENT_EFFECTIVE",
+      "expectedWitness": "MATCHED",
+      "expectedPacketSections": ["problem", "premises", "scope", "sources", "facts", "computations", "professionalJudgments", "recommendations", "businessConfirmations", "validationPreparation", "handoff"]
+    },
+    {
+      "id": "pagination-failure",
+      "sourceScenario": "PAGINATION_FAILURE",
+      "expectedCoverage": "PARTIAL",
+      "expectedFinding": "UNKNOWN",
+      "expectedWitness": "NOT_RUN",
+      "expectedPacketSections": ["problem", "premises", "scope", "sources", "facts", "computations", "professionalJudgments", "recommendations", "businessConfirmations", "validationPreparation", "handoff"]
+    },
+    {
+      "id": "new-reference-before-publish",
+      "sourceScenario": "NEW_REFERENCE",
+      "expectedCoverage": "PARTIAL",
+      "expectedFinding": "CURRENT_EFFECTIVE",
+      "expectedWitness": "MATCHED",
+      "expectedPacketSections": ["problem", "premises", "scope", "sources", "facts", "computations", "professionalJudgments", "recommendations", "businessConfirmations", "validationPreparation", "handoff"]
+    },
+    {
+      "id": "future-reference",
+      "sourceScenario": "FUTURE_REFERENCE",
+      "expectedCoverage": "PARTIAL",
+      "expectedFinding": "CURRENT_EFFECTIVE",
+      "expectedWitness": "MATCHED",
+      "expectedPacketSections": ["problem", "premises", "scope", "sources", "facts", "computations", "professionalJudgments", "recommendations", "businessConfirmations", "validationPreparation", "handoff"]
+    }
+  ]
+}
