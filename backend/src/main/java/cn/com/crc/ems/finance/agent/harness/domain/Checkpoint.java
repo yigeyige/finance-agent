@@ -6,8 +6,16 @@ import java.util.UUID;
 
 /** 保存最小恢复引用并绑定当前任务批准上下文的 Harness checkpoint。 */
 public record Checkpoint(UUID checkpointId, UUID sessionId, UUID taskId, UUID userId, UUID stepId,
-        UUID scopeRevisionId, UUID approvalId, String checkpointType, StateReference stateRef,
+        UUID scopeRevisionId, UUID approvalId, UUID runtimeBundleId, String checkpointType, StateReference stateRef,
         UUID createdBy, Instant createdAt, UUID updatedBy, Instant updatedAt) {
+
+    /** 兼容没有运行版本字段的历史构造入口；历史 checkpoint 恢复时会要求重新审批。 */
+    public Checkpoint(UUID checkpointId, UUID sessionId, UUID taskId, UUID userId, UUID stepId,
+            UUID scopeRevisionId, UUID approvalId, String checkpointType, StateReference stateRef,
+            UUID createdBy, Instant createdAt, UUID updatedBy, Instant updatedAt) {
+        this(checkpointId, sessionId, taskId, userId, stepId, scopeRevisionId, approvalId, null, checkpointType,
+                stateRef, createdBy, createdAt, updatedBy, updatedAt);
+    }
 
     public Checkpoint {
         requireId(checkpointId, "checkpointId");

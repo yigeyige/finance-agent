@@ -21,6 +21,7 @@ public class CheckpointEntity {
     public UUID stepId;
     public UUID scopeRevisionId;
     public UUID approvalId;
+    public UUID runtimeBundleId;
     public String checkpointType;
     public String stateSchemaVersion;
     @TableField(value = "state_ref", typeHandler = JsonbTypeHandler.class)

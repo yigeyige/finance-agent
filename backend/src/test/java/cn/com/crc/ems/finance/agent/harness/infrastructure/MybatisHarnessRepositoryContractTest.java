@@ -51,6 +51,7 @@ class MybatisHarnessRepositoryContractTest {
         entity.stepId = UUID.randomUUID();
         entity.scopeRevisionId = UUID.randomUUID();
         entity.approvalId = UUID.randomUUID();
+        entity.runtimeBundleId = UUID.randomUUID();
         entity.checkpointType = "STEP_COMPLETED";
         entity.stateSchemaVersion = "harness-v1";
         entity.stateRef = "{\"step\":\"s1\"}";

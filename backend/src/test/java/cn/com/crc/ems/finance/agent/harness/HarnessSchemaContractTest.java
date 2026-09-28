@@ -31,6 +31,13 @@ class HarnessSchemaContractTest {
                 .doesNotContain("raw_content", "source_raw_response", "reasoning_content");
     }
 
+    @Test
+    void v10AddsRuntimeBindingForNewCheckpoints() throws IOException {
+        String v10 = read("db/migration/V10__checkpoint_runtime_binding.sql");
+        assertThat(v10).contains("ALTER TABLE harness.checkpoint", "runtime_bundle_id uuid",
+                "REFERENCES governance.runtime_bundle(runtime_bundle_id)");
+    }
+
     private static String read(String resource) throws IOException {
         try (InputStream stream = HarnessSchemaContractTest.class.getClassLoader().getResourceAsStream(resource)) {
             if (stream == null) {

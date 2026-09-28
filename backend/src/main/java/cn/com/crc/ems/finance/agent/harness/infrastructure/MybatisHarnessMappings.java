@@ -44,7 +44,8 @@ public final class MybatisHarnessMappings {
     /** 将 checkpoint Entity 映射为领域对象。 */
     public static Checkpoint toDomain(CheckpointEntity entity) {
         return new Checkpoint(PersistenceUuid.toDomain(entity.checkpointId), entity.sessionId, entity.taskId,
-                entity.userId, entity.stepId, entity.scopeRevisionId, entity.approvalId, entity.checkpointType,
+                entity.userId, entity.stepId, entity.scopeRevisionId, entity.approvalId, entity.runtimeBundleId,
+                entity.checkpointType,
                 state(entity.stateSchemaVersion, entity.stateRef, entity.stateDigest), entity.createdBy,
                 entity.createdAt, entity.updatedBy, entity.updatedAt);
     }
@@ -59,6 +60,7 @@ public final class MybatisHarnessMappings {
         entity.stepId = value.stepId();
         entity.scopeRevisionId = value.scopeRevisionId();
         entity.approvalId = value.approvalId();
+        entity.runtimeBundleId = value.runtimeBundleId();
         entity.checkpointType = value.checkpointType();
         entity.stateSchemaVersion = value.stateRef().schemaVersion();
         entity.stateRef = value.stateRef().json();
