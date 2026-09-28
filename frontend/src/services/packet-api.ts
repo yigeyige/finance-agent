@@ -1,4 +1,4 @@
-import { PacketDraftResponse } from '../api/generated'
+import { PacketDraftResponse, PacketReviewResponse } from '../api/generated'
 import { postJson } from './http'
 
 export interface PacketDraftPayload {
@@ -20,6 +20,13 @@ export interface PacketDraftPayload {
 /** 组装结构化决策包草稿并返回 JSON 权威内容及 HTML 快照。 */
 export function assemblePacketDraft(taskId: string, payload: PacketDraftPayload): Promise<PacketDraftResponse> {
   return postJson<PacketDraftResponse, PacketDraftPayload>(`/v1/tasks/${taskId}/packet-drafts`, payload, undefined, { idempotencyKey: createIdempotencyKey() })
+}
+
+export interface PacketReviewPayload { contentDigest: string; scopeRevisionId: string; runtimeBundleId: string; decision: 'APPROVE' | 'REJECT'; comment: string }
+
+/** 提交绑定摘要、范围和运行版本的草稿复核。 */
+export function reviewPacketDraft(taskId: string, draftId: string, payload: PacketReviewPayload): Promise<PacketReviewResponse> {
+  return postJson<PacketReviewResponse, PacketReviewPayload>(`/v1/tasks/${taskId}/packet-drafts/${draftId}/reviews`, payload, undefined, { idempotencyKey: createIdempotencyKey() })
 }
 
 function createIdempotencyKey(): string {
