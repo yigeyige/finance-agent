@@ -1,0 +1,33 @@
+{
+  "fixtureVersion": "p0-evidence-index-v1",
+  "baseline": "finance-agent-p0-v1",
+  "tasks": [
+    {"id": "DEV-QA-001", "status": "VERIFIED_STATIC", "artifacts": ["backend/src/test/resources/golden/task-fixture.golden-task-set-v1.json", "backend/src/test/java/cn/com/crc/ems/finance/agent/qa/GoldenTaskSetTest.java"], "manualRequired": false},
+    {"id": "DEV-QA-002", "status": "VERIFIED_STATIC", "artifacts": ["scripts/fixtures/core-synthetic-vertical-slice-v1.json", "scripts/qa-core-synthetic-vertical-slice.ps1"], "manualRequired": false},
+    {"id": "DEV-QA-003", "status": "VERIFIED_STATIC", "artifacts": ["scripts/fixtures/data-boundary-negative-v1.json", "scripts/qa-data-boundary-negative-gate.ps1"], "manualRequired": true, "reason": "用户需执行真实数据边界扫描"},
+    {"id": "DEV-QA-004", "status": "VERIFIED_STATIC", "artifacts": ["scripts/fixtures/approval-permission-publication-negative-v1.json", "scripts/qa-approval-permission-publication-negative-gate.ps1"], "manualRequired": true, "reason": "用户需执行 API/UI 负向场景"},
+    {"id": "DEV-QA-005", "status": "VERIFIED_STATIC", "artifacts": ["scripts/fixtures/coverage-wording-gate-v1.json", "scripts/qa-coverage-wording-gate.ps1"], "manualRequired": false},
+    {"id": "DEV-QA-006", "status": "VERIFIED_STATIC", "artifacts": ["scripts/fixtures/recovery-idempotency-lease-v1.json", "scripts/qa-recovery-idempotency-lease-gate.ps1"], "manualRequired": true, "reason": "用户需执行中断、并发和恢复注入"},
+    {"id": "DEV-QA-007", "status": "VERIFIED_STATIC", "artifacts": ["scripts/fixtures/harness-capability-acceptance-v1.json", "scripts/qa-harness-capability-acceptance.ps1"], "manualRequired": false},
+    {"id": "DEV-QA-008", "status": "PENDING_USER", "artifacts": ["scripts/live-deepseek-test.ps1", "docs/deepseek-live-test.md"], "manualRequired": true, "reason": "真实模型和网络调用尚未由用户执行"},
+    {"id": "DEV-QA-009", "status": "PENDING_USER", "artifacts": ["scripts/qa-deployment-artifacts.ps1", "docs/deployment-checklist.md"], "manualRequired": true, "reason": "JAR/Docker 启动与外部数据库尚未由用户执行"},
+    {"id": "DEV-QA-010", "status": "PENDING_USER", "artifacts": ["scripts/qa-p0-evidence-index.ps1", "docs/p0-evidence-gate.md"], "manualRequired": true, "reason": "等待用户签署 P0 结论"}
+  ],
+  "zeroTolerance": [
+    {"id": "FORBIDDEN_PERSISTENCE_OR_MODEL", "value": 0, "status": "PENDING_USER", "source": "DEV-QA-003"},
+    {"id": "UNAUTHORIZED_PUBLICATION", "value": 0, "status": "PENDING_USER", "source": "DEV-QA-004"},
+    {"id": "DOUBLE_EXECUTION_OR_DUPLICATE_REVISION", "value": 0, "status": "PENDING_USER", "source": "DEV-QA-006"}
+  ],
+  "p1Inputs": [
+    "真实统一认证契约",
+    "真实 SourceCatalog 与字段策略",
+    "真实 DeepSeek key、模型和配额",
+    "Docker runtime 与外部 PostgreSQL 连接"
+  ],
+  "knownLimitations": [
+    "实现方未启动本地服务、Worker、JAR/Docker 或真实模型",
+    "未执行 dbx 只读扫描",
+    "用户需补充证据并签署 P0 结论"
+  ],
+  "signOff": {"status": "PENDING_USER", "signedBy": "", "signedAt": "", "conclusion": "CONDITIONAL"}
+}
