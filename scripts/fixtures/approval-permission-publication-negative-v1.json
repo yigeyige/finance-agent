@@ -1,0 +1,90 @@
+{
+  "fixtureVersion": "approval-permission-publication-negative-v1",
+  "taskId": "00000000-0000-4000-8000-000000000301",
+  "operatorId": "00000000-0000-4000-8000-000000000001",
+  "viewerId": "00000000-0000-4000-8000-000000000002",
+  "syntheticDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "evidenceRequirements": ["response", "status", "audit"],
+  "cases": [
+    {
+      "id": "SCOPE_NOT_CONFIRMED",
+      "description": "未确认范围时执行步骤",
+      "request": {"method": "POST", "path": "/api/v1/tasks/{taskId}/step-proposals", "actor": "OPERATOR", "idempotencyKey": "negative-scope-0001", "body": {"steps": [{"goal": "synthetic scope check", "recommended": true}]}},
+      "expectedHttpStatus": 409,
+      "expectedDecision": "REJECTED",
+      "auditEvent": "STEP_PROPOSAL_REJECTED"
+    },
+    {
+      "id": "APPROVAL_EXPIRED",
+      "description": "过期审批不得签发 permit",
+      "request": {"method": "POST", "path": "/api/v1/tasks/{taskId}/step-executions", "actor": "OPERATOR", "idempotencyKey": "negative-expired-0001", "body": {"approvalId": "00000000-0000-4000-8000-000000000311", "scopeRevisionId": "00000000-0000-4000-8000-000000000312"}},
+      "expectedHttpStatus": 409,
+      "expectedDecision": "REJECTED",
+      "auditEvent": "STEP_EXECUTION_REJECTED"
+    },
+    {
+      "id": "FIELD_POLICY_OR_TEMPLATE_DRIFT",
+      "description": "字段策略或查询模板漂移不得执行",
+      "request": {"method": "POST", "path": "/api/v1/tasks/{taskId}/step-executions", "actor": "OPERATOR", "idempotencyKey": "negative-drift-0001", "body": {"approvalId": "00000000-0000-4000-8000-000000000313", "fieldPolicyVersion": "field-v2", "queryTemplateVersion": "query-v2"}},
+      "expectedHttpStatus": 409,
+      "expectedDecision": "REJECTED",
+      "auditEvent": "STEP_EXECUTION_REJECTED"
+    },
+    {
+      "id": "CROSS_TASK_PERMIT",
+      "description": "其他任务 permit 不得复用",
+      "request": {"method": "POST", "path": "/api/v1/tasks/{taskId}/step-executions", "actor": "OPERATOR", "idempotencyKey": "negative-cross-task-01", "body": {"approvalId": "00000000-0000-4000-8000-000000000314", "permitTaskId": "00000000-0000-4000-8000-000000000399"}},
+      "expectedHttpStatus": 409,
+      "expectedDecision": "REJECTED",
+      "auditEvent": "STEP_EXECUTION_REJECTED"
+    },
+    {
+      "id": "PROFESSIONAL_CONFIRMATION_MISSING",
+      "description": "缺少专业确认不得形成可发布结论",
+      "request": {"method": "POST", "path": "/api/v1/tasks/{taskId}/packet-drafts/{draftId}/reviews", "actor": "OPERATOR", "idempotencyKey": "negative-confirm-001", "body": {"decision": "APPROVE", "comment": "synthetic missing confirmation"}},
+      "expectedHttpStatus": 409,
+      "expectedDecision": "REJECTED",
+      "auditEvent": "PACKET_REVIEW_REJECTED"
+    },
+    {
+      "id": "STALE_REVIEW",
+      "description": "旧范围或旧摘要复核不得发布",
+      "request": {"method": "POST", "path": "/api/v1/tasks/{taskId}/packet-publications", "actor": "OPERATOR", "idempotencyKey": "negative-stale-review", "body": {"draftId": "00000000-0000-4000-8000-000000000321", "publicationId": "00000000-0000-4000-8000-000000000322", "contentDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}},
+      "expectedHttpStatus": 409,
+      "expectedDecision": "STALE_DRAFT",
+      "auditEvent": "PACKET_PUBLICATION_REJECTED"
+    },
+    {
+      "id": "CONCURRENT_PUBLICATION",
+      "description": "同一 publication identity 的并发重放不得产生第二个 revision",
+      "request": {"method": "POST", "path": "/api/v1/tasks/{taskId}/packet-publications", "actor": "OPERATOR", "idempotencyKey": "negative-concurrent", "body": {"publicationId": "00000000-0000-4000-8000-000000000323", "contentDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},
+      "expectedHttpStatus": 201,
+      "expectedDecision": "IDEMPOTENT_REPLAY",
+      "auditEvent": "PACKET_PUBLISHED_ONCE"
+    },
+    {
+      "id": "VIEWER_PUBLISH_FORBIDDEN",
+      "description": "VIEWER 不得发布决策包",
+      "request": {"method": "POST", "path": "/api/v1/tasks/{taskId}/packet-publications", "actor": "VIEWER", "idempotencyKey": "negative-viewer-pub", "body": {"publicationId": "00000000-0000-4000-8000-000000000324"}},
+      "expectedHttpStatus": 403,
+      "expectedDecision": "FORBIDDEN",
+      "auditEvent": "PERMISSION_DENIED"
+    },
+    {
+      "id": "VIEWER_REVIEW_FORBIDDEN",
+      "description": "VIEWER 不得复核决策包",
+      "request": {"method": "POST", "path": "/api/v1/tasks/{taskId}/packet-drafts/{draftId}/reviews", "actor": "VIEWER", "idempotencyKey": "negative-viewer-review", "body": {"decision": "APPROVE"}},
+      "expectedHttpStatus": 403,
+      "expectedDecision": "FORBIDDEN",
+      "auditEvent": "PERMISSION_DENIED"
+    },
+    {
+      "id": "VIEWER_HANDOFF_FORBIDDEN",
+      "description": "VIEWER 不得交接或关闭调查",
+      "request": {"method": "POST", "path": "/api/v1/tasks/{taskId}/packet-revisions/{revisionId}/handoff", "actor": "VIEWER", "idempotencyKey": "negative-viewer-handoff", "body": {"ownerReference": "synthetic-owner", "downstreamStatus": "PENDING"}},
+      "expectedHttpStatus": 403,
+      "expectedDecision": "FORBIDDEN",
+      "auditEvent": "PERMISSION_DENIED"
+    }
+  ]
+}
