@@ -1,0 +1,27 @@
+{
+  "fixtureVersion": "data-boundary-negative-v1",
+  "seed": 29,
+  "taskId": "00000000-0000-4000-8000-000000000201",
+  "syntheticMarker": "NEGATIVE_BOUNDARY_MARKER_20260929",
+  "fields": {
+    "readAllowed": ["syntheticEmployeeId", "classification", "displayName"],
+    "retainAllowed": ["syntheticEmployeeId", "classification"],
+    "modelAllowed": ["syntheticEmployeeId", "classification"],
+    "readForbidden": "credential",
+    "readButNotRetained": "displayName",
+    "readButNotModelApproved": "displayName"
+  },
+  "scanTargets": ["database", "logs", "trace", "workspace", "checkpoint", "sse", "export"],
+  "forbiddenKeys": ["raw_response", "source_raw", "password", "secret", "token", "access_token", "credential", "prompt", "reasoning", "reasoning_content"],
+  "expected": {
+    "forbiddenPersistence": 0,
+    "forbiddenModelTransmission": 0,
+    "sourceWrites": 0,
+    "markerHits": 0
+  },
+  "sourceWriteProbe": {
+    "adapter": "ConfigSourceAdapter",
+    "expected": "rejected",
+    "methodNames": ["catalog", "query"]
+  }
+}
