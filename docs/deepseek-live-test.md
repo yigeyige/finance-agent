@@ -1,20 +1,19 @@
-# DeepSeek 手工 live-test
+# DeepSeek 真实模型手动验证
 
-默认 `local`、`test` 配置保持 Stub 模式，不访问真实网络。只有用户明确提供临时 API Key 并指定 `model-live-test` profile 时才创建真实适配器。
-
-PowerShell 示例（不要把 Key 写入仓库、命令历史或日志）：
+默认命令不访问网络，也不会读取 `DEEPSEEK_API_KEY`：
 
 ```powershell
-$env:DEEPSEEK_API_KEY = '<由用户临时注入>'
-Push-Location backend
-try {
-    mvn -q -Dspring.profiles.active=model-live-test test
-} finally {
-    Pop-Location
-    Remove-Item Env:DEEPSEEK_API_KEY -ErrorAction SilentlyContinue
-}
+pwsh -NoProfile -File scripts/live-deepseek-test.ps1
 ```
 
-默认模型为 `deepseek-flash`，默认 endpoint 为 `https://api.deepseek.com/chat/completions`。适配器不会自动切换模型；错误或限流会直接结束当前调用，由上层进入暂停/人工处理。
+用户确认本机可联网、已设置临时进程变量后再执行真实调用：
 
-live-test 结果只记录模型名、token、完成原因、schema 校验和耗时等非敏感元数据，不记录 API Key、prompt、response 原文或 reasoning 内容。
+```powershell
+$env:DEEPSEEK_API_KEY = '<仅当前终端使用的密钥>'
+pwsh -NoProfile -File scripts/live-deepseek-test.ps1 -Execute
+Remove-Item Env:DEEPSEEK_API_KEY
+```
+
+脚本只保存模型名、响应 ID、finish reason、token 计数和结构化 schema 状态，不保存 prompt、response 原文、reasoning、Authorization 或 API Key。结果模板为 `scripts/fixtures/deepseek-live-result-template.json`；请将人工结论和限制记录在本地，不要把真实结果、密钥或业务数据提交到仓库。
+
+人工验证至少记录：模型、token 计数、schema 是否满足、完成原因、网络/限流限制和用户结论。脚本不会启动应用或 Worker，也不会替代用户对费用、权限和真实业务影响的确认。

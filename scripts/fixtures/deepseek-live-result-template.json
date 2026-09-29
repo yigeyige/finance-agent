@@ -1,0 +1,12 @@
+{
+  "status": "PENDING_USER_RUN",
+  "model": "deepseek-flash",
+  "responseId": "",
+  "finishReason": "",
+  "promptTokens": 0,
+  "completionTokens": 0,
+  "totalTokens": 0,
+  "schemaStatus": "",
+  "userConclusion": "",
+  "limitations": ""
+}

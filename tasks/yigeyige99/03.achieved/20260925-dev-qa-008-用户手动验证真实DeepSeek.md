@@ -1,7 +1,7 @@
 ---
 id: 20260925-dev-qa-008
 title: "用户手动验证真实 DeepSeek"
-status: todo
+status: done
 priority: medium
 owner: ""
 created_at: 2026-09-25
@@ -24,10 +24,10 @@ source_task: DEV-QA-008
 
 ## 目标
 
-- [ ] 提供单独命令和最小合成任务。
-- [ ] 默认测试禁用真实网络。
-- [ ] 不要求实现方持有 API Key。
-- [ ] 交付并核对以下产物：live-test 指南和结果记录模板。
+- [x] 提供单独命令和最小合成任务。
+- [x] 默认测试禁用真实网络。
+- [x] 不要求实现方持有 API Key。
+- [x] 交付并核对以下产物：live-test 指南和结果记录模板。
 
 ## 验收标准
 
@@ -47,3 +47,5 @@ source_task: DEV-QA-008
 ## 执行记录
 
 - 2026-09-25：从开发任务基线 `DEV-QA-008` 拆分为独立 task；当前状态为 `todo`，尚未开始开发。
+- 2026-09-29：完成 `deepseek-live-verification` OpenSpec 变更，新增 `scripts/live-deepseek-test.ps1`、`docs/deepseek-live-test.md`、metadata-only 结果模板和 `DeepSeekLiveVerificationContractTest`。
+- 2026-09-29：验证通过：`mvn -q '-Dtest=DeepSeekLiveVerificationContractTest,DeepSeekOpenAiAdapterTest,ThinkingLifecycleTest' test`、`mvn -q -DskipTests compile`、`python scripts/verify-contracts.py`、`pwsh -NoProfile -File scripts/live-deepseek-test.ps1`、`openspec validate deepseek-live-verification --strict`；真实 DeepSeek 调用保留给用户手动执行。
