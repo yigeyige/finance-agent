@@ -1,7 +1,7 @@
 ---
 id: 20260925-dev-qa-007
 title: "验证完整 Harness 能力"
-status: todo
+status: done
 priority: medium
 owner: ""
 created_at: 2026-09-25
@@ -24,9 +24,9 @@ source_task: DEV-QA-007
 
 ## 目标
 
-- [ ] 逐项执行附件 C 中 Context Compression、Workspace、Skills、Subagents、Memory、Sandbox 的功能、安全和故障场景。
-- [ ] 每项保存独立能力记录。
-- [ ] 交付并核对以下产物：Harness 能力验收表。
+- [x] 逐项执行附件 C 中 Context Compression、Workspace、Skills、Subagents、Memory、Sandbox 的功能、安全和故障场景。
+- [x] 每项保存独立能力记录。
+- [x] 交付并核对以下产物：Harness 能力验收表。
 
 ## 验收标准
 
@@ -46,3 +46,5 @@ source_task: DEV-QA-007
 ## 执行记录
 
 - 2026-09-25：从开发任务基线 `DEV-QA-007` 拆分为独立 task；当前状态为 `todo`，尚未开始开发。
+- 2026-09-29：完成 `harness-capability-acceptance-gate` OpenSpec 变更，新增 `harness-capability-acceptance-v1.json`、验收脚本和 `HarnessCapabilityAcceptanceContractTest`。
+- 2026-09-29：验证通过：`mvn -q '-Dtest=HarnessCapabilityAcceptanceContractTest,ContextCompressionTest,ControlledWorkspaceManagerTest,SubagentBridgeTest,LongTermMemoryGatewayTest,DockerSandboxCapabilityTest,HarnessAgentSmokeContractTest' test`、`mvn -q -DskipTests compile`、`python scripts/verify-contracts.py`、`pwsh -NoProfile -File scripts/qa-harness-capability-acceptance.ps1`、`openspec validate harness-capability-acceptance-gate --strict`。

@@ -1,0 +1,14 @@
+{
+  "fixtureVersion": "harness-capability-acceptance-v1",
+  "harnessVersion": "agentscope-harness-v1",
+  "capabilities": [
+    {"id": "CONTEXT_COMPRESSION", "version": "compression-v1", "functionalChecks": ["preserve-references", "retain-unknown-items"], "securityChecks": ["reject-fabricated-reference", "reject-summary-promotion"], "failureChecks": ["overlong-summary", "unsupported-reference"], "manualRequired": true, "evidence": "compression-result"},
+    {"id": "CONTROLLED_WORKSPACE", "version": "workspace-v1", "functionalChecks": ["prepare-read-cleanup"], "securityChecks": ["user-task-session-isolation", "reject-traversal", "reject-symlink"], "failureChecks": ["quota-exceeded", "media-type-rejected"], "manualRequired": true, "evidence": "workspace-operation-result"},
+    {"id": "CONTROLLED_SKILLS", "version": "skills-v1", "functionalChecks": ["resolve-allowlisted-skill"], "securityChecks": ["reject-unregistered-skill", "reject-unapproved-write"], "failureChecks": ["missing-skill"], "manualRequired": true, "evidence": "skill-resolution-result"},
+    {"id": "CONTROLLED_SUBAGENTS", "version": "subagents-v1", "functionalChecks": ["invoke-evidence-organizer"], "securityChecks": ["intersect-tool-field-permissions", "reject-scope-expansion", "verify-result-owner"], "failureChecks": ["unknown-role", "ownership-mismatch"], "manualRequired": true, "evidence": "subagent-event"},
+    {"id": "LONG_TERM_MEMORY", "version": "memory-v1", "functionalChecks": ["propose-approve-search-withdraw"], "securityChecks": ["approval-required", "planning-only", "scope-match"], "failureChecks": ["sensitive-summary", "prompt-injection", "wrong-approver"], "manualRequired": true, "evidence": "memory-approval-events"},
+    {"id": "DOCKER_SANDBOX", "version": "sandbox-v1", "functionalChecks": ["jar-local-probe", "bounded-computation"], "securityChecks": ["network-disabled", "no-docker-socket", "non-root-deployment"], "failureChecks": ["timeout", "resource-limit"], "manualRequired": true, "evidence": "sandbox-probe-result"}
+  ],
+  "productionAllowlist": {"skills": ["read-config", "safe-evidence"], "subagents": ["evidence-organizer", "coverage-checker", "packet-reviewer"], "sandboxProfiles": ["JAR_LOCAL"]},
+  "manualEvidence": ["version", "input", "result", "limitations", "humanConclusion"]
+}
