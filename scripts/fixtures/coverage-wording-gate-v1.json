@@ -1,0 +1,20 @@
+{
+  "fixtureVersion": "coverage-wording-gate-v1",
+  "taskId": "00000000-0000-4000-8000-000000000401",
+  "syntheticMarker": "COVERAGE_WORDING_SYNTHETIC_20260929",
+  "forbiddenAbsolutePhrases": ["全量", "全部", "所有对象", "不存在遗漏", "full scope", "all objects"],
+  "nonAuthoritativeSources": ["RAG", "MEMORY", "MODEL"],
+  "scenarios": [
+    {"id": "COMPLETE", "coverage": "COMPLETE", "source": "SOURCE", "expected": "ALLOW", "limitationsRequired": false},
+    {"id": "PARTIAL_PAGINATION_FAILURE", "coverage": "PARTIAL", "source": "SOURCE", "expected": "ALLOW_WITH_LIMITATIONS", "limitationsRequired": true},
+    {"id": "UNKNOWN_TOTAL_CHANGED", "coverage": "UNKNOWN", "source": "SOURCE", "expected": "ALLOW_WITH_UNDETERMINED", "limitationsRequired": true},
+    {"id": "PAGINATION_CHANGED", "coverage": "UNKNOWN", "source": "SOURCE", "expected": "REJECT_FULL_SCOPE_CLAIM", "limitationsRequired": true},
+    {"id": "CROSS_SOURCE_CONFLICT", "coverage": "UNKNOWN", "source": "SOURCE", "expected": "REJECT_FULL_SCOPE_CLAIM", "limitationsRequired": true},
+    {"id": "FUTURE_TO_CURRENT", "coverage": "COMPLETE", "source": "SOURCE", "expected": "ALLOW_CLASSIFIED_CURRENT", "limitationsRequired": false},
+    {"id": "RAG_PLACEHOLDER", "coverage": "COMPLETE", "source": "RAG", "expected": "REJECT_CURRENT_FACT", "limitationsRequired": false},
+    {"id": "MEMORY_PLACEHOLDER", "coverage": "COMPLETE", "source": "MEMORY", "expected": "REJECT_CURRENT_FACT", "limitationsRequired": false},
+    {"id": "MODEL_PLACEHOLDER", "coverage": "COMPLETE", "source": "MODEL", "expected": "REJECT_CURRENT_FACT", "limitationsRequired": false},
+    {"id": "BUSINESS_IMPACT_UNCONFIRMED", "coverage": "COMPLETE", "source": "SOURCE", "expected": "REQUIRE_PENDING_ITEMS", "limitationsRequired": false}
+  ],
+  "reviewEvidence": ["scenario-result", "packet-draft-or-rejection", "reviewer-note"]
+}
