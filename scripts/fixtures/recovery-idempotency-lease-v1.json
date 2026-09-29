@@ -1,0 +1,23 @@
+{
+  "fixtureVersion": "recovery-idempotency-lease-v1",
+  "taskId": "00000000-0000-4000-8000-000000000501",
+  "syntheticWorkers": ["worker-syn-1", "worker-syn-2"],
+  "faultPoints": [
+    {"id": "AFTER_APPROVAL", "checkpoint": "STEP_APPROVED", "expectedDecision": "NEW_APPROVAL_REQUIRED", "doubleExecution": 0, "duplicateRevision": 0, "approvalBypass": 0},
+    {"id": "AFTER_INVOCATION_INTENT", "checkpoint": "TOOL_INTENT_RECORDED", "expectedDecision": "RESUME", "doubleExecution": 0, "duplicateRevision": 0, "approvalBypass": 0},
+    {"id": "AFTER_RESULT_SUBMISSION", "checkpoint": "RESULT_TRIMMED", "expectedDecision": "REPLAY_RESULT", "doubleExecution": 0, "duplicateRevision": 0, "approvalBypass": 0},
+    {"id": "AFTER_COMPUTATION", "checkpoint": "COMPUTATION_COMPLETED", "expectedDecision": "RESUME", "doubleExecution": 0, "duplicateRevision": 0, "approvalBypass": 0},
+    {"id": "AFTER_DRAFT_ASSEMBLY", "checkpoint": "DRAFT_ASSEMBLED", "expectedDecision": "NEW_APPROVAL_REQUIRED", "doubleExecution": 0, "duplicateRevision": 0, "approvalBypass": 0},
+    {"id": "DURING_PUBLICATION_TRANSACTION", "checkpoint": "PUBLICATION_INTENT", "expectedDecision": "REPLAY_RESULT", "doubleExecution": 0, "duplicateRevision": 0, "approvalBypass": 0}
+  ],
+  "negativeCases": [
+    {"id": "DUAL_WORKER", "expectedDecision": "ONE_LEASE_OWNER", "doubleExecution": 0},
+    {"id": "EXPIRED_LEASE", "expectedDecision": "TAKEOVER_ONLY_AFTER_EXPIRY", "doubleExecution": 0},
+    {"id": "DUPLICATE_HTTP", "expectedDecision": "IDEMPOTENT_REPLAY", "duplicateRevision": 0},
+    {"id": "UNKNOWN_INVOCATION", "expectedDecision": "MANUAL_RECONCILIATION", "automaticReplay": 0},
+    {"id": "MODEL_PAUSED", "expectedDecision": "PAUSED_MODEL_UNAVAILABLE", "approvalBypass": 0},
+    {"id": "BUDGET_EXHAUSTED", "expectedDecision": "PAUSED_BUDGET", "approvalBypass": 0}
+  ],
+  "invariants": {"doubleExecution": 0, "duplicateRevision": 0, "approvalBypass": 0, "unknownAutomaticReplay": 0},
+  "evidenceRequirements": ["worker-log-summary", "recovery-decision", "database-counts"]
+}
