@@ -6,10 +6,12 @@ import cn.com.crc.ems.finance.agent.packet.domain.PacketDraftStatus;
 import cn.com.crc.ems.finance.agent.packet.domain.PacketReview;
 import cn.com.crc.ems.finance.agent.packet.domain.PacketRevision;
 import cn.com.crc.ems.finance.agent.packet.domain.ReviewDecision;
+import cn.com.crc.ems.finance.agent.packet.domain.ScopeRecheckRecord;
 import cn.com.crc.ems.finance.agent.packet.infrastructure.entity.HandoffEntity;
 import cn.com.crc.ems.finance.agent.packet.infrastructure.entity.PacketDraftEntity;
 import cn.com.crc.ems.finance.agent.packet.infrastructure.entity.PacketReviewEntity;
 import cn.com.crc.ems.finance.agent.packet.infrastructure.entity.PacketRevisionEntity;
+import cn.com.crc.ems.finance.agent.packet.infrastructure.entity.ScopeRecheckEntity;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid;
 import cn.com.crc.ems.finance.agent.task.domain.VersionedJson;
 
@@ -125,6 +127,31 @@ public final class MybatisPacketMappings {
         entity.createdAt = handoff.createdAt();
         entity.updatedBy = handoff.updatedBy();
         entity.updatedAt = handoff.updatedAt();
+        return entity;
+    }
+
+    /** 将范围重查 Entity 映射为领域记录。 */
+    public static ScopeRecheckRecord toDomain(ScopeRecheckEntity entity) {
+        return new ScopeRecheckRecord(PersistenceUuid.toDomain(entity.recheckId), entity.taskId,
+                entity.scopeRevisionId, entity.checkedAt, cn.com.crc.ems.finance.agent.packet.application.RecheckDecision
+                        .valueOf(entity.decision), entity.resultDigest, entity.diffSummary, entity.createdBy,
+                entity.createdAt, entity.updatedBy, entity.updatedAt);
+    }
+
+    /** 将范围重查领域记录映射为持久化 Entity。 */
+    public static ScopeRecheckEntity toEntity(ScopeRecheckRecord record) {
+        ScopeRecheckEntity entity = new ScopeRecheckEntity();
+        entity.recheckId = PersistenceUuid.toStorage(record.recheckId());
+        entity.taskId = record.taskId();
+        entity.scopeRevisionId = record.scopeRevisionId();
+        entity.checkedAt = record.checkedAt();
+        entity.decision = record.decision().name();
+        entity.resultDigest = record.resultDigest();
+        entity.diffSummary = record.diffSummary();
+        entity.createdBy = record.createdBy();
+        entity.createdAt = record.createdAt();
+        entity.updatedBy = record.updatedBy();
+        entity.updatedAt = record.updatedAt();
         return entity;
     }
 

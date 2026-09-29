@@ -1,0 +1,76 @@
+{
+  "fixtureVersion": "core-synthetic-vertical-slice-v1",
+  "seed": 17,
+  "operatorIdentity": "operator",
+  "viewerIdentity": "viewer",
+  "operatorUserId": "00000000-0000-4000-8000-000000000001",
+  "viewerUserId": "00000000-0000-4000-8000-000000000002",
+  "runtimeBundleId": "00000000-0000-4000-8000-000000000010",
+  "task": {
+    "title": "合成离职人员引用调查",
+    "originalQuestion": "核对合成人员离职后仍存在的财务配置引用",
+    "initiatorUserId": "00000000-0000-4000-8000-000000000001"
+  },
+  "premise": {
+    "premiseType": "OPERATOR_PROVIDED",
+    "subjectKey": "EMP-SYN-001",
+    "statement": "运维人员声明该合成人员已离职",
+    "sourceDescription": "本地合成运维前提"
+  },
+  "scope": {
+    "systemCode": "FIN-SYN",
+    "objectSelector": {"employeeKey": "EMP-SYN-001"},
+    "effectiveTimeRange": {"from": "2026-01-01T00:00:00Z", "to": "2026-12-31T23:59:59Z"},
+    "includedPaths": ["workflow.reference", "role.reference"],
+    "excludedPaths": ["credential.secret"],
+    "allowedReadFields": ["reference.id", "reference.classification"],
+    "allowedRetainFields": ["reference.id", "reference.classification"],
+    "allowedModelFields": ["reference.id", "reference.classification"],
+    "schemaVersion": "scope-v1"
+  },
+  "steps": [
+    {"goal": "枚举合成人员当前、未来和未知引用并保存最小证据", "recommended": true},
+    {"goal": "复核跨源冲突和分页覆盖状态", "recommended": false},
+    {"goal": "生成确定性分类和决策包草稿", "recommended": false}
+  ],
+  "source": {
+    "sourceVersion": "synthetic-config-v1",
+    "ruleSetVersion": "rules.personnel-reference.v1",
+    "templateVersion": "config.employee.references.v1",
+    "fieldPolicyVersion": "fields-v1",
+    "queryTemplateVersion": "query-v1"
+  },
+  "recheck": {
+    "baseline": [
+      {"objectKey": "workflow:WF-SYN-001", "fieldsDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "effectiveClass": "CURRENT_EFFECTIVE", "sourceVersion": "synthetic-config-v1", "ruleSetVersion": "rules.personnel-reference.v1", "templateVersion": "config.employee.references.v1"},
+      {"objectKey": "role:ROLE-SYN-001", "fieldsDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "effectiveClass": "FUTURE_SCHEDULED", "sourceVersion": "synthetic-config-v1", "ruleSetVersion": "rules.personnel-reference.v1", "templateVersion": "config.employee.references.v1"}
+    ],
+    "changedCurrent": [
+      {"objectKey": "workflow:WF-SYN-001", "fieldsDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "effectiveClass": "CURRENT_EFFECTIVE", "sourceVersion": "synthetic-config-v1", "ruleSetVersion": "rules.personnel-reference.v1", "templateVersion": "config.employee.references.v1"},
+      {"objectKey": "role:ROLE-SYN-001", "fieldsDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "effectiveClass": "FUTURE_SCHEDULED", "sourceVersion": "synthetic-config-v1", "ruleSetVersion": "rules.personnel-reference.v1", "templateVersion": "config.employee.references.v1"},
+      {"objectKey": "workflow:WF-SYN-NEW-001", "fieldsDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "effectiveClass": "CURRENT_EFFECTIVE", "sourceVersion": "synthetic-config-v1", "ruleSetVersion": "rules.personnel-reference.v1", "templateVersion": "config.employee.references.v1"}
+    ],
+    "stableCurrent": [
+      {"objectKey": "workflow:WF-SYN-001", "fieldsDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "effectiveClass": "CURRENT_EFFECTIVE", "sourceVersion": "synthetic-config-v1", "ruleSetVersion": "rules.personnel-reference.v1", "templateVersion": "config.employee.references.v1"},
+      {"objectKey": "role:ROLE-SYN-001", "fieldsDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "effectiveClass": "FUTURE_SCHEDULED", "sourceVersion": "synthetic-config-v1", "ruleSetVersion": "rules.personnel-reference.v1", "templateVersion": "config.employee.references.v1"}
+    ]
+  },
+  "sourceVersionsJson": "{\"sourceVersion\":\"synthetic-config-v1\",\"ruleSetVersion\":\"rules.personnel-reference.v1\",\"templateVersion\":\"config.employee.references.v1\"}",
+  "coverageSummaryJson": "{\"completeness\":\"COMPLETE\",\"limitations\":[]}",
+  "packet": {
+    "problem": "合成人员离职前提下的财务配置引用核对",
+    "premises": [{"subjectKey": "EMP-SYN-001", "statement": "运维人员声明已离职", "source": "合成运维前提"}],
+    "scope": {"systemCode": "FIN-SYN", "objectSelector": {"employeeKey": "EMP-SYN-001"}, "scopeVersion": "scope-v1"},
+    "sources": [{"sourceVersion": "synthetic-config-v1", "templateVersion": "config.employee.references.v1"}],
+    "facts": {"current": [{"objectKey": "workflow:WF-SYN-001", "classification": "CURRENT_EFFECTIVE"}], "future": [{"objectKey": "role:ROLE-SYN-001", "classification": "FUTURE_SCHEDULED"}], "undetermined": []},
+    "computations": {"ruleSetVersion": "rules.personnel-reference.v1", "witnessRequired": true},
+    "professionalJudgments": [],
+    "recommendations": [{"code": "REVIEW_REFERENCES", "status": "PENDING_BUSINESS_CONFIRMATION"}],
+    "businessConfirmations": {"impactConfirmed": true, "pendingItems": []},
+    "validationPreparation": {"nextCheck": "核对外部流程引用", "ownerReferenceRequired": true},
+    "handoff": {"ownerReference": "SYNTHETIC-OWNER-001", "externalProcessReference": "SYNTHETIC-PROCESS-001"}
+  },
+  "requiredArtifacts": [
+    "task", "task_state_event", "scope_revision", "task_premise", "investigation_step", "step_approval", "task_lease", "tool_invocation", "fact_snapshot", "coverage_record", "finding", "computation_witness", "professional_confirmation", "packet_draft", "packet_review", "scope_recheck", "packet_revision", "audit_event", "outbox_event", "handoff"
+  ]
+}

@@ -30,6 +30,14 @@ class PacketSchemaContractTest {
                 .contains("ADD COLUMN IF NOT EXISTS created_by", "ADD COLUMN IF NOT EXISTS updated_at");
     }
 
+    @Test
+    void scopeRecheckMigrationPersistsPublicationGateEvidence() throws IOException {
+        String recheck = read("db/migration/V11__scope_recheck.sql");
+        assertThat(recheck).contains("CREATE TABLE packet.scope_recheck", "decision varchar(30)",
+                "result_digest char(64) NOT NULL", "diff_summary text NOT NULL", "created_by uuid",
+                "updated_at timestamptz", "ix_scope_recheck_task_checked_at");
+    }
+
     private static String read(String resource) throws IOException {
         try (InputStream stream = PacketSchemaContractTest.class.getClassLoader().getResourceAsStream(resource)) {
             if (stream == null) {

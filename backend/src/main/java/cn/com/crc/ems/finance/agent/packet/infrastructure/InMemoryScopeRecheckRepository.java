@@ -7,13 +7,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.springframework.stereotype.Repository;
-
 import cn.com.crc.ems.finance.agent.packet.application.ScopeRecheckRepository;
 import cn.com.crc.ems.finance.agent.packet.domain.ScopeRecheckRecord;
 
 /** 本地开发阶段使用的进程内重查记录仓储。 */
-@Repository
 public class InMemoryScopeRecheckRepository implements ScopeRecheckRepository {
 
     private final ConcurrentMap<UUID, List<ScopeRecheckRecord>> records = new ConcurrentHashMap<>();
