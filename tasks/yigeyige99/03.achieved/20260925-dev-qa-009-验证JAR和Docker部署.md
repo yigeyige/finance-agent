@@ -1,7 +1,7 @@
 ---
 id: 20260925-dev-qa-009
 title: "验证 JAR 和 Docker 部署"
-status: todo
+status: done
 priority: medium
 owner: ""
 created_at: 2026-09-25
@@ -24,10 +24,10 @@ source_task: DEV-QA-009
 
 ## 目标
 
-- [ ] 提供外部 PostgreSQL 环境变量、端口、工作目录、health/readiness 和停止流程。
-- [ ] Docker 模式确认不依赖 Docker socket。
-- [ ] 不提供 Compose。
-- [ ] 交付并核对以下产物：部署检查表。
+- [x] 提供外部 PostgreSQL 环境变量、端口、工作目录、health/readiness 和停止流程。
+- [x] Docker 模式确认不依赖 Docker socket。
+- [x] 不提供 Compose。
+- [x] 交付并核对以下产物：部署检查表。
 
 ## 验收标准
 
@@ -45,3 +45,5 @@ source_task: DEV-QA-009
 ## 执行记录
 
 - 2026-09-25：从开发任务基线 `DEV-QA-009` 拆分为独立 task；当前状态为 `todo`，尚未开始开发。
+- 2026-09-29：完成 `jar-docker-deployment-gate` OpenSpec 变更，新增部署静态检查脚本、`docs/deployment-checklist.md` 和 `JarDockerDeploymentGateContractTest`。
+- 2026-09-29：验证通过：`mvn -q '-Dtest=JarDockerDeploymentGateContractTest,DockerSandboxCapabilityTest' test`、`mvn -q -DskipTests compile`、`python scripts/verify-contracts.py`、`pwsh -NoProfile -File scripts/qa-deployment-artifacts.ps1`、`openspec validate jar-docker-deployment-gate --strict`；未启动容器或外部数据库。
