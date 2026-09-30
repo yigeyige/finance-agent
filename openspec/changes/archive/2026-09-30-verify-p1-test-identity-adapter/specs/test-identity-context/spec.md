@@ -1,0 +1,25 @@
+## MODIFIED Requirements
+
+### Requirement: Controlled test identity adapter
+
+local/test SHALL expose exactly OPERATOR、VIEWER、PLATFORM_ADMIN 三个合成身份，并通过当前身份接口返回用户和角色。测试身份只可由固定白名单解析；未知测试身份、prod profile 的测试身份，以及仅有已撤销角色的用户 MUST 不建立当前身份上下文。
+
+#### Scenario: Switch synthetic identity
+
+- **WHEN** local/test 请求选择白名单身份
+- **THEN** 当前身份接口返回对应合成用户和角色
+
+#### Scenario: Production rejects test identity
+
+- **WHEN** prod 请求携带测试身份标识或启用测试种子
+- **THEN** 启动或请求被拒绝，不建立测试身份上下文
+
+#### Scenario: Unknown test identity fails closed
+
+- **WHEN** local/test 请求携带不在白名单中的测试身份标识
+- **THEN** 不建立当前身份上下文，后续受保护操作被拒绝
+
+#### Scenario: Revoked roles do not create an identity
+
+- **WHEN** 测试身份对应用户的全部角色绑定均已撤销
+- **THEN** 不建立当前身份上下文，且不抛出可导致服务器错误的身份构造异常

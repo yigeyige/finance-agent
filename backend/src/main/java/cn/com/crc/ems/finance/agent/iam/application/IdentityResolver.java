@@ -13,7 +13,14 @@ import cn.com.crc.ems.finance.agent.iam.domain.RoleBinding;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 import jakarta.servlet.http.HttpServletRequest;
 
-/** 从生产 Principal 或 local/test 白名单标识解析可信身份。 */
+/**
+ *
+ * @Description: 解析生产 Principal 或 local/test 白名单标识，并只提供具有活动角色的可信身份。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-09-30 23:55:00
+ */
 @Service
 public class IdentityResolver {
 
@@ -50,9 +57,20 @@ public class IdentityResolver {
         return userId == null ? null : agentUserRepository.findById(userId).map(this::toIdentity).orElse(null);
     }
 
+    /**
+     *
+     * @description: 将持久化用户及其未撤销角色转换为当前可信身份；没有活动角色时失败关闭。
+     *
+     * @param: user 已解析的持久化用户
+     * @return: 具有至少一个活动角色的当前身份；无活动角色时返回 null
+     * @author: yigeyige99
+     */
     private CurrentIdentity toIdentity(AgentUser user) {
         Set<RoleCode> roles = roleBindingRepository.findByUserId(user.userId()).stream()
                 .filter(this::active).map(RoleBinding::roleCode).collect(java.util.stream.Collectors.toUnmodifiableSet());
+        if (roles.isEmpty()) {
+            return null;
+        }
         return new CurrentIdentity(user.userId(), user.authSubject(), user.displayName(), roles);
     }
 
