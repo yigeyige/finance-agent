@@ -32,9 +32,9 @@ class HarnessSchemaContractTest {
     }
 
     @Test
-    void v10AddsRuntimeBindingForNewCheckpoints() throws IOException {
-        String v10 = read("db/migration/V10__checkpoint_runtime_binding.sql");
-        assertThat(v10).contains("ALTER TABLE harness.checkpoint", "runtime_bundle_id uuid",
+    void v12AddsRuntimeBindingForNewCheckpoints() throws IOException {
+        String v12 = read("db/migration/V12__checkpoint_runtime_binding.sql");
+        assertThat(v12).contains("ALTER TABLE harness.checkpoint", "runtime_bundle_id uuid",
                 "REFERENCES governance.runtime_bundle(runtime_bundle_id)");
     }
 

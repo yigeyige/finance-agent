@@ -119,12 +119,14 @@ source: development-workplan
 | 091 | P2 自定义需求 | [20260926-add-backend-chinese-comments](../03.achieved/20260926-补充后端中文注释.md) | 补充后端中文注释 | [20260926-补充后端中文注释.md](../03.achieved/20260926-补充后端中文注释.md) | 已完成 | 无 |
 | 092 | P2 自定义需求 | [20260926-adjust-backend-comment-rules](../03.achieved/20260926-调整后端注释规则.md) | 调整后端注释规则 | [20260926-调整后端注释规则.md](../03.achieved/20260926-调整后端注释规则.md) | 已完成 | 无 |
 | 093 | P2 自定义需求 | [20260926-strict-versioned-json-validation](../03.achieved/20260926-严格解析VersionedJson并补充基础能力复用规范.md) | 严格解析 VersionedJson 并补充基础能力复用规范 | [20260926-严格解析VersionedJson并补充基础能力复用规范.md](../03.achieved/20260926-严格解析VersionedJson并补充基础能力复用规范.md) | 已完成 | 无 |
+| 094 | P0 专项加固 | [20260929-fix-qa-core-powershell-compatibility](../03.achieved/20260929-修复纵向测试PowerShell兼容性.md) | 修复纵向测试 PowerShell 兼容性 | [20260929-修复纵向测试PowerShell兼容性.md](../03.achieved/20260929-修复纵向测试PowerShell兼容性.md) | 已完成 | `DEV-QA-002` |
+| 095 | P0 自定义需求 | [20260930-add-synthetic-evidence-worker](../03.achieved/20260930-合成Worker写入证据.md) | 合成 Worker 写入证据并接续纵向切片 | [20260930-合成Worker写入证据.md](../03.achieved/20260930-合成Worker写入证据.md) | 已完成 | `DEV-QA-002` |
 
 ## 阶段统计
 
 | 阶段 | 数量 |
 |---|---:|
-| P0 | 73 |
+| P0 | 74 |
 | P1 | 9 |
 | P2 | 10 |
-| 合计 | 92 |
+| 合计 | 93 |

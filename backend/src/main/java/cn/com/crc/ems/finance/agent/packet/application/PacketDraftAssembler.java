@@ -19,10 +19,20 @@ import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.RepositoryEntityNotFoundException;
 import cn.com.crc.ems.finance.agent.task.application.InvestigationTaskRepository;
 import cn.com.crc.ems.finance.agent.task.application.ScopeRevisionRepository;
+import cn.com.crc.ems.finance.agent.task.application.TaskStateTransitionCommand;
+import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
 import cn.com.crc.ems.finance.agent.task.domain.VersionedJson;
 import cn.com.crc.ems.finance.agent.task.infrastructure.TaskAuditEventAppender;
+import cn.com.crc.ems.finance.agent.task.infrastructure.TaskStateTransitionService;
 
-/** 从结构化章节组装规范 JSON，并生成与摘要绑定的 HTML 快照。 */
+/**
+ *
+ * @Description: 组装规范决策包草稿、生成摘要绑定的 HTML 快照，并将任务推进到待复核状态。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-09-30 23:20:00
+ */
 @Service
 public class PacketDraftAssembler {
 
@@ -33,22 +43,33 @@ public class PacketDraftAssembler {
     private final ScopeRevisionRepository scopeRevisionRepository;
     private final RuntimeBundleRepository runtimeBundleRepository;
     private final TaskAuditEventAppender auditEventAppender;
+    private final TaskStateTransitionService taskStateTransitionService;
     private final PacketDocumentValidator validator;
     private final Clock applicationClock;
 
     public PacketDraftAssembler(PacketDraftRepository draftRepository, InvestigationTaskRepository taskRepository,
             ScopeRevisionRepository scopeRevisionRepository, RuntimeBundleRepository runtimeBundleRepository,
-            TaskAuditEventAppender auditEventAppender, PacketDocumentValidator validator, Clock applicationClock) {
+            TaskAuditEventAppender auditEventAppender, TaskStateTransitionService taskStateTransitionService,
+            PacketDocumentValidator validator, Clock applicationClock) {
         this.draftRepository = draftRepository;
         this.taskRepository = taskRepository;
         this.scopeRevisionRepository = scopeRevisionRepository;
         this.runtimeBundleRepository = runtimeBundleRepository;
         this.auditEventAppender = auditEventAppender;
+        this.taskStateTransitionService = taskStateTransitionService;
         this.validator = validator;
         this.applicationClock = applicationClock;
     }
 
-    /** 组装当前范围下的单个草稿；已有当前草稿时拒绝覆盖。 */
+    /**
+     *
+     * @description: 组装当前范围下的单个草稿，提交后将任务从草稿状态推进到待复核；已有当前草稿时拒绝覆盖。
+     *
+     * @param: command 草稿组装命令
+     * @return: 已保存草稿及其 HTML 快照
+     * @throws: IllegalStateException 当前范围、运行版本或草稿状态不满足组装条件
+     * @author: yigeyige99
+     */
     @Transactional
     public PacketDraftAssemblyResult assemble(PacketAssemblyCommand command) {
         requireCommand(command);
@@ -82,10 +103,13 @@ public class PacketDraftAssembler {
         validator.validate(document);
         CanonicalJson canonical = CanonicalJson.of(document.toString());
         Instant now = Instant.now(applicationClock);
-        PacketDraft draft = new PacketDraft(UuidGenerator.newUuid(), command.taskId(), 1,
+        int nextDraftNo = draftRepository.findLatestByTaskId(command.taskId()).map(draft -> draft.draftNo() + 1).orElse(1);
+        PacketDraft draft = new PacketDraft(UuidGenerator.newUuid(), command.taskId(), nextDraftNo,
                 command.scopeRevisionId(), command.runtimeBundleId(), new VersionedJson("packet-v1", canonical.value()),
                 canonical.sha256(), PacketDraftStatus.CURRENT, command.actorUserId(), now, command.actorUserId(), now);
         draftRepository.insert(draft);
+        taskStateTransitionService.transition(new TaskStateTransitionCommand(command.taskId(), TaskStatus.WAITING_REVIEW,
+                "packet draft assembled", command.actorUserId(), now, true));
         String html = htmlSnapshot(canonical.value(), canonical.sha256());
         auditEventAppender.append(UuidGenerator.newUuid(), command.taskId(), command.actorUserId(),
                 "PACKET_DRAFT_ASSEMBLED", "packet_draft", draft.draftId().toString(), now, payload -> {

@@ -14,6 +14,9 @@ public interface PacketDraftRepository {
     /** 查询任务当前草稿。 */
     Optional<PacketDraft> findCurrentByTaskId(UUID taskId);
 
+    /** 查询任务最新草稿，包括已 stale 的历史版本。 */
+    Optional<PacketDraft> findLatestByTaskId(UUID taskId);
+
     /** 追加草稿，不提供原位修改。 */
     void insert(PacketDraft draft);
 

@@ -24,13 +24,22 @@ public class MybatisPacketDraftRepository implements PacketDraftRepository {
 
     @Override
     public Optional<PacketDraft> findById(UUID draftId) {
-        return Optional.ofNullable(mapper.selectById(draftId)).map(MybatisPacketMappings::toDomain);
+        return Optional.ofNullable(mapper.selectById(
+                cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(draftId)))
+                .map(MybatisPacketMappings::toDomain);
     }
 
     @Override
     public Optional<PacketDraft> findCurrentByTaskId(UUID taskId) {
         return Optional.ofNullable(mapper.selectOne(new QueryWrapper<PacketDraftEntity>().eq("task_id", taskId)
                         .eq("status", "CURRENT").orderByDesc("draft_no").last("LIMIT 1")))
+                .map(MybatisPacketMappings::toDomain);
+    }
+
+    @Override
+    public Optional<PacketDraft> findLatestByTaskId(UUID taskId) {
+        return Optional.ofNullable(mapper.selectOne(new QueryWrapper<PacketDraftEntity>().eq("task_id", taskId)
+                        .orderByDesc("draft_no").last("LIMIT 1")))
                 .map(MybatisPacketMappings::toDomain);
     }
 

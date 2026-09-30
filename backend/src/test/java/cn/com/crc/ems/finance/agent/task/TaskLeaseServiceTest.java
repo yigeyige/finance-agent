@@ -51,6 +51,26 @@ class TaskLeaseServiceTest {
     }
 
     @Test
+    void claimsOnlyTheSpecifiedTaskCurrentApprovedStep() {
+        InvestigationTaskRepository tasks = mock(InvestigationTaskRepository.class);
+        InvestigationStepRepository steps = mock(InvestigationStepRepository.class);
+        TaskLeaseRepository leases = mock(TaskLeaseRepository.class);
+        TaskStateTransitionService transitions = mock(TaskStateTransitionService.class);
+        TaskLeaseService service = new TaskLeaseService(tasks, steps, leases, transitions);
+        UUID taskId = UUID.randomUUID();
+        UUID stepId = UUID.randomUUID();
+        InvestigationStep step = new InvestigationStep(stepId, taskId, 1, "inspect", true,
+                StepStatus.APPROVED, NOW, null, null, NOW, null);
+        when(tasks.findByIdForUpdate(taskId)).thenReturn(Optional.of(task(taskId, stepId)));
+        when(steps.findById(stepId)).thenReturn(Optional.of(step));
+        when(steps.updateStatus(stepId, StepStatus.RUNNING, null, NOW)).thenReturn(1);
+
+        assertThat(service.claim(taskId, "worker-1", null, NOW, Duration.ofSeconds(30)).step()).isEqualTo(step);
+        verify(leases).acquire(any());
+        verify(transitions).transition(any());
+    }
+
+    @Test
     void takeoverRejectsUnexpiredAndEqualBoundaryLeases() {
         InvestigationTaskRepository tasks = mock(InvestigationTaskRepository.class);
         InvestigationStepRepository steps = mock(InvestigationStepRepository.class);
@@ -67,8 +87,12 @@ class TaskLeaseServiceTest {
     }
 
     private static InvestigationTask task(UUID taskId) {
+        return task(taskId, UUID.randomUUID());
+    }
+
+    private static InvestigationTask task(UUID taskId, UUID stepId) {
         return new InvestigationTask(taskId, "title", "question", UUID.randomUUID(), TaskStatus.WAITING_STEP_APPROVAL,
-                UUID.randomUUID(), UUID.randomUUID(), null, NOW, NOW, 1, null, null, null);
+                UUID.randomUUID(), UUID.randomUUID(), stepId, NOW, NOW, 1, null, null, null);
     }
 
     private static cn.com.crc.ems.finance.agent.task.domain.TaskLease newLease(UUID taskId, Instant expiresAt) {

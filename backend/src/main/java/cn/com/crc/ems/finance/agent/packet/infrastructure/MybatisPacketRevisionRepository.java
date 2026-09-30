@@ -24,7 +24,9 @@ public class MybatisPacketRevisionRepository implements PacketRevisionRepository
 
     @Override
     public Optional<PacketRevision> findById(UUID packetRevisionId) {
-        return Optional.ofNullable(mapper.selectById(packetRevisionId)).map(MybatisPacketMappings::toDomain);
+        return Optional.ofNullable(mapper.selectById(
+                cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(packetRevisionId)))
+                .map(MybatisPacketMappings::toDomain);
     }
 
     @Override

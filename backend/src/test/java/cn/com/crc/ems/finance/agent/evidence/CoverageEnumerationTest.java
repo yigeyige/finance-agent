@@ -38,7 +38,9 @@ class CoverageEnumerationTest {
                 UUID.randomUUID());
         assertThat(record.completeness()).isEqualTo(CoverageCompleteness.COMPLETE);
         assertThat(record.expectedTotal()).isEqualTo(3);
-        assertThat(record.uncoveredPaths()).isEqualTo("NONE");
+        assertThat(record.traversedPaths()).isEqualTo("[\"/records?page=1\",\"/records?page=2\"]");
+        assertThat(record.uncoveredPaths()).isEqualTo("[]");
+        assertThat(record.failures()).isEqualTo("[]");
     }
 
     @Test

@@ -16,6 +16,7 @@ import cn.com.crc.ems.finance.agent.iam.application.IdentityContext;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 import cn.com.crc.ems.finance.agent.packet.application.PacketAssemblyCommand;
 import cn.com.crc.ems.finance.agent.packet.application.PacketDraftAssembler;
+import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 import jakarta.validation.Valid;
 
 /** 决策包草稿组装 REST 入口。 */
@@ -38,9 +39,10 @@ public final class PacketDraftController {
         requireIdempotencyKey(idempotencyKey);
         UUID actor = trustedOperator(legacyActorUserId);
         var result = assembler.assemble(new PacketAssemblyCommand(taskId, request.scopeRevisionId(),
-                request.runtimeBundleId(), request.problem(), request.premises(), request.scope(), request.sources(),
-                request.facts(), request.computations(), request.professionalJudgments(), request.recommendations(),
-                request.businessConfirmations(), request.validationPreparation(), request.handoff(), actor));
+                request.runtimeBundleId(), request.problem(), json(request.premises()), json(request.scope()),
+                json(request.sources()), json(request.facts()), json(request.computations()),
+                json(request.professionalJudgments()), json(request.recommendations()),
+                json(request.businessConfirmations()), json(request.validationPreparation()), json(request.handoff()), actor));
         return ResponseEntity.status(HttpStatus.CREATED).body(PacketDraftResponse.from(result));
     }
 
@@ -62,5 +64,17 @@ public final class PacketDraftController {
         if (value == null || value.isBlank() || value.length() < 16 || value.length() > 200) {
             throw new IllegalArgumentException("Idempotency-Key must contain 16 to 200 characters");
         }
+    }
+
+    /**
+     *
+     * @description: 将 Spring MVC 的 Jackson 3 请求节点转换为应用层既有 Jackson 2 节点，边界仅通过 JSON 文本交接。
+     *
+     * @param: value HTTP 请求 JSON 节点。
+     * @return: 应用层可进行严格校验和规范化的 JSON 节点。
+     * @author: yigeyige99
+     */
+    private static com.fasterxml.jackson.databind.JsonNode json(tools.jackson.databind.JsonNode value) {
+        return CanonicalJsonCodec.parse(value.toString());
     }
 }

@@ -36,8 +36,9 @@ public class RuleInputNormalizer {
             array.add(item);
         });
         String canonical = CanonicalJsonCodec.canonicalize(array);
-        return new NormalizedRuleInput(snapshots, Sha256Digest.hex(canonical),
-                snapshots.stream().map(snapshot -> snapshot.snapshotId().toString()).sorted().reduce((left, right) -> left + "," + right).orElseThrow());
+        ArrayNode snapshotIds = JsonNodeFactory.instance.arrayNode();
+        snapshots.forEach(snapshot -> snapshotIds.add(snapshot.snapshotId().toString()));
+        return new NormalizedRuleInput(snapshots, Sha256Digest.hex(canonical), CanonicalJsonCodec.canonicalize(snapshotIds));
     }
 
     /** 计算规则输出的稳定摘要。 */

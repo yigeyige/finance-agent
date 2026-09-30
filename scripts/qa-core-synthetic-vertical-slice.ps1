@@ -1,18 +1,25 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$BaseUrl = "http://localhost:8080",
-    [string]$FixturePath = (Join-Path $PSScriptRoot "fixtures/core-synthetic-vertical-slice-v1.json"),
-    [string]$OutputDirectory = (Join-Path (Split-Path -Parent $PSScriptRoot) "qa-output/core-synthetic-vertical-slice"),
+    [string]$FixturePath,
+    [string]$OutputDirectory,
     [switch]$Execute
 )
 
 $ErrorActionPreference = "Stop"
+$scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+if ([string]::IsNullOrWhiteSpace($FixturePath)) {
+    $FixturePath = Join-Path $scriptRoot "fixtures/core-synthetic-vertical-slice-v1.json"
+}
+if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
+    $OutputDirectory = Join-Path (Split-Path -Parent $scriptRoot) "qa-output/core-synthetic-vertical-slice"
+}
 
 function Read-Fixture {
     if (-not (Test-Path -LiteralPath $FixturePath -PathType Leaf)) {
         throw "fixture not found: $FixturePath"
     }
-    $fixture = Get-Content -Raw -LiteralPath $FixturePath | ConvertFrom-Json
+    $fixture = Get-Content -Raw -Encoding UTF8 -LiteralPath $FixturePath | ConvertFrom-Json
     $required = @("fixtureVersion", "seed", "operatorIdentity", "viewerIdentity", "runtimeBundleId", "task",
         "premise", "scope", "steps", "source", "recheck", "packet", "requiredArtifacts")
     foreach ($name in $required) {
@@ -50,6 +57,55 @@ function Get-Sha256Hex([string]$Value) {
     return ([BitConverter]::ToString($hash) -replace '-', '').ToLowerInvariant()
 }
 
+function Get-HttpResponseContent {
+    param([object]$Response)
+
+    if ($null -eq $Response) { return "" }
+    $rawStream = $Response.PSObject.Properties['RawContentStream']
+    if (($null -ne $rawStream) -and ($null -ne $rawStream.Value)) {
+        $stream = $rawStream.Value
+        if ($stream.CanSeek) { $stream.Position = 0 }
+        $reader = New-Object IO.StreamReader($stream, [Text.Encoding]::UTF8, $true, 1024, $true)
+        try { return $reader.ReadToEnd() }
+        finally { $reader.Dispose() }
+    }
+    $Content = $Response.Content
+    if ($null -eq $Content) { return "" }
+    if ($Content -is [byte[]]) { return [Text.Encoding]::UTF8.GetString($Content) }
+    return [string]$Content
+}
+
+function Get-HttpErrorContent {
+    param([object]$ErrorRecord)
+
+    $errorDetails = $ErrorRecord.ErrorDetails
+    if (($null -ne $errorDetails) -and (-not [string]::IsNullOrWhiteSpace($errorDetails.Message))) {
+        return $errorDetails.Message
+    }
+
+    $Response = $ErrorRecord.Exception.Response
+    if ($null -eq $Response) { return "" }
+    if ($Response.GetType().FullName -eq "System.Net.Http.HttpResponseMessage") {
+        if ($null -eq $Response.Content) { return "" }
+        try {
+            return $Response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+        }
+        catch {
+            return ""
+        }
+    }
+
+    $stream = $Response.GetResponseStream()
+    if ($null -eq $stream) { return "" }
+    $reader = New-Object IO.StreamReader($stream)
+    try {
+        return $reader.ReadToEnd()
+    }
+    finally {
+        $reader.Dispose()
+    }
+}
+
 function Invoke-Api {
     param(
         [string]$Name,
@@ -57,28 +113,37 @@ function Invoke-Api {
         [string]$Path,
         [string]$Identity,
         [object]$Body,
+        [switch]$Anonymous,
         [int[]]$ExpectedStatus = @(200, 201)
     )
-    $headers = @{ "X-Test-Identity" = $Identity; "Idempotency-Key" = ("qa-" + [Guid]::NewGuid().ToString()) }
+    $headers = if ($Anonymous) {
+        @{}
+    } else {
+        @{ "X-Test-Identity" = $Identity; "Idempotency-Key" = ("qa-" + [Guid]::NewGuid().ToString()) }
+    }
     $uri = ($BaseUrl.TrimEnd('/') + $Path)
     $jsonBody = if ($null -eq $Body) { $null } else { $Body | ConvertTo-Json -Depth 30 -Compress }
     $response = $null
     $status = 0
     $content = ""
     try {
-        if ($null -eq $jsonBody) {
-            $response = Invoke-WebRequest -UseBasicParsing -Uri $uri -Method $Method -Headers $headers
+        $invokeParameters = @{ Uri = $uri; Method = $Method; Headers = $headers; ErrorAction = "Stop" }
+        if ($PSVersionTable.PSVersion.Major -ge 7) {
+            $invokeParameters.SkipHttpErrorCheck = $true
         } else {
-            $response = Invoke-WebRequest -UseBasicParsing -Uri $uri -Method $Method -Headers $headers -ContentType "application/json" -Body $jsonBody
+            $invokeParameters.UseBasicParsing = $true
         }
+        if ($null -ne $jsonBody) {
+            $invokeParameters.ContentType = "application/json; charset=utf-8"
+            $invokeParameters.Body = [Text.Encoding]::UTF8.GetBytes($jsonBody)
+        }
+        $response = Invoke-WebRequest @invokeParameters
         $status = [int]$response.StatusCode
-        $content = [string]$response.Content
+        $content = Get-HttpResponseContent -Response $response
     } catch {
         if ($null -eq $_.Exception.Response) { throw }
         $status = [int]$_.Exception.Response.StatusCode
-        $reader = New-Object IO.StreamReader($_.Exception.Response.GetResponseStream())
-        $content = $reader.ReadToEnd()
-        $reader.Dispose()
+        $content = Get-HttpErrorContent -ErrorRecord $_
     }
     $parsed = if ([string]::IsNullOrWhiteSpace($content)) { $null } else { $content | ConvertFrom-Json }
     $record = [ordered]@{ step = $Name; status = $status; body = $parsed }
@@ -102,7 +167,7 @@ if (-not $Execute) {
     exit 0
 }
 
-$health = Invoke-Api -Name "00-health" -Method GET -Path "/actuator/health" -Identity $fixture.operatorIdentity
+$health = Invoke-Api -Name "00-health" -Method GET -Path "/actuator/health" -Anonymous
 $task = Invoke-Api -Name "01-create-task" -Method POST -Path "/api/v1/tasks" -Identity $fixture.operatorIdentity -Body @{
     title = $fixture.task.title; originalQuestion = $fixture.task.originalQuestion
     initiatorUserId = $fixture.task.initiatorUserId; runtimeBundleId = $fixture.runtimeBundleId
@@ -112,7 +177,8 @@ $premise = Invoke-Api -Name "02-add-premise" -Method POST -Path "/api/v1/tasks/$
 $scope = Invoke-Api -Name "03-confirm-scope" -Method POST -Path "/api/v1/tasks/$taskId/scope-confirmations" -Identity $fixture.operatorIdentity -Body $fixture.scope
 $proposal = Invoke-Api -Name "04-propose-steps" -Method POST -Path "/api/v1/tasks/$taskId/step-proposals" -Identity $fixture.operatorIdentity -Body @{ steps = @($fixture.steps) }
 $recommended = @($proposal.steps | Where-Object recommended | Select-Object -First 1)[0]
-$goalHash = Get-Sha256Hex $recommended.goal
+$fixtureRecommended = @($fixture.steps | Where-Object recommended | Select-Object -First 1)[0]
+$goalHash = Get-Sha256Hex $fixtureRecommended.goal
 $sourceBindingId = [Guid]::NewGuid().ToString()
 $approval = Invoke-Api -Name "05-approve-step" -Method POST -Path "/api/v1/tasks/$taskId/step-approvals" -Identity $fixture.operatorIdentity -Body @{
     stepId = $recommended.stepId; goalHash = $goalHash; sourceBindingId = $sourceBindingId
@@ -121,7 +187,8 @@ $approval = Invoke-Api -Name "05-approve-step" -Method POST -Path "/api/v1/tasks
     expectedRowVersion = $proposal.rowVersion; decision = "APPROVED"
 }
 
-$evidence = Invoke-Api -Name "06-evidence-overview" -Method GET -Path "/api/v1/tasks/$taskId/evidence" -Identity $fixture.operatorIdentity
+$worker = Invoke-Api -Name "06-run-synthetic-evidence" -Method POST -Path "/api/v1/tasks/$taskId/synthetic-evidence-runs" -Identity $fixture.operatorIdentity
+$evidence = Invoke-Api -Name "07-evidence-overview" -Method GET -Path "/api/v1/tasks/$taskId/evidence" -Identity $fixture.operatorIdentity
 if ((@($evidence.snapshots).Count -eq 0) -and (@($evidence.coverages).Count -eq 0) -and (@($evidence.findings).Count -eq 0)) {
     throw "evidence is empty; run the approved synthetic step/worker and rerun from this checkpoint"
 }
@@ -134,8 +201,8 @@ $draftBody = @{
     businessConfirmations = $fixture.packet.businessConfirmations; validationPreparation = $fixture.packet.validationPreparation
     handoff = $fixture.packet.handoff
 }
-$draft = Invoke-Api -Name "07-assemble-draft" -Method POST -Path "/api/v1/tasks/$taskId/packet-drafts" -Identity $fixture.operatorIdentity -Body $draftBody
-$review = Invoke-Api -Name "08-review-draft" -Method POST -Path "/api/v1/tasks/$taskId/packet-drafts/$($draft.draftId)/reviews" -Identity $fixture.operatorIdentity -Body @{
+$draft = Invoke-Api -Name "08-assemble-draft" -Method POST -Path "/api/v1/tasks/$taskId/packet-drafts" -Identity $fixture.operatorIdentity -Body $draftBody
+$review = Invoke-Api -Name "09-review-draft" -Method POST -Path "/api/v1/tasks/$taskId/packet-drafts/$($draft.draftId)/reviews" -Identity $fixture.operatorIdentity -Body @{
     contentDigest = $draft.contentDigest; scopeRevisionId = $scope.currentScopeRevisionId
     runtimeBundleId = $fixture.runtimeBundleId; decision = "APPROVE"; comment = "合成纵向切片复核"
 }
@@ -146,11 +213,11 @@ $publicationBody = @{
     sourceVersions = $fixture.sourceVersionsJson; coverageSummary = $fixture.coverageSummaryJson
     baseline = $fixture.recheck.baseline; current = $fixture.recheck.changedCurrent
 }
-$stale = Invoke-Api -Name "09-publication-stale-recheck" -Method POST -Path "/api/v1/tasks/$taskId/packet-publications" -Identity $fixture.operatorIdentity -Body $publicationBody -ExpectedStatus @(409)
+$stale = Invoke-Api -Name "10-publication-stale-recheck" -Method POST -Path "/api/v1/tasks/$taskId/packet-publications" -Identity $fixture.operatorIdentity -Body $publicationBody -ExpectedStatus @(409)
 if ($stale.published -ne $false -or $stale.recheckDecision -ne "STALE_DRAFT") { throw "stale recheck did not invalidate the old review" }
 
-$draft2 = Invoke-Api -Name "10-assemble-refreshed-draft" -Method POST -Path "/api/v1/tasks/$taskId/packet-drafts" -Identity $fixture.operatorIdentity -Body $draftBody
-$review2 = Invoke-Api -Name "11-review-refreshed-draft" -Method POST -Path "/api/v1/tasks/$taskId/packet-drafts/$($draft2.draftId)/reviews" -Identity $fixture.operatorIdentity -Body @{
+$draft2 = Invoke-Api -Name "11-assemble-refreshed-draft" -Method POST -Path "/api/v1/tasks/$taskId/packet-drafts" -Identity $fixture.operatorIdentity -Body $draftBody
+$review2 = Invoke-Api -Name "12-review-refreshed-draft" -Method POST -Path "/api/v1/tasks/$taskId/packet-drafts/$($draft2.draftId)/reviews" -Identity $fixture.operatorIdentity -Body @{
     contentDigest = $draft2.contentDigest; scopeRevisionId = $scope.currentScopeRevisionId
     runtimeBundleId = $fixture.runtimeBundleId; decision = "APPROVE"; comment = "重查后重新复核"
 }
@@ -160,15 +227,15 @@ $publicationBody.contentDigest = $draft2.contentDigest
 $publicationBody.canonicalJson = $draft2.canonicalJson
 $publicationBody.htmlSnapshot = $draft2.htmlSnapshot
 $publicationBody.current = $fixture.recheck.stableCurrent
-$published = Invoke-Api -Name "12-publication-clean-recheck" -Method POST -Path "/api/v1/tasks/$taskId/packet-publications" -Identity $fixture.operatorIdentity -Body $publicationBody -ExpectedStatus @(201)
-$operatorView = Invoke-Api -Name "13-operator-published-view" -Method GET -Path "/api/v1/tasks/$taskId/published-packet" -Identity $fixture.operatorIdentity
-$viewerView = Invoke-Api -Name "14-viewer-published-view" -Method GET -Path "/api/v1/tasks/$taskId/published-packet" -Identity $fixture.viewerIdentity
+$published = Invoke-Api -Name "13-publication-clean-recheck" -Method POST -Path "/api/v1/tasks/$taskId/packet-publications" -Identity $fixture.operatorIdentity -Body $publicationBody -ExpectedStatus @(201)
+$operatorView = Invoke-Api -Name "14-operator-published-view" -Method GET -Path "/api/v1/tasks/$taskId/published-packet" -Identity $fixture.operatorIdentity
+$viewerView = Invoke-Api -Name "15-viewer-published-view" -Method GET -Path "/api/v1/tasks/$taskId/published-packet" -Identity $fixture.viewerIdentity
 if (($operatorView | ConvertTo-Json -Depth 30 -Compress) -ne ($viewerView | ConvertTo-Json -Depth 30 -Compress)) {
     throw "operator and viewer published views differ; responses saved under $script:RunDirectory"
 }
 $revisionId = $published.packetRevisionId
-$handoff = Invoke-Api -Name "15-handoff" -Method POST -Path "/api/v1/tasks/$taskId/packet-revisions/$revisionId/handoff" -Identity $fixture.operatorIdentity -Body $fixture.packet.handoff
-$closed = Invoke-Api -Name "16-close-task" -Method POST -Path "/api/v1/tasks/$taskId/close" -Identity $fixture.operatorIdentity -Body @{ closureReason = "合成纵向切片已交接" }
+$handoff = Invoke-Api -Name "16-handoff" -Method POST -Path "/api/v1/tasks/$taskId/packet-revisions/$revisionId/handoff" -Identity $fixture.operatorIdentity -Body $fixture.packet.handoff
+$closed = Invoke-Api -Name "17-close-task" -Method POST -Path "/api/v1/tasks/$taskId/close" -Identity $fixture.operatorIdentity -Body @{ closureReason = "合成纵向切片已交接" }
 Write-Output "mode=execute"
 Write-Output "taskId=$taskId"
 Write-Output "packetRevisionId=$revisionId"

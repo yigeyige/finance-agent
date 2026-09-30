@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.Clock;
@@ -17,8 +18,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import cn.com.crc.ems.finance.agent.task.application.TaskIntakeApplicationService;
+import cn.com.crc.ems.finance.agent.task.application.ScopeConfirmationResult;
 import cn.com.crc.ems.finance.agent.task.domain.InvestigationTask;
+import cn.com.crc.ems.finance.agent.task.domain.ScopeRevision;
 import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
+import cn.com.crc.ems.finance.agent.task.domain.VersionedJson;
 import cn.com.crc.ems.finance.agent.task.web.TaskIntakeController;
 import cn.com.crc.ems.finance.agent.task.web.TaskIntakeExceptionHandler;
 
@@ -72,6 +76,38 @@ class TaskIntakeControllerTest {
                         + "\"runtimeBundleId\":\"00000000-0000-0000-0000-000000000002\","
                         + "\"reasoning\":\"forbidden\"}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void confirmsScopeWithNestedJsonFields() throws Exception {
+        TaskIntakeApplicationService service = mock(TaskIntakeApplicationService.class);
+        UUID taskId = UUID.randomUUID();
+        UUID scopeId = UUID.randomUUID();
+        InvestigationTask task = new InvestigationTask(taskId, "审批配置调查", "请检查审批配置", ACTOR,
+                TaskStatus.READY, UUID.randomUUID(), scopeId, null, NOW, NOW, 2, null, ACTOR, ACTOR);
+        ScopeRevision revision = new ScopeRevision(scopeId, taskId, 1, "FIN-SYN",
+                new VersionedJson("scope-v1", "{\"employeeKey\":\"EMP-SYN-001\"}"),
+                new VersionedJson("scope-v1", "{\"from\":\"2026-01-01T00:00:00Z\"}"),
+                new VersionedJson("scope-v1", "[\"workflow.reference\"]"),
+                new VersionedJson("scope-v1", "[\"credential.secret\"]"),
+                new VersionedJson("scope-v1", "[\"reference.id\"]"),
+                new VersionedJson("scope-v1", "[\"reference.id\"]"),
+                new VersionedJson("scope-v1", "[\"reference.id\"]"), ACTOR, NOW, "a".repeat(64),
+                "scope-v1", ACTOR, NOW, ACTOR, NOW);
+        when(service.confirmScope(any())).thenReturn(new ScopeConfirmationResult(task, revision));
+
+        mvc(service).perform(post("/api/v1/tasks/{taskId}/scope-confirmations", taskId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Actor-User-Id", ACTOR)
+                .header("Idempotency-Key", "scope-confirmation-0001")
+                .content("{\"systemCode\":\"FIN-SYN\",\"objectSelector\":{\"employeeKey\":\"EMP-SYN-001\"},"
+                        + "\"effectiveTimeRange\":{\"from\":\"2026-01-01T00:00:00Z\"},"
+                        + "\"includedPaths\":[\"workflow.reference\"],\"excludedPaths\":[\"credential.secret\"],"
+                        + "\"allowedReadFields\":[\"reference.id\"],\"allowedRetainFields\":[\"reference.id\"],"
+                        + "\"allowedModelFields\":[\"reference.id\"],\"schemaVersion\":\"scope-v1\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.currentScopeRevisionId").value(scopeId.toString()))
+                .andExpect(jsonPath("$.scopeRevisionNo").value(1));
     }
 
     private static MockMvc mvc(TaskIntakeApplicationService service) {

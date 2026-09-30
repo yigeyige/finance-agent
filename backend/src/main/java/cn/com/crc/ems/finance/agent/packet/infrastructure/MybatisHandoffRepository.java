@@ -24,7 +24,9 @@ public class MybatisHandoffRepository implements HandoffRepository {
 
     @Override
     public Optional<Handoff> findById(UUID handoffId) {
-        return Optional.ofNullable(mapper.selectById(handoffId)).map(MybatisPacketMappings::toDomain);
+        return Optional.ofNullable(mapper.selectById(
+                cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(handoffId)))
+                .map(MybatisPacketMappings::toDomain);
     }
 
     @Override

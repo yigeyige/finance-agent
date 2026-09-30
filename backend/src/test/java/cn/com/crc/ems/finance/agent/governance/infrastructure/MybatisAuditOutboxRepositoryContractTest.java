@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -31,10 +32,11 @@ class MybatisAuditOutboxRepositoryContractTest {
         AuditEventRepositoryFixture fixture = new AuditEventRepositoryFixture(mapper);
         AuditEvent event = AuditEvent.create(UUID.randomUUID(), UUID.randomUUID(), null, "START", "task", "1",
                 new VersionedJson("audit-payload-v1", "{}"), NOW, null, null, NOW, null, NOW);
-        when(mapper.selectOne(any(QueryWrapper.class))).thenReturn(null);
+        when(mapper.selectList(any(QueryWrapper.class))).thenReturn(List.of());
 
         assertThat(fixture.repository.append(event)).isEqualTo(event);
         verify(mapper).insert(any(AuditEventEntity.class));
+        verify(mapper).selectList(any(QueryWrapper.class));
     }
 
     @Test

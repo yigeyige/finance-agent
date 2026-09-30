@@ -25,7 +25,9 @@ public class MybatisInvestigationStepRepository implements InvestigationStepRepo
 
     @Override
     public Optional<InvestigationStep> findById(UUID stepId) {
-        return Optional.ofNullable(mapper.selectById(stepId)).map(MybatisTaskMappings::toDomain);
+        return Optional.ofNullable(mapper.selectById(
+                cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(stepId)))
+                .map(MybatisTaskMappings::toDomain);
     }
 
     @Override

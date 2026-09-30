@@ -1,12 +1,17 @@
 package cn.com.crc.ems.finance.agent.evidence.application;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+
 import cn.com.crc.ems.finance.agent.evidence.domain.CoverageCompleteness;
 import cn.com.crc.ems.finance.agent.evidence.domain.CoverageRecord;
+import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 
 /** 将覆盖度遍历结果组装为现有证据域记录。 */
 @Service
@@ -35,13 +40,19 @@ public class CoverageRecordFactory {
         if (result == null || checkedAt == null) {
             throw new IllegalArgumentException("coverage result and checkedAt are required");
         }
-        String failures = result.failures().isEmpty() ? "NONE" : String.join("|", result.failures());
-        String uncovered = result.uncoveredPaths().isEmpty() ? "NONE" : String.join("|", result.uncoveredPaths());
         CoverageCompleteness completeness = new CoverageValidator().validate(result);
         return new CoverageRecord(coverageId, taskId, stepId, scopeRevisionId, queryTemplateVersion,
                 queryConditionDigest, enumerationMethod, result.pages().size(), result.expectedTotal(),
-                result.observedTotal(), String.join("|", result.traversedPaths()), uncovered, failures,
+                result.observedTotal(), jsonArray(result.traversedPaths()), jsonArray(result.uncoveredPaths()),
+                jsonArray(result.failures()),
                 result.sourceWatermark(), result.resultSetDigest(), completeness, checkedAt, actorId,
                 checkedAt, actorId, checkedAt);
+    }
+
+    /** 将列表编码为 PostgreSQL jsonb 列可直接持久化的确定性 JSON 数组。 */
+    private static String jsonArray(List<String> values) {
+        ArrayNode array = JsonNodeFactory.instance.arrayNode();
+        values.forEach(array::add);
+        return CanonicalJsonCodec.canonicalize(array);
     }
 }

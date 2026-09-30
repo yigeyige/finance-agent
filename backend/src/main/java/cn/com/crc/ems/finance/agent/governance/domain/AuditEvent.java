@@ -1,17 +1,19 @@
 package cn.com.crc.ems.finance.agent.governance.domain;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.task.domain.VersionedJson;
 
 /** 只追加的任务审计事件，携带规范化 payload 和前序摘要链。 */
 public record AuditEvent(UUID auditEventId, UUID taskId, UUID actorUserId, String eventType, String targetType,
-        String targetId, VersionedJson eventPayload, String payloadDigest, Instant occurredAt,
+    String targetId, VersionedJson eventPayload, String payloadDigest, Instant occurredAt,
         String prevEventDigest, String eventDigest, String canonicalizationVersion, UUID createdBy,
         Instant createdAt, UUID updatedBy, Instant updatedAt) {
 
     public AuditEvent {
+        occurredAt = postgresTimestamp(occurredAt);
         requireId(auditEventId, "auditEventId");
         requireText(eventType, "eventType");
         requireText(targetType, "targetType");
@@ -40,6 +42,7 @@ public record AuditEvent(UUID auditEventId, UUID taskId, UUID actorUserId, Strin
     public static AuditEvent create(UUID auditEventId, UUID taskId, UUID actorUserId, String eventType,
             String targetType, String targetId, VersionedJson payload, Instant occurredAt,
             String prevEventDigest, UUID createdBy, Instant createdAt, UUID updatedBy, Instant updatedAt) {
+        occurredAt = postgresTimestamp(occurredAt);
         VersionedJson canonical = AuditDigest.canonicalize(payload);
         String payloadDigest = AuditDigest.payloadDigest(canonical);
         String eventDigest = AuditDigest.eventDigest(taskId, actorUserId, eventType, targetType, targetId,
@@ -72,5 +75,20 @@ public record AuditEvent(UUID auditEventId, UUID taskId, UUID actorUserId, Strin
         if (value == null || !value.matches("[0-9a-fA-F]{64}")) {
             throw new IllegalArgumentException(name + " must be a 64-character hexadecimal digest");
         }
+    }
+
+    /**
+     *
+     * @description: 将参与审计摘要的事件时间规整为 PostgreSQL timestamptz 可持久化的微秒精度，确保重读后摘要链仍可复算。
+     *
+     * @param: value 原始事件时间。
+     * @return: 适合 PostgreSQL 持久化与摘要计算的事件时间。
+     * @author: yigeyige99
+     */
+    private static Instant postgresTimestamp(Instant value) {
+        if (value == null) {
+            throw new IllegalArgumentException("occurredAt is required");
+        }
+        return value.truncatedTo(ChronoUnit.MICROS);
     }
 }

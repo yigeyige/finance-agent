@@ -24,7 +24,9 @@ public class MybatisInvestigationTaskRepository implements InvestigationTaskRepo
 
     @Override
     public Optional<InvestigationTask> findById(UUID taskId) {
-        return Optional.ofNullable(mapper.selectById(taskId)).map(MybatisTaskMappings::toDomain);
+        return Optional.ofNullable(mapper.selectById(
+                cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(taskId)))
+                .map(MybatisTaskMappings::toDomain);
     }
 
     @Override

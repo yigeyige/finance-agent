@@ -37,13 +37,14 @@ class MybatisRuntimeBundleRepositoryTest {
         RuntimeBundleMapper mapper = org.mockito.Mockito.mock(RuntimeBundleMapper.class);
         UUID bundleId = UUID.randomUUID();
         Instant now = Instant.now();
-        when(mapper.selectById(bundleId)).thenReturn(null);
+        when(mapper.selectById(bundleId.toString())).thenReturn(null);
         RuntimeBundle bundle = new RuntimeBundle(bundleId, "app", "agentscope", "model", "prompt", "rules",
                 "tools", "sources", null, "digest", RuntimeBundleStatus.PUBLISHED, now, null, now, null);
 
         new MybatisRuntimeBundleRepository(mapper).insertIfAbsent(bundle);
 
         var captor = forClass(RuntimeBundleEntity.class);
+        verify(mapper).selectById(bundleId.toString());
         verify(mapper).insert(captor.capture());
         assertThat(captor.getValue().runtimeBundleId).isEqualTo(bundleId.toString());
     }

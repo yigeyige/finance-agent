@@ -80,6 +80,46 @@ public class TaskLeaseService {
         return Optional.of(new TaskLeaseClaim(step, lease));
     }
 
+    /**
+     *
+     * @description: 在任务行锁内领取指定任务当前已获批步骤，避免本地受控执行器误领其他任务。
+     *
+     * @param: taskId 指定任务标识
+     * @param: ownerInstance Worker 实例标识
+     * @param: actorUserId 执行审计主体
+     * @param: observedAt 本次领取使用的观察时刻
+     * @param: leaseDuration 租约有效时长
+     * @return: 已领取步骤和活动租约
+     * @throws: RepositoryEntityNotFoundException 任务或当前步骤不存在
+     * @author: yigeyige99
+     */
+    @Transactional
+    public TaskLeaseClaim claim(UUID taskId, String ownerInstance, UUID actorUserId, Instant observedAt,
+            Duration leaseDuration) {
+        if (taskId == null) {
+            throw new IllegalArgumentException("taskId is required");
+        }
+        validateLeaseInput(ownerInstance, observedAt, leaseDuration);
+        var task = taskRepository.findByIdForUpdate(taskId)
+                .orElseThrow(() -> new RepositoryEntityNotFoundException("investigation task not found"));
+        if (task.status() != TaskStatus.WAITING_STEP_APPROVAL || task.currentStepId() == null) {
+            throw new IllegalStateException("task has no approved current step to claim");
+        }
+        InvestigationStep step = stepRepository.findById(task.currentStepId())
+                .orElseThrow(() -> new RepositoryEntityNotFoundException("investigation step not found"));
+        if (!taskId.equals(step.taskId()) || step.status() != StepStatus.APPROVED) {
+            throw new IllegalStateException("current task step is not approved");
+        }
+        TaskLease lease = newLease(step, ownerInstance, actorUserId, observedAt, leaseDuration);
+        acquire(lease);
+        if (stepRepository.updateStatus(step.stepId(), StepStatus.RUNNING, actorUserId, observedAt) != 1) {
+            throw new IllegalStateException("step status update did not affect one row");
+        }
+        stateTransitionService.transition(new TaskStateTransitionCommand(taskId, TaskStatus.RUNNING_STEP,
+                "worker claimed approved step", actorUserId, observedAt, true, null, step.stepId()));
+        return new TaskLeaseClaim(step, lease);
+    }
+
     /** 严格按过期边界接管任务的旧租约，未过期或边界相等时返回空。 */
     @Transactional
     public Optional<TaskLease> takeOverExpired(UUID taskId, String ownerInstance, UUID actorUserId,

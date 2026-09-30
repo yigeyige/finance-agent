@@ -25,7 +25,8 @@ public class MybatisRuntimeBundleRepository implements RuntimeBundleRepository {
 
     @Override
     public Optional<RuntimeBundle> findById(UUID runtimeBundleId) {
-        return Optional.ofNullable(mapper.selectById(runtimeBundleId)).map(MybatisRuntimeBundleRepository::toDomain);
+        return Optional.ofNullable(mapper.selectById(PersistenceUuid.toStorage(runtimeBundleId)))
+                .map(MybatisRuntimeBundleRepository::toDomain);
     }
 
     @Override
@@ -42,7 +43,7 @@ public class MybatisRuntimeBundleRepository implements RuntimeBundleRepository {
 
     @Override
     public void insertIfAbsent(RuntimeBundle bundle) {
-        if (mapper.selectById(bundle.runtimeBundleId()) == null) {
+        if (mapper.selectById(PersistenceUuid.toStorage(bundle.runtimeBundleId())) == null) {
             mapper.insert(toEntity(bundle));
         }
     }

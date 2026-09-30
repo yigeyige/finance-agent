@@ -68,7 +68,7 @@
     "recommendations": [{"code": "REVIEW_REFERENCES", "status": "PENDING_BUSINESS_CONFIRMATION"}],
     "businessConfirmations": {"impactConfirmed": true, "pendingItems": []},
     "validationPreparation": {"nextCheck": "核对外部流程引用", "ownerReferenceRequired": true},
-    "handoff": {"ownerReference": "SYNTHETIC-OWNER-001", "externalProcessReference": "SYNTHETIC-PROCESS-001"}
+    "handoff": {"ownerReference": "SYNTHETIC-OWNER-001", "externalProcessReference": "SYNTHETIC-PROCESS-001", "downstreamStatus": "PENDING_REMEDIATION"}
   },
   "requiredArtifacts": [
     "task", "task_state_event", "scope_revision", "task_premise", "investigation_step", "step_approval", "task_lease", "tool_invocation", "fact_snapshot", "coverage_record", "finding", "computation_witness", "professional_confirmation", "packet_draft", "packet_review", "scope_recheck", "packet_revision", "audit_event", "outbox_event", "handoff"

@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -85,11 +86,22 @@ class CoreSyntheticVerticalSliceContractTest {
         String script = readRepoFile("scripts/qa-core-synthetic-vertical-slice.ps1");
         String query = readRepoFile("scripts/qa-core-synthetic-vertical-slice.sql");
         assertThat(script).contains("-Execute", "core-synthetic-vertical-slice-v1", "X-Test-Identity",
-                "Invoke-WebRequest");
+                "Invoke-WebRequest", "synthetic-evidence-runs", "06-run-synthetic-evidence");
         assertThat(query).contains("task.investigation_task", "task.step_approval", "evidence.fact_snapshot",
                 "evidence.coverage_record", "evidence.computation_witness", "packet.packet_review",
                 "packet.scope_recheck", "packet.packet_revision", "governance.audit_event", "packet.handoff");
         assertThat(script.toLowerCase()).doesNotContain("password =", "api_key =", "deepseek_api_key =");
+    }
+
+    @Test
+    void runbookIsUtf8BomAndReadsExpectedErrorsAcrossPowerShellHosts() throws IOException {
+        Path scriptPath = Path.of("..", "scripts", "qa-core-synthetic-vertical-slice.ps1");
+        byte[] bytes = Files.readAllBytes(scriptPath);
+        String script = Files.readString(scriptPath, StandardCharsets.UTF_8);
+        assertThat(Arrays.copyOf(bytes, 3)).containsExactly((byte) 0xEF, (byte) 0xBB, (byte) 0xBF);
+        assertThat(script).contains("function Get-HttpResponseContent", "function Get-HttpErrorContent",
+                "System.Net.Http.HttpResponseMessage", "ReadAsStringAsync", "GetResponseStream",
+                "SkipHttpErrorCheck", "Get-HttpErrorContent -ErrorRecord", "-Anonymous");
     }
 
     private static JsonNode fixture() throws IOException {

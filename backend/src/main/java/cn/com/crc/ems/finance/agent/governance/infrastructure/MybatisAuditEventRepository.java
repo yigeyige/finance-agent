@@ -25,7 +25,9 @@ public class MybatisAuditEventRepository implements AuditEventRepository {
 
     @Override
     public Optional<AuditEvent> findById(UUID auditEventId) {
-        return Optional.ofNullable(mapper.selectById(auditEventId)).map(MybatisAuditOutboxMappings::toDomain);
+        return Optional.ofNullable(mapper.selectById(
+                cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(auditEventId)))
+                .map(MybatisAuditOutboxMappings::toDomain);
     }
 
     @Override
@@ -36,8 +38,8 @@ public class MybatisAuditEventRepository implements AuditEventRepository {
         } else {
             query.eq("task_id", taskId);
         }
-        return Optional.ofNullable(mapper.selectOne(query.orderByDesc("occurred_at").orderByDesc("audit_event_id")))
-                .map(MybatisAuditOutboxMappings::toDomain);
+        return mapper.selectList(query.orderByDesc("occurred_at").orderByDesc("audit_event_id").last("LIMIT 1"))
+                .stream().findFirst().map(MybatisAuditOutboxMappings::toDomain);
     }
 
     @Override

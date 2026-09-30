@@ -13,6 +13,7 @@ class DiagnosticLogSanitizerTest {
         Map<String, String> result = DiagnosticLogSanitizer.sanitize(Map.of(
                 "event", "diagnostics_checked",
                 "status", "UP",
+                "rootCauseCategory", "json_type_definition",
                 "exceptionType", "SQLException",
                 "databaseState", "08001",
                 "password", "do-not-print",

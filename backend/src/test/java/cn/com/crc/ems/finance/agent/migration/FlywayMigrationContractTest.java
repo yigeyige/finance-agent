@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.IntStream;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -16,8 +16,21 @@ class FlywayMigrationContractTest {
 
     @Test
     void migrationFilesContainRequiredSchemasAndNoPlatformDdl() throws IOException {
-        String sql = IntStream.rangeClosed(1, 10)
-                .mapToObj(version -> read("db/migration/V" + version + "__" + suffix(version) + ".sql"))
+        String sql = List.of(
+                        "V1__create_schemas.sql",
+                        "V2__iam_and_governance.sql",
+                        "V3__task.sql",
+                        "V4__evidence.sql",
+                        "V5__packet_and_governance.sql",
+                        "V6__harness.sql",
+                        "V7__knowledge.sql",
+                        "V8__audit_fields.sql",
+                        "V9__harness_plan_workspace.sql",
+                        "V10__audit_outbox_contract.sql",
+                        "V11__scope_recheck.sql",
+                        "V12__checkpoint_runtime_binding.sql")
+                .stream()
+                .map(file -> read("db/migration/" + file))
                 .reduce("", (left, right) -> left + "\n" + right);
 
         assertThat(sql).contains("iam.", "task.", "evidence.", "packet.", "harness.", "knowledge.", "governance.");
@@ -27,6 +40,8 @@ class FlywayMigrationContractTest {
                 "DROP SCHEMA", "DROP DATABASE", "PASSWORD=");
         assertThat(FlywayMigrationContractTest.class.getClassLoader()
                 .getResource("db/migration/V0_create_database.sql")).isNull();
+        assertThat(FlywayMigrationContractTest.class.getClassLoader()
+                .getResource("db/migration/V10__checkpoint_runtime_binding.sql")).isNull();
     }
 
     @Test
@@ -38,22 +53,6 @@ class FlywayMigrationContractTest {
         assertThatThrownBy(() -> FlywayMigrationRunner.MigrationConfiguration.fromEnvironment(environment))
                 .isInstanceOfSatisfying(FlywayMigrationRunner.MigrationConfigurationException.class,
                         exception -> assertThat(exception.key()).isEqualTo(FlywayMigrationRunner.DB_PASSWORD));
-    }
-
-    private static String suffix(int version) {
-        return switch (version) {
-            case 1 -> "create_schemas";
-            case 2 -> "iam_and_governance";
-            case 3 -> "task";
-            case 4 -> "evidence";
-            case 5 -> "packet_and_governance";
-            case 6 -> "harness";
-            case 7 -> "knowledge";
-            case 8 -> "audit_fields";
-            case 9 -> "harness_plan_workspace";
-            case 10 -> "audit_outbox_contract";
-            default -> throw new IllegalArgumentException("unsupported migration version");
-        };
     }
 
     private static String read(String resource) {

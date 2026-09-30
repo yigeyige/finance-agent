@@ -24,7 +24,9 @@ public class MybatisAgentUserRepository implements AgentUserRepository {
 
     @Override
     public Optional<AgentUser> findById(UUID userId) {
-        return Optional.ofNullable(mapper.selectById(userId)).map(MybatisIamMappings::toDomain);
+        return Optional.ofNullable(mapper.selectById(
+                cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(userId)))
+                .map(MybatisIamMappings::toDomain);
     }
 
     @Override
@@ -46,7 +48,7 @@ public class MybatisAgentUserRepository implements AgentUserRepository {
 
     @Override
     public void insertIfAbsent(AgentUser user) {
-        if (mapper.selectById(user.userId()) == null) {
+        if (mapper.selectById(cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(user.userId())) == null) {
             mapper.insert(MybatisIamMappings.toEntity(user));
         }
     }

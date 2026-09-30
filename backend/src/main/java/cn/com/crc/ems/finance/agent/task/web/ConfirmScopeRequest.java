@@ -1,8 +1,9 @@
 package cn.com.crc.ems.finance.agent.task.web;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
+
+import tools.jackson.databind.JsonNode;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotBlank;

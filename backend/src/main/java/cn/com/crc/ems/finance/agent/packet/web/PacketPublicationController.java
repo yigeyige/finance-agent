@@ -14,8 +14,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import cn.com.crc.ems.finance.agent.iam.application.IdentityContext;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
+import cn.com.crc.ems.finance.agent.evidence.domain.EffectiveClass;
 import cn.com.crc.ems.finance.agent.packet.application.PacketPublicationCommand;
 import cn.com.crc.ems.finance.agent.packet.application.PacketPublicationService;
+import cn.com.crc.ems.finance.agent.packet.application.ScopeSnapshot;
+import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 import jakarta.validation.Valid;
 
 /** 发布前全量重查与原子发布 REST 入口。 */
@@ -40,7 +43,7 @@ public final class PacketPublicationController {
         var result = publicationService.publish(new PacketPublicationCommand(taskId, request.draftId(),
                 request.publicationId(), request.contentDigest(), request.scopeRevisionId(), request.runtimeBundleId(),
                 request.canonicalJson(), request.htmlSnapshot(), request.sourceVersions(), request.coverageSummary(),
-                request.baseline(), request.current(), actor));
+                snapshots(request.baseline()), snapshots(request.current()), actor));
         return ResponseEntity.status(result.published() ? HttpStatus.CREATED : HttpStatus.CONFLICT)
                 .body(PacketPublicationResponse.from(taskId, result));
     }
@@ -63,5 +66,18 @@ public final class PacketPublicationController {
         if (value == null || value.isBlank() || value.length() < 16 || value.length() > 200) {
             throw new IllegalArgumentException("Idempotency-Key must contain 16 to 200 characters");
         }
+    }
+
+    /** 将 HTTP 层 Jackson 3 节点严格转换为发布重查所需的内部快照。 */
+    private static java.util.List<ScopeSnapshot> snapshots(java.util.List<tools.jackson.databind.JsonNode> values) {
+        return values.stream().map(PacketPublicationController::snapshot).toList();
+    }
+
+    /** 读取单个完整范围快照，缺失字段由领域构造器拒绝。 */
+    private static ScopeSnapshot snapshot(tools.jackson.databind.JsonNode value) {
+        var json = CanonicalJsonCodec.parse(value.toString());
+        return new ScopeSnapshot(json.path("objectKey").asText(), json.path("fieldsDigest").asText(),
+                EffectiveClass.valueOf(json.path("effectiveClass").asText()), json.path("sourceVersion").asText(),
+                json.path("ruleSetVersion").asText(), json.path("templateVersion").asText());
     }
 }

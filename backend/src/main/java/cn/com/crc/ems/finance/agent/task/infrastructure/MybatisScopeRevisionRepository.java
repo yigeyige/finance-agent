@@ -24,7 +24,9 @@ public class MybatisScopeRevisionRepository implements ScopeRevisionRepository {
 
     @Override
     public Optional<ScopeRevision> findById(UUID scopeRevisionId) {
-        return Optional.ofNullable(mapper.selectById(scopeRevisionId)).map(MybatisTaskMappings::toDomain);
+        return Optional.ofNullable(mapper.selectById(
+                cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(scopeRevisionId)))
+                .map(MybatisTaskMappings::toDomain);
     }
 
     @Override

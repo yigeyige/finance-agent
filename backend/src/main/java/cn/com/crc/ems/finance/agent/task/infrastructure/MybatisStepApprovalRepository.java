@@ -32,7 +32,9 @@ public class MybatisStepApprovalRepository implements StepApprovalRepository {
 
     @Override
     public Optional<StepApproval> findById(UUID approvalId) {
-        return Optional.ofNullable(mapper.selectById(approvalId)).map(MybatisTaskMappings::toDomain);
+        return Optional.ofNullable(mapper.selectById(
+                cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(approvalId)))
+                .map(MybatisTaskMappings::toDomain);
     }
 
     @Override

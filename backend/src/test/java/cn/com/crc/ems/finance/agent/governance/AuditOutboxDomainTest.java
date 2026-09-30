@@ -50,6 +50,24 @@ class AuditOutboxDomainTest {
     }
 
     @Test
+    void eventDigestSurvivesPostgresMicrosecondTimestampRoundTrip() {
+        Instant sourceTimestamp = Instant.parse("2026-09-30T12:39:38.714488900Z");
+        AuditEvent written = AuditEvent.create(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
+                "TASK_CREATED", "task", "task-1", new VersionedJson("audit-payload-v1", "{}"),
+                sourceTimestamp, null, null, sourceTimestamp, null, sourceTimestamp);
+
+        Instant persistedTimestamp = Instant.parse("2026-09-30T12:39:38.714488Z");
+        AuditEvent reloaded = new AuditEvent(written.auditEventId(), written.taskId(), written.actorUserId(),
+                written.eventType(), written.targetType(), written.targetId(), written.eventPayload(),
+                written.payloadDigest(), persistedTimestamp, written.prevEventDigest(), written.eventDigest(),
+                written.canonicalizationVersion(), written.createdBy(), written.createdAt(), written.updatedBy(),
+                written.updatedAt());
+
+        assertThat(written.occurredAt()).isEqualTo(persistedTimestamp);
+        assertThat(reloaded.hasValidIntegrity()).isTrue();
+    }
+
+    @Test
     void sensitivePayloadIsRejectedForAuditAndOutbox() {
         assertThatThrownBy(() -> AuditEvent.create(UUID.randomUUID(), UUID.randomUUID(), null, "READ", "task", "1",
                 new VersionedJson("audit-payload-v1", "{\"reasoning_content\":\"hidden\"}"), NOW, null, null,
