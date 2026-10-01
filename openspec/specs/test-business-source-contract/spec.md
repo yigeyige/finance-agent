@@ -2,7 +2,7 @@
 
 ## Purpose
 
-定义 P1 测试业务源的目录、字段权限、样本、查询和数据边界契约，并与生产真实源保持隔离。
+定义 P1 测试业务源的目录、字段权限、样本、查询与数据边界契约，并将固定测试 fixture、交叉印证证据和 local/test 运行边界与未来生产真实源接入严格隔离。
 
 ## Requirements
 
@@ -56,3 +56,19 @@ P1 测试业务源的目录确认、样本验证和任务完成 SHALL 仅证明�
 
 - **WHEN** P1 测试业务源任务被标记完成
 - **THEN** 生产接入仍要求独立的真实对象、字段权限、凭证、责任人和验收证据
+
+### Requirement: First test business adapter acceptance record
+
+系统 SHALL 为首个测试业务只读适配器交付可审阅的 SourceCatalog 版本、查询模板、字段投影、fixture 版本和 TCK 结果。该记录 MUST 明确其仅适用于 local/test，且不得包含真实人员、金额、单据、凭证、生产配置或连接信息。
+
+#### Scenario: Adapter technical acceptance is reviewed
+- **WHEN** 首个测试业务只读适配器完成技术验收
+- **THEN** 验收记录能够核对目录、字段投影、只读限制、拒绝路径、契约漂移和故障语义的测试结果
+
+### Requirement: Test source cross-validation evidence and scope confirmation
+
+系统 SHALL 交付第二测试来源的目录版本、来源权威顺序、一致/冲突样本、TCK 结果和测试业务范围确认记录。确认记录 MUST 标明当前会话项目负责人、确认日期和仅限 local/test 的边界，且 MUST NOT 构成真实源、生产认证、字段授权或生产放行批准。
+
+#### Scenario: Technical cross-validation package is reviewed
+- **WHEN** 测试交叉印证技术包被审阅并完成测试业务范围确认
+- **THEN** 审阅者能够核对两个测试来源、对象范围、冲突保留、失败关闭和确认边界
