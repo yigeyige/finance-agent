@@ -72,3 +72,10 @@ P1 测试业务源的目录确认、样本验证和任务完成 SHALL 仅证明�
 #### Scenario: Technical cross-validation package is reviewed
 - **WHEN** 测试交叉印证技术包被审阅并完成测试业务范围确认
 - **THEN** 审阅者能够核对两个测试来源、对象范围、冲突保留、失败关闭和确认边界
+
+### Requirement: P1 multi-type reference sample baseline
+系统 SHALL 为 P1 测试业务源维护版本化的多类型参考样本与黄金事实，覆盖人员、岗位、角色、流程节点、组织/权限范围以及当前、未来、未知和无匹配情形。该基线 MUST 使用固定虚构或已脱敏样本，并且 MUST 与真实业务源和生产数据隔离。
+
+#### Scenario: P1 reference sample is selected
+- **WHEN** 测试执行选择已登记的多类型参考样本
+- **THEN** 系统能够按样本版本核对期望事实、适用范围和非确认状态，且不读取外部来源
