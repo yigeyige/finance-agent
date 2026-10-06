@@ -3,6 +3,7 @@ import { parsePublicTaskEvent, PublicTaskEvent } from '../api/generated'
 export interface SseHandlers<TMessage> {
   onOpen?: () => void
   onMessage?: (message: TMessage) => void
+  onReconnect?: (opened: boolean) => void
   onError?: (error: Error) => void
 }
 
@@ -15,23 +16,41 @@ export interface SseConnection {
 /** 打开支持任务事件游标恢复的 SSE 连接。 */
 export function openSse<TMessage = PublicTaskEvent>(url: string, handlers: SseHandlers<TMessage>, initialCursor?: number): SseConnection {
   let cursor = initialCursor
-  let eventSource = createEventSource(url, cursor, handlers, (nextCursor) => { cursor = nextCursor })
+  let closed = false
+  let reconnectTimer: ReturnType<typeof setTimeout> | undefined
+  let eventSource: EventSource
+
+  const connect = () => {
+    eventSource = createEventSource(url, cursor, handlers, (nextCursor) => { cursor = nextCursor }, (opened) => {
+      if (closed) return
+      eventSource.close()
+      handlers.onReconnect?.(opened)
+      reconnectTimer = setTimeout(connect, 1000)
+    })
+  }
+
+  connect()
 
   const resume = (nextCursor: number) => {
     cursor = nextCursor
+    if (reconnectTimer) clearTimeout(reconnectTimer)
     eventSource.close()
-    eventSource = createEventSource(url, cursor, handlers, (receivedCursor) => { cursor = receivedCursor })
+    connect()
   }
 
   return {
-    close: () => eventSource.close(),
+    close: () => {
+      closed = true
+      if (reconnectTimer) clearTimeout(reconnectTimer)
+      eventSource.close()
+    },
     resume,
     getCursor: () => cursor,
   }
 }
 
 /** 创建连接并在命名事件到达时校验和推进游标。 */
-function createEventSource<TMessage>(url: string, cursor: number | undefined, handlers: SseHandlers<TMessage>, onCursor: (cursor: number) => void): EventSource {
+function createEventSource<TMessage>(url: string, cursor: number | undefined, handlers: SseHandlers<TMessage>, onCursor: (cursor: number) => void, onDisconnect: (opened: boolean) => void): EventSource {
   const target = new URL(url, window.location.origin)
   if (typeof localStorage !== 'undefined') {
     const testIdentity = localStorage.getItem('finance-agent.test-identity')
@@ -39,7 +58,11 @@ function createEventSource<TMessage>(url: string, cursor: number | undefined, ha
   }
   if (cursor !== undefined) target.searchParams.set('lastEventId', String(cursor))
   const eventSource = new EventSource(target.toString())
-  eventSource.onopen = () => handlers.onOpen?.()
+  let opened = false
+  eventSource.onopen = () => {
+    opened = true
+    handlers.onOpen?.()
+  }
   const handleMessage = (event: MessageEvent<string>) => {
     try {
       const parsed: unknown = JSON.parse(event.data)
@@ -56,6 +79,6 @@ function createEventSource<TMessage>(url: string, cursor: number | undefined, ha
   ;['TASK_STATUS_CHANGED', 'APPROVAL_REQUIRED', 'TOOL_PROGRESS', 'PUBLIC_REASON', 'RESULT_REFERENCE', 'TASK_PUBLISHED'].forEach((eventType) => {
     eventSource.addEventListener(eventType, handleMessage as EventListener)
   })
-  eventSource.onerror = () => handlers.onError?.(new Error('实时连接暂时不可用，请稍后重试'))
+  eventSource.onerror = () => onDisconnect(opened)
   return eventSource
 }

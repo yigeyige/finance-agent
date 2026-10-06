@@ -8,12 +8,20 @@ export const TEST_IDENTITIES = [
 ] as const
 
 let currentIdentity: CurrentIdentityResponse | undefined
+let identityPromise: Promise<CurrentIdentityResponse> | undefined
 
 /** 查询后端当前身份和权限矩阵。 */
 export async function fetchCurrentIdentity(): Promise<CurrentIdentityResponse> {
   const response = await getJson<unknown>('/v1/identity/me')
   currentIdentity = parseCurrentIdentity(response)
   return currentIdentity
+}
+
+/** 共享首次身份请求，供路由守卫和根组件等待同一结果。 */
+export async function ensureCurrentIdentity(): Promise<CurrentIdentityResponse> {
+  if (currentIdentity) return currentIdentity
+  if (!identityPromise) identityPromise = fetchCurrentIdentity().finally(() => { identityPromise = undefined })
+  return identityPromise
 }
 
 /** 返回最近一次身份查询结果，用于路由防御性判断。 */
@@ -30,5 +38,7 @@ export function hasPermission(permission: IdentityPermission): boolean {
 export function selectTestIdentity(value: string): void {
   if (TEST_IDENTITIES.some((identity) => identity.value === value)) {
     localStorage.setItem('finance-agent.test-identity', value)
+    currentIdentity = undefined
+    identityPromise = undefined
   }
 }

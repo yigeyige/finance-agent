@@ -6,7 +6,8 @@ import EvidenceOverview from '../views/EvidenceOverview.vue'
 import PacketDraft from '../views/PacketDraft.vue'
 import PublishedPacket from '../views/PublishedPacket.vue'
 import TaskDiagnostics from '../views/TaskDiagnostics.vue'
-import { hasPermission } from '../services/identity'
+import { IdentityPermission } from '../api/generated'
+import { ensureCurrentIdentity, hasPermission } from '../services/identity'
 
 Vue.use(Router)
 
@@ -43,7 +44,7 @@ const router = new Router({
       path: '/tasks/:taskId/published',
       name: 'published-packet',
       component: PublishedPacket,
-      meta: { title: '已发布决策包', permission: 'PUBLISHED_PACKET_READ' },
+      meta: { title: '已发布决策包', permissions: ['TASK_READ', 'PUBLISHED_PACKET_READ'] },
     },
     {
       path: '/tasks/:taskId/diagnostics',
@@ -55,11 +56,21 @@ const router = new Router({
 })
 
 /** 依据已加载的服务端权限做前端路由防御，最终授权仍由后端执行。 */
-router.beforeEach((to, _from, next) => {
-  const permission = typeof to.meta?.permission === 'string' ? to.meta.permission : undefined
-  if (permission && !hasPermission(permission as 'CONFIG_MANAGE')) {
-    next('/')
-    return
+router.beforeEach(async (to, _from, next) => {
+  const permissions = Array.isArray(to.meta?.permissions)
+    ? to.meta.permissions.filter((permission): permission is IdentityPermission => typeof permission === 'string')
+    : typeof to.meta?.permission === 'string' ? [to.meta.permission as IdentityPermission] : []
+  if (permissions.length) {
+    try {
+      await ensureCurrentIdentity()
+    } catch {
+      next(to.path === '/' ? undefined : '/')
+      return
+    }
+    if (!permissions.some((permission) => hasPermission(permission))) {
+      next('/')
+      return
+    }
   }
   next()
 })

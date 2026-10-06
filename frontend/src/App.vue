@@ -36,13 +36,15 @@
           >
             <el-option v-for="identity in testIdentities" :key="identity.value" :label="identity.label" :value="identity.value" />
           </el-select>
-          <el-tag v-if="identity" type="info" effect="plain">{{ identity.displayName }}</el-tag>
-          <el-tag v-else type="warning" effect="plain">身份加载中</el-tag>
+          <el-tag v-if="identity" type="info">{{ identity.displayName }}</el-tag>
+          <el-tag v-else type="warning">身份加载中</el-tag>
         </div>
       </el-header>
       <el-main class="workbench-content">
         <el-alert v-if="identityError" :title="identityError" type="warning" :closable="false" show-icon />
-        <router-view />
+        <keep-alive include="WorkbenchHome">
+          <router-view :key="viewKey" />
+        </keep-alive>
       </el-main>
     </el-container>
   </el-container>
@@ -52,7 +54,7 @@
 import Vue from 'vue'
 
 import { CurrentIdentityResponse } from './api/generated'
-import { fetchCurrentIdentity, selectTestIdentity, TEST_IDENTITIES } from './services/identity'
+import { ensureCurrentIdentity, fetchCurrentIdentity, selectTestIdentity, TEST_IDENTITIES } from './services/identity'
 
 export default Vue.extend({
   name: 'App',
@@ -72,6 +74,9 @@ export default Vue.extend({
     canManageConfig(): boolean {
       return this.identity?.permissions.includes('CONFIG_MANAGE') ?? false
     },
+    viewKey(): string {
+      return `${this.identity?.userId || 'identity-loading'}:${this.$route.name || this.$route.path}`
+    },
   },
   async created() {
     await this.loadIdentity()
@@ -80,7 +85,7 @@ export default Vue.extend({
     /** 加载服务端身份并驱动权限导航。 */
     async loadIdentity(): Promise<void> {
       try {
-        this.identity = await fetchCurrentIdentity()
+        this.identity = await ensureCurrentIdentity()
         this.identityError = ''
       } catch {
         this.identity = null
@@ -90,7 +95,13 @@ export default Vue.extend({
     /** 切换 local/test 合成身份并刷新服务端权限。 */
     async switchIdentity(value: string): Promise<void> {
       selectTestIdentity(value)
-      await this.loadIdentity()
+      try {
+        this.identity = await fetchCurrentIdentity()
+        this.identityError = ''
+      } catch {
+        this.identity = null
+        this.identityError = '当前身份不可用，请检查本地服务配置'
+      }
       await this.$router.push('/')
     },
   },
