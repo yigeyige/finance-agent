@@ -121,12 +121,13 @@ source: development-workplan
 | 093 | P2 自定义需求 | [20260926-strict-versioned-json-validation](../03.achieved/20260926-严格解析VersionedJson并补充基础能力复用规范.md) | 严格解析 VersionedJson 并补充基础能力复用规范 | [20260926-严格解析VersionedJson并补充基础能力复用规范.md](../03.achieved/20260926-严格解析VersionedJson并补充基础能力复用规范.md) | 已完成 | 无 |
 | 094 | P0 专项加固 | [20260929-fix-qa-core-powershell-compatibility](../03.achieved/20260929-修复纵向测试PowerShell兼容性.md) | 修复纵向测试 PowerShell 兼容性 | [20260929-修复纵向测试PowerShell兼容性.md](../03.achieved/20260929-修复纵向测试PowerShell兼容性.md) | 已完成 | `DEV-QA-002` |
 | 095 | P0 自定义需求 | [20260930-add-synthetic-evidence-worker](../03.achieved/20260930-合成Worker写入证据.md) | 合成 Worker 写入证据并接续纵向切片 | [20260930-合成Worker写入证据.md](../03.achieved/20260930-合成Worker写入证据.md) | 已完成 | `DEV-QA-002` |
+| 096 | P0 自定义需求 | [20261006-fix-frontend-task-draft-flow](../03.achieved/20261006-跑通前端任务草稿流程.md) | 跑通前端流程并修复任务草稿创建问题 | [20261006-跑通前端任务草稿流程.md](../03.achieved/20261006-跑通前端任务草稿流程.md) | 已完成 | 无 |
 
 ## 阶段统计
 
 | 阶段 | 数量 |
 |---|---:|
-| P0 | 74 |
+| P0 | 75 |
 | P1 | 9 |
 | P2 | 10 |
-| 合计 | 93 |
+| 合计 | 94 |
