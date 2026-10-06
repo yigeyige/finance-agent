@@ -4,11 +4,11 @@
 TBD - created by archiving change task-intake-scope-ui. Update Purpose after archive.
 ## Requirements
 ### Requirement: Task intake and scope confirmation form
-工作台 SHALL 提供任务标题、问题、前提来源和范围确认表单，在提交前校验必填字段和 JSON 字段，并在每次写请求进行中阻止重复提交。任务草稿创建成功后 SHALL 显示返回的任务标识和行版本并进入前提来源步骤；前提保存成功后 SHALL 进入范围确认步骤；范围确认成功后 SHALL 显示任务状态、scope revision 和最新 row version。
+工作台 SHALL 提供任务标题、问题、业务对象、前提来源和范围确认表单，并在每次写请求进行中阻止重复提交。范围确认 SHALL 使用日期、调查内容和数据使用范围等业务字段，由系统生成后端所需的结构化对象和字段数组，不得要求业务人员输入 JSON。任务草稿创建成功后 SHALL 进入业务对象步骤；前提保存成功后 SHALL 进入范围确认步骤；范围确认成功后 SHALL 显示业务状态和下一步操作。
 
 #### Scenario: Create and confirm scope
-- **WHEN** OPERATOR 填写任务、前提和范围并依次提交
-- **THEN** 页面依次进入前提来源和范围确认步骤，最终显示任务状态、scope revision 和最新 row version
+- **WHEN** OPERATOR 填写任务、业务对象和调查范围并依次提交
+- **THEN** 页面按顺序推进，系统自动生成范围请求并显示可理解的完成状态
 
 #### Scenario: Task draft creation fails
 
@@ -20,9 +20,9 @@ TBD - created by archiving change task-intake-scope-ui. Update Purpose after arc
 - **WHEN** 任务草稿创建请求仍在处理中且用户再次触发提交
 - **THEN** 页面不发送第二个创建请求
 
-#### Scenario: Invalid scope input
-- **WHEN** 范围 JSON 非法或三类字段权限为空
-- **THEN** 页面阻止提交并显示中文校验提示
+#### Scenario: Incomplete business scope
+- **WHEN** 业务对象、日期范围或调查内容未填写完整
+- **THEN** 页面阻止提交并用业务语言指出缺失内容，不显示 JSON 格式错误
 
 ### Requirement: Stale scope feedback
 页面 SHALL 显示旧 row version 或范围冲突，禁止把冲突响应当作成功。

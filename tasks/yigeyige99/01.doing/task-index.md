@@ -123,12 +123,13 @@ source: development-workplan
 | 095 | P0 自定义需求 | [20260930-add-synthetic-evidence-worker](../03.achieved/20260930-合成Worker写入证据.md) | 合成 Worker 写入证据并接续纵向切片 | [20260930-合成Worker写入证据.md](../03.achieved/20260930-合成Worker写入证据.md) | 已完成 | `DEV-QA-002` |
 | 096 | P0 自定义需求 | [20261006-fix-frontend-task-draft-flow](../03.achieved/20261006-跑通前端任务草稿流程.md) | 跑通前端流程并修复任务草稿创建问题 | [20261006-跑通前端任务草稿流程.md](../03.achieved/20261006-跑通前端任务草稿流程.md) | 已完成 | 无 |
 | 097 | P0 自定义需求 | [20261006-verify-remaining-frontend-flows](../03.achieved/20261006-回归前端其他操作.md) | 回归前端其他操作并修复问题 | [20261006-回归前端其他操作.md](../03.achieved/20261006-回归前端其他操作.md) | 已完成 | 无 |
+| 098 | P0 自定义需求 | [20261006-simplify-business-workflow-ui](../03.achieved/20261006-简化业务操作流程.md) | 简化业务操作流程并隐藏 JSON 技术输入 | [20261006-简化业务操作流程.md](../03.achieved/20261006-简化业务操作流程.md) | 已完成 | 无 |
 
 ## 阶段统计
 
 | 阶段 | 数量 |
 |---|---:|
-| P0 | 76 |
+| P0 | 77 |
 | P1 | 9 |
 | P2 | 10 |
-| 合计 | 95 |
+| 合计 | 96 |
