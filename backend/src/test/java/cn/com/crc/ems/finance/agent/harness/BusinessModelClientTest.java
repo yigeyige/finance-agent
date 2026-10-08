@@ -18,6 +18,8 @@ import com.sun.net.httpserver.HttpServer;
 
 import cn.com.crc.ems.finance.agent.config.FinanceAgentProperties;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelException;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanContext;
@@ -50,6 +52,21 @@ class BusinessModelClientTest {
         assertThat(analysis.metadata().mode()).isEqualTo("STUB");
         assertThat(analysis.value().riskLevel()).isEqualTo("MEDIUM");
         assertThat(analysis.value().recommendations()).containsExactly("发现一条仍生效的异常引用");
+    }
+
+    @Test
+    void stubGeneratesAndRevisesBusinessHandlingDraft() {
+        StubBusinessModelClient client = new StubBusinessModelClient();
+        var initial = client.guideBusinessHandling(new BusinessGuidanceContext(UUID.randomUUID(), "离职权限处置",
+                "需要调整离职人员仍生效的审批权限", null, null));
+        var revised = client.guideBusinessHandling(new BusinessGuidanceContext(UUID.randomUUID(), "离职权限处置",
+                "需要调整离职人员仍生效的审批权限", "改为业务调整并优先处理审批权限", initial.value().draft()));
+
+        assertThat(initial.metadata().mode()).isEqualTo("STUB");
+        assertThat(initial.value().draft().handlingType()).isEqualTo("ADJUST");
+        assertThat(initial.value().draft().investigationAreas()).containsExactly("APPROVAL", "ROLE");
+        assertThat(revised.value().reply()).contains("更新");
+        assertThat(revised.value().draft().recommendedGoal()).contains("管理员意见");
     }
 
     @Test
@@ -92,6 +109,9 @@ class BusinessModelClientTest {
                 .isInstanceOf(BusinessModelException.class);
         assertThatThrownBy(() -> new EvidenceAnalysisContext(UUID.randomUUID(), "任务", "问题", 0, 0, 0,
                 List.of(), List.of())).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> BusinessGuidanceSuggestion.fromJson(CanonicalJsonCodec.parse(
+                "{\"reply\":\"已生成\",\"draft\":{},\"extra\":true}")))
+                .isInstanceOf(BusinessModelException.class);
     }
 
     private static ModelPlanContext planContext() {

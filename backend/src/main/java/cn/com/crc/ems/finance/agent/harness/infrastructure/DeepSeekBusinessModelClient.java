@@ -18,6 +18,8 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessModelCallMetadat
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelException;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelResult;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanContext;
@@ -33,6 +35,24 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
 
     public DeepSeekBusinessModelClient(DeepSeekOpenAiAdapter adapter) {
         this.adapter = adapter;
+    }
+
+    /**
+     *
+     * @description: 调用真实模型生成或按管理员反馈修订严格业务处理草稿。
+     *
+     * @param: context 后端构造的受限业务处理上下文
+     * @return: 结构化模型草稿及脱敏调用元数据
+     * @author: yigeyige99
+     */
+    @Override
+    public BusinessModelResult<BusinessGuidanceSuggestion> guideBusinessHandling(BusinessGuidanceContext context) {
+        ObjectNode input = guidanceInput(context);
+        String instruction = "你是财务共享业务处理助手。仅依据输入 JSON 生成可编辑业务处理初稿，不执行工具，不补造事实。"
+                + "只返回 JSON 对象，字段必须且只能是 reply、draft；draft 必须且只能包含 handlingType、premiseType、subjectKey、statement、sourceDescription、systemCode、objectKey、startDate、endDate、investigationAreas、dataUse、recommendedGoal、alternativeGoals、reason；"
+                + "handlingType 只能为 INVESTIGATE 或 ADJUST；systemCode 必须为 FIN-SYN；investigationAreas 只能从 APPROVAL、ROLE、ACCOUNTING、CONFIG 选择；dataUse 只能为 MINIMUM 或 ANALYSIS；所有文本使用简体中文。输入："
+                + CanonicalJsonCodec.canonicalize(input);
+        return invoke(instruction, input, BusinessGuidanceSuggestion::fromJson);
     }
 
     @Override
@@ -89,6 +109,17 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         node.set("objectSelector", CanonicalJsonCodec.parse(context.objectSelector()));
         node.set("effectiveTimeRange", CanonicalJsonCodec.parse(context.effectiveTimeRange()));
         node.set("includedPaths", CanonicalJsonCodec.parse(context.includedPaths()));
+        return node;
+    }
+
+    private static ObjectNode guidanceInput(BusinessGuidanceContext context) {
+        ObjectNode node = JsonNodeFactory.instance.objectNode();
+        node.put("title", context.title());
+        node.put("description", context.description());
+        if (context.feedback() != null) {
+            node.put("feedback", context.feedback());
+            node.set("currentDraft", context.currentDraft().toJson());
+        }
         return node;
     }
 

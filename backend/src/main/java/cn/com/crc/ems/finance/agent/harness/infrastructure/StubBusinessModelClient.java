@@ -9,6 +9,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelCallMetadata;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelResult;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessHandlingDraft;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanContext;
@@ -20,6 +23,28 @@ import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 public final class StubBusinessModelClient implements BusinessModelClient {
 
     private static final String MODEL_NAME = "本地模拟模型";
+
+    /**
+     *
+     * @description: 返回确定性业务处理初稿或基于管理员意见的可验证修订结果。
+     *
+     * @param: context 已受限的业务处理上下文
+     * @return: 明确标识 Stub 的结构化业务建议
+     * @author: yigeyige99
+     */
+    @Override
+    public BusinessModelResult<BusinessGuidanceSuggestion> guideBusinessHandling(BusinessGuidanceContext context) {
+        long started = System.nanoTime();
+        BusinessHandlingDraft draft = context.currentDraft() == null ? initialDraft(context) : revisedDraft(context);
+        String reply = context.feedback() == null
+                ? "我已根据业务说明整理出对象、范围和业务方案初稿，请结合实际情况调整后确认。"
+                : "已根据你的修改意见更新业务处理初稿，请核对对象、范围和业务方案。";
+        var value = new BusinessGuidanceSuggestion(reply, draft);
+        ObjectNode output = JsonNodeFactory.instance.objectNode();
+        output.put("reply", reply);
+        output.set("draft", draft.toJson());
+        return result(contextJson(context), output, value, started);
+    }
 
     @Override
     public BusinessModelResult<ModelPlanSuggestion> generatePlan(ModelPlanContext context) {
@@ -67,6 +92,42 @@ public final class StubBusinessModelClient implements BusinessModelClient {
         node.set("objectSelector", CanonicalJsonCodec.parse(context.objectSelector()));
         node.set("effectiveTimeRange", CanonicalJsonCodec.parse(context.effectiveTimeRange()));
         node.set("includedPaths", CanonicalJsonCodec.parse(context.includedPaths()));
+        return node;
+    }
+
+    private static BusinessHandlingDraft initialDraft(BusinessGuidanceContext context) {
+        boolean adjust = context.description().contains("调整") || context.description().contains("修改")
+                || context.title().contains("调整");
+        String handlingType = adjust ? "ADJUST" : "INVESTIGATE";
+        String action = adjust ? "梳理调整影响范围并形成可执行处理方案" : "核对已授权范围内的现状并形成可复核结论";
+        return new BusinessHandlingDraft(handlingType, adjust ? "业务调整" : "业务核查", "待管理员确认的业务对象",
+                context.description(), "管理员填写的业务说明", "FIN-SYN", "待管理员确认的系统对象", "2026-01-01",
+                "2026-12-31", List.of("APPROVAL", "ROLE"), "MINIMUM", action,
+                List.of("复核对象关联关系和责任归属", "核对时间范围内的变更及待处理事项"),
+                "本地模拟模型已根据业务说明形成初稿，管理员确认后才会写入业务范围。");
+    }
+
+    private static BusinessHandlingDraft revisedDraft(BusinessGuidanceContext context) {
+        BusinessHandlingDraft current = context.currentDraft();
+        boolean adjust = context.feedback().contains("调整") || context.feedback().contains("修改")
+                || current.handlingType().equals("ADJUST");
+        String goal = current.recommendedGoal() + "；已纳入管理员意见：" + context.feedback();
+        return new BusinessHandlingDraft(adjust ? "ADJUST" : "INVESTIGATE", current.premiseType(),
+                current.subjectKey(), current.statement(), current.sourceDescription(), current.systemCode(),
+                current.objectKey(), current.startDate(), current.endDate(), current.investigationAreas(),
+                current.dataUse(), goal.length() > 2000 ? goal.substring(0, 2000) : goal,
+                current.alternativeGoals(), "本地模拟模型已根据管理员的本次意见更新初稿，请再次核对。");
+    }
+
+    private static ObjectNode contextJson(BusinessGuidanceContext context) {
+        ObjectNode node = JsonNodeFactory.instance.objectNode();
+        node.put("taskId", context.taskId().toString());
+        node.put("title", context.title());
+        node.put("description", context.description());
+        if (context.feedback() != null) {
+            node.put("feedback", context.feedback());
+            node.set("currentDraft", context.currentDraft().toJson());
+        }
         return node;
     }
 

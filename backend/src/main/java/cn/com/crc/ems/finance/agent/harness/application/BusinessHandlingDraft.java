@@ -1,0 +1,166 @@
+package cn.com.crc.ems.finance.agent.harness.application;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+/**
+ *
+ * @Description: 业务处理向导中由模型返回且可由管理员修订的受限结构化草稿。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-08 21:10:00
+ */
+public record BusinessHandlingDraft(String handlingType, String premiseType, String subjectKey, String statement,
+        String sourceDescription, String systemCode, String objectKey, String startDate, String endDate,
+        List<String> investigationAreas, String dataUse, String recommendedGoal, List<String> alternativeGoals,
+        String reason) {
+
+    private static final Set<String> FIELDS = Set.of("handlingType", "premiseType", "subjectKey", "statement",
+            "sourceDescription", "systemCode", "objectKey", "startDate", "endDate", "investigationAreas",
+            "dataUse", "recommendedGoal", "alternativeGoals", "reason");
+    private static final Set<String> HANDLING_TYPES = Set.of("INVESTIGATE", "ADJUST");
+    private static final Set<String> AREAS = Set.of("APPROVAL", "ROLE", "ACCOUNTING", "CONFIG");
+    private static final Set<String> DATA_USES = Set.of("MINIMUM", "ANALYSIS");
+
+    public BusinessHandlingDraft {
+        requireEnum(handlingType, HANDLING_TYPES, "handlingType");
+        requireText(premiseType, "premiseType", 100);
+        requireText(subjectKey, "subjectKey", 200);
+        requireText(statement, "statement", 2000);
+        requireText(sourceDescription, "sourceDescription", 500);
+        if (!"FIN-SYN".equals(systemCode)) {
+            throw new IllegalArgumentException("systemCode is invalid");
+        }
+        requireText(objectKey, "objectKey", 200);
+        requireDate(startDate, "startDate");
+        requireDate(endDate, "endDate");
+        if (startDate.compareTo(endDate) > 0) {
+            throw new IllegalArgumentException("date range is invalid");
+        }
+        if (investigationAreas == null || investigationAreas.isEmpty() || investigationAreas.size() > AREAS.size()
+                || investigationAreas.stream().anyMatch(area -> !AREAS.contains(area))) {
+            throw new IllegalArgumentException("investigationAreas is invalid");
+        }
+        investigationAreas = List.copyOf(investigationAreas);
+        requireEnum(dataUse, DATA_USES, "dataUse");
+        requireText(recommendedGoal, "recommendedGoal", 2000);
+        if (alternativeGoals == null || alternativeGoals.size() > 2) {
+            throw new IllegalArgumentException("alternativeGoals is invalid");
+        }
+        alternativeGoals = List.copyOf(alternativeGoals);
+        alternativeGoals.forEach(value -> requireText(value, "alternativeGoal", 2000));
+        requireText(reason, "reason", 2000);
+    }
+
+    /**
+     *
+     * @description: 严格解析模型返回的业务处理草稿，拒绝额外字段和越界枚举。
+     *
+     * @param: value 模型输出中的草稿 JSON
+     * @return: 可用于业务表单的受限草稿
+     * @throws: BusinessModelException 输出不符合契约时抛出
+     * @author: yigeyige99
+     */
+    public static BusinessHandlingDraft fromJson(JsonNode value) {
+        requireExactObject(value);
+        List<String> areas = textArray(value.get("investigationAreas"), "investigationAreas", 1, AREAS.size());
+        List<String> alternatives = textArray(value.get("alternativeGoals"), "alternativeGoals", 0, 2);
+        try {
+            return new BusinessHandlingDraft(text(value, "handlingType", 20), text(value, "premiseType", 100),
+                    text(value, "subjectKey", 200), text(value, "statement", 2000),
+                    text(value, "sourceDescription", 500), text(value, "systemCode", 100),
+                    text(value, "objectKey", 200), text(value, "startDate", 10), text(value, "endDate", 10),
+                    areas, text(value, "dataUse", 20), text(value, "recommendedGoal", 2000), alternatives,
+                    text(value, "reason", 2000));
+        } catch (IllegalArgumentException exception) {
+            throw new BusinessModelException("模型返回的业务处理初稿格式不正确", exception);
+        }
+    }
+
+    /**
+     *
+     * @description: 将受限草稿转换为模型输入摘要，不携带前端未定义字段。
+     *
+     * @return: 严格字段集合的 JSON 对象
+     * @author: yigeyige99
+     */
+    public ObjectNode toJson() {
+        ObjectNode node = JsonNodeFactory.instance.objectNode();
+        node.put("handlingType", handlingType);
+        node.put("premiseType", premiseType);
+        node.put("subjectKey", subjectKey);
+        node.put("statement", statement);
+        node.put("sourceDescription", sourceDescription);
+        node.put("systemCode", systemCode);
+        node.put("objectKey", objectKey);
+        node.put("startDate", startDate);
+        node.put("endDate", endDate);
+        node.putPOJO("investigationAreas", investigationAreas);
+        node.put("dataUse", dataUse);
+        node.put("recommendedGoal", recommendedGoal);
+        node.putPOJO("alternativeGoals", alternativeGoals);
+        node.put("reason", reason);
+        return node;
+    }
+
+    private static void requireExactObject(JsonNode value) {
+        if (value == null || !value.isObject() || value.size() != FIELDS.size()) {
+            throw new BusinessModelException("模型返回内容不符合约定结构");
+        }
+        Iterator<String> names = value.fieldNames();
+        while (names.hasNext()) {
+            if (!FIELDS.contains(names.next())) {
+                throw new BusinessModelException("模型返回内容包含未约定字段");
+            }
+        }
+    }
+
+    private static List<String> textArray(JsonNode value, String field, int minSize, int maxSize) {
+        if (value == null || !value.isArray() || value.size() < minSize || value.size() > maxSize) {
+            throw new BusinessModelException("模型返回字段格式不正确: " + field);
+        }
+        List<String> values = new ArrayList<>();
+        value.forEach(item -> values.add(textValue(item, field, 2000)));
+        return values;
+    }
+
+    private static String text(JsonNode value, String field, int maxLength) {
+        return textValue(value.get(field), field, maxLength);
+    }
+
+    private static String textValue(JsonNode value, String field, int maxLength) {
+        if (value == null || !value.isTextual() || value.textValue().isBlank() || value.textValue().length() > maxLength) {
+            throw new BusinessModelException("模型返回字段格式不正确: " + field);
+        }
+        return value.textValue();
+    }
+
+    private static void requireText(String value, String field, int maxLength) {
+        if (value == null || value.isBlank() || value.length() > maxLength) {
+            throw new IllegalArgumentException(field + " is invalid");
+        }
+    }
+
+    private static void requireEnum(String value, Set<String> options, String field) {
+        if (!options.contains(value)) {
+            throw new IllegalArgumentException(field + " is invalid");
+        }
+    }
+
+    private static void requireDate(String value, String field) {
+        try {
+            LocalDate.parse(value);
+        } catch (DateTimeParseException exception) {
+            throw new IllegalArgumentException(field + " is invalid", exception);
+        }
+    }
+}

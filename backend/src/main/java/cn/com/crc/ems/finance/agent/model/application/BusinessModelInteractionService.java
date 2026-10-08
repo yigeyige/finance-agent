@@ -10,6 +10,9 @@ import cn.com.crc.ems.finance.agent.evidence.application.FindingRepository;
 import cn.com.crc.ems.finance.agent.evidence.domain.EffectiveClass;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelResult;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessHandlingDraft;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanContext;
@@ -45,6 +48,25 @@ public final class BusinessModelInteractionService {
         this.snapshotRepository = snapshotRepository;
         this.coverageRepository = coverageRepository;
         this.findingRepository = findingRepository;
+    }
+
+    /**
+     *
+     * @description: 使用任务权威标题和说明生成或修订未持久化的业务处理草稿。
+     *
+     * @param: taskId 当前任务标识
+     * @param: feedback 管理员本次修改意见，可为空以生成初稿
+     * @param: currentDraft 当前页面中的受限草稿，可为空以生成初稿
+     * @return: 严格结构化的模型业务处理建议
+     * @throws: IllegalStateException 任务不存在时抛出
+     * @author: yigeyige99
+     */
+    public BusinessModelResult<BusinessGuidanceSuggestion> guideBusinessHandling(UUID taskId, String feedback,
+            BusinessHandlingDraft currentDraft) {
+        var task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalStateException("业务处理任务不存在或已失效"));
+        return modelClient.guideBusinessHandling(new BusinessGuidanceContext(task.taskId(), task.title(),
+                task.originalQuestion(), feedback, currentDraft));
     }
 
     /** 从当前任务和最新已确认范围生成模型调查方案。 */

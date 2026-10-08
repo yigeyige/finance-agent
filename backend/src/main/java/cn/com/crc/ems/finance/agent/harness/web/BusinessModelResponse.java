@@ -4,6 +4,7 @@ import java.util.List;
 
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelCallMetadata;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelResult;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanSuggestion;
 
@@ -26,6 +27,23 @@ public final class BusinessModelResponse {
             return new Plan(result.value().recommendedGoal(), result.value().alternativeGoals(),
                     result.value().reason(), Metadata.from(result.metadata()));
         }
+    }
+
+    public record Guidance(String reply, BusinessHandlingDraftResponse draft, Metadata metadata) {
+        static Guidance from(BusinessModelResult<BusinessGuidanceSuggestion> result) {
+            var draft = result.value().draft();
+            return new Guidance(result.value().reply(), new BusinessHandlingDraftResponse(draft.handlingType(),
+                    draft.premiseType(), draft.subjectKey(), draft.statement(), draft.sourceDescription(),
+                    draft.systemCode(), draft.objectKey(), draft.startDate(), draft.endDate(),
+                    draft.investigationAreas(), draft.dataUse(), draft.recommendedGoal(), draft.alternativeGoals(),
+                    draft.reason()), Metadata.from(result.metadata()));
+        }
+    }
+
+    public record BusinessHandlingDraftResponse(String handlingType, String premiseType, String subjectKey,
+            String statement, String sourceDescription, String systemCode, String objectKey, String startDate,
+            String endDate, List<String> investigationAreas, String dataUse, String recommendedGoal,
+            List<String> alternativeGoals, String reason) {
     }
 
     public record Analysis(String summary, String riskLevel, String riskExplanation,

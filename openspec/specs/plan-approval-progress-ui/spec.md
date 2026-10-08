@@ -4,15 +4,15 @@
 TBD - created by archiving change plan-approval-progress-ui. Update Purpose after archive.
 ## Requirements
 ### Requirement: Plan and approval card
-工作台 SHALL 在范围确认后调用后端受控模型生成一个推荐步骤和最多两个备选，并用业务语言展示模型理由、模型模式和每个步骤将检查的内容。页面 MUST 明确区分“模型生成建议”和“人工批准执行”，自动生成目标摘要、来源绑定、范围修订和内部策略版本，不得要求业务人员填写 UUID、哈希或版本字符串。
+工作台 SHALL 在管理员确认对象和范围后，把模型协作形成的推荐业务方案和最多两个备选方案直接提交为步骤提议，并用业务语言说明方案将处理的内容。页面 MUST 自动生成目标摘要、来源绑定、范围修订和内部策略版本，不得要求管理员填写 UUID、哈希、版本字符串、批准决定或调用次数。
 
-#### Scenario: Approve or reject a step
-- **WHEN** OPERATOR 选择模型建议步骤、确认检查次数并提交批准或拒绝
-- **THEN** 系统自动补齐技术绑定，请求携带当前 row version 和幂等键，页面显示人工审批结果
+#### Scenario: Generate a business plan
+- **WHEN** OPERATOR 已确认对象和范围并选择或编辑模型方案后点击生成业务方案
+- **THEN** 系统提交推荐步骤和备选步骤，页面展示方案已生成及其处理摘要，而不显示批准/拒绝控件
 
-#### Scenario: Generate model investigation plan
-- **WHEN** 范围确认完成且业务人员进入调查方案阶段
-- **THEN** 页面显示模型分析状态，随后展示模型推荐步骤、备选步骤、生成理由和模型模式，业务人员无需从空白技术表单开始
+#### Scenario: Generate model business plan
+- **WHEN** 业务标题和说明创建任务后，OPERATOR 进入模型协作步骤
+- **THEN** 页面展示模型分析状态、模型初稿、会话修改入口和可编辑的推荐方案，管理员无需从空白技术表单开始
 
 #### Scenario: Model plan generation fails
 - **WHEN** 模型方案调用失败、超时或输出不符合结构
