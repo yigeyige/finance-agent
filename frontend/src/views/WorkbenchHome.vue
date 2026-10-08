@@ -30,12 +30,17 @@
             <el-row :gutter="16"><el-col :span="12"><el-form-item label="核查开始日期"><el-input v-model.trim="form.startDate" placeholder="例如：2026-01-01" /></el-form-item></el-col><el-col :span="12"><el-form-item label="核查结束日期"><el-input v-model.trim="form.endDate" placeholder="例如：2026-12-31" /></el-form-item></el-col></el-row>
             <el-form-item label="需要核查哪些内容"><el-checkbox-group v-model="form.investigationAreas" class="business-options"><el-checkbox label="APPROVAL">审批流程</el-checkbox><el-checkbox label="ROLE">角色权限</el-checkbox><el-checkbox label="ACCOUNTING">会计配置</el-checkbox><el-checkbox label="CONFIG">系统配置引用</el-checkbox></el-checkbox-group></el-form-item>
             <el-form-item label="数据使用范围"><el-radio-group v-model="form.dataUse"><el-radio label="MINIMUM">仅使用形成结论所需的最少字段</el-radio><el-radio label="ANALYSIS">允许在本次调查中使用全部已授权字段</el-radio></el-radio-group></el-form-item>
-            <el-button type="primary" :loading="saving" @click="saveScope">确认范围并生成调查方案</el-button>
+            <el-button type="primary" :loading="saving" @click="saveScope">确认范围并交给模型分析</el-button>
           </template>
         </el-form>
         <div v-if="activeStep === 3 && task && task.scopeRevisionNo" class="execution-panel">
-          <h4 class="section-heading">系统建议的调查方案</h4><p class="panel-hint">系统已根据调查对象和范围准备步骤。你可以调整文字，技术标识和版本信息由系统自动处理。</p>
-          <el-form v-if="!proposal" label-position="top"><el-form-item v-for="(goal, index) in planGoals" :key="index" :label="index === 0 ? '推荐步骤' : `备选步骤 ${index}`"><el-input v-model.trim="planGoals[index]" /></el-form-item><el-button type="primary" :loading="saving" @click="submitPlan">采用方案并进入审批</el-button></el-form>
+          <div class="model-stage" :class="{ 'model-stage--ready': modelPlan }">
+            <div class="model-stage__heading"><div><p class="eyebrow">大模型交互</p><h4>{{ modelLoading ? '正在理解问题和调查范围' : modelPlan ? '模型已生成调查方案' : '等待模型生成调查方案' }}</h4></div><el-tag v-if="modelPlan" :type="modelPlan.metadata.mode === 'LIVE' ? 'success' : 'info'">{{ modelPlan.metadata.mode === 'LIVE' ? modelPlan.metadata.modelName : '本地模拟模型' }}</el-tag></div>
+            <p v-if="modelLoading" class="model-stage__status">模型正在结合业务问题、调查对象和授权范围形成建议，请稍候。</p>
+            <template v-else-if="modelPlan"><p class="model-reason">{{ modelPlan.reason }}</p><el-alert title="以下内容是模型建议，只有提交人工批准后才会执行。" type="warning" :closable="false" show-icon /></template>
+            <el-button v-else type="primary" :loading="modelLoading" @click="requestModelPlan">重新请求模型生成方案</el-button>
+          </div>
+          <el-form v-if="modelPlan && !proposal" label-position="top"><el-form-item v-for="(goal, index) in planGoals" :key="`${index}-${goal}`" :label="index === 0 ? '模型推荐步骤' : `模型备选步骤 ${index}`"><el-input v-model.trim="planGoals[index]" /></el-form-item><el-button type="primary" :loading="saving" @click="submitPlan">采用建议并进入人工审批</el-button></el-form>
           <el-card v-if="proposal" shadow="never" class="approval-card">
             <div class="card-heading"><h4>批准本次调查</h4><el-tag type="info">系统已补齐技术绑定</el-tag></div><el-alert title="请选择要执行的步骤，并确认本次最多允许查询多少次。" type="info" :closable="false" show-icon />
             <el-form v-if="!approvalResult" label-position="top"><el-form-item label="执行步骤"><el-select v-model="selectedStepId"><el-option v-for="step in proposal.steps" :key="step.stepId" :label="step.goal" :value="step.stepId" /></el-select></el-form-item><el-form-item label="审批决定"><el-radio-group v-model="approval.decision"><el-radio label="APPROVED">批准执行</el-radio><el-radio label="REJECTED">暂不执行</el-radio></el-radio-group></el-form-item><el-form-item label="最多查询次数"><el-input-number v-model="approval.maxCalls" :min="1" :max="20" /></el-form-item><el-button type="primary" :loading="saving" @click="submitApproval">提交审批决定</el-button></el-form>
@@ -52,9 +57,10 @@
 <script lang="ts">
 import Vue from 'vue'
 import { PublicTaskEvent, StepApprovalResponse, StepProposalResponse, TaskResponse } from '../api/generated'
-import { buildScopePayload, buildSuggestedGoals, createWorkflowUuid, DEFAULT_RUNTIME_BUNDLE_ID, sha256Hex } from '../services/business-workflow'
+import { buildScopePayload, createWorkflowUuid, DEFAULT_RUNTIME_BUNDLE_ID, sha256Hex } from '../services/business-workflow'
 import { approveStep, ApproveStepPayload, proposeSteps } from '../services/execution-api'
 import { getCurrentIdentity } from '../services/identity'
+import { generateModelPlan, ModelPlanResponse } from '../services/model-api'
 import { openSse, SseConnection } from '../services/sse'
 import { addPremise, confirmScope, createTask, isStaleError } from '../services/task-api'
 
@@ -64,7 +70,7 @@ const AREA_LABELS: Record<string, string> = { APPROVAL: '审批流程', ROLE: '�
 
 export default Vue.extend({
   name: 'WorkbenchHome',
-  data() { return { activeStep: 0, saving: false, task: null as TaskResponse | null, proposal: null as StepProposalResponse | null, approvalResult: null as StepApprovalResponse | null, selectedStepId: '', planGoals: [] as string[], sourceBindingId: createWorkflowUuid(), events: [] as PublicTaskEvent[], eventStatus: '尚未开始', sseConnection: null as SseConnection | null, approval: { maxCalls: 3, decision: 'APPROVED' as 'APPROVED' | 'REJECTED' }, errorMessage: '', staleMessage: '', form: { title: '', question: '', premiseType: '人员变更', subjectKey: '', statement: '', sourceDescription: '', systemCode: 'FIN-SYN', objectKey: '', startDate: '2026-01-01', endDate: '2026-12-31', investigationAreas: ['APPROVAL', 'ROLE'], dataUse: 'MINIMUM' } as WorkbenchForm } },
+  data() { return { activeStep: 0, saving: false, modelLoading: false, modelPlan: null as ModelPlanResponse | null, task: null as TaskResponse | null, proposal: null as StepProposalResponse | null, approvalResult: null as StepApprovalResponse | null, selectedStepId: '', planGoals: [] as string[], sourceBindingId: createWorkflowUuid(), events: [] as PublicTaskEvent[], eventStatus: '尚未开始', sseConnection: null as SseConnection | null, approval: { maxCalls: 3, decision: 'APPROVED' as 'APPROVED' | 'REJECTED' }, errorMessage: '', staleMessage: '', form: { title: '', question: '', premiseType: '人员变更', subjectKey: '', statement: '', sourceDescription: '', systemCode: 'FIN-SYN', objectKey: '', startDate: '2026-01-01', endDate: '2026-12-31', investigationAreas: ['APPROVAL', 'ROLE'], dataUse: 'MINIMUM' } as WorkbenchForm } },
   computed: {
     /** 返回当前步骤面向业务人员的标题。 */
     currentStepTitle(): string { return ['说明要解决的问题', '确认调查对象和依据', '圈定系统与核查内容', '确认系统建议的调查方案'][this.activeStep] || '调查处理中' },
@@ -82,8 +88,10 @@ export default Vue.extend({
     async createTaskDraft(): Promise<void> { const identity = getCurrentIdentity(); if (!identity || !this.form.title || !this.form.question) { this.errorMessage = '请填写调查名称和需要查清的问题'; return }; await this.execute(async () => { this.task = await createTask({ title: this.form.title, originalQuestion: this.form.question, initiatorUserId: identity.userId, runtimeBundleId: DEFAULT_RUNTIME_BUNDLE_ID }); this.activeStep = 1; this.connectEvents() }) },
     /** 保存业务对象和信息来源，随后进入范围设置。 */
     async savePremise(): Promise<void> { if (!this.task || !this.form.subjectKey || !this.form.statement || !this.form.sourceDescription) { this.errorMessage = '请填写业务对象编号、已知情况和信息来源'; return }; await this.execute(async () => { this.task = await addPremise(this.task!.taskId, { premiseType: this.form.premiseType, subjectKey: this.form.subjectKey, statement: this.form.statement, sourceDescription: this.form.sourceDescription }, this.task!.rowVersion); this.form.objectKey = this.form.subjectKey; this.activeStep = 2 }) },
-    /** 把业务范围转换为严格请求并生成调查方案。 */
-    async saveScope(): Promise<void> { if (!this.task || !this.form.systemCode || !this.form.objectKey || !/^\d{4}-\d{2}-\d{2}$/.test(this.form.startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(this.form.endDate) || !this.form.investigationAreas.length) { this.errorMessage = '请完整选择系统、业务对象、日期范围和核查内容'; return }; const payload = buildScopePayload({ systemCode: this.form.systemCode, objectKey: this.form.objectKey, dateRange: [this.form.startDate, this.form.endDate], investigationAreas: this.form.investigationAreas, dataUse: this.form.dataUse }); await this.execute(async () => { this.task = await confirmScope(this.task!.taskId, payload, this.task!.rowVersion); this.planGoals = buildSuggestedGoals(this.task!.title, this.form.investigationAreas); this.activeStep = 3 }) },
+    /** 把业务范围转换为严格请求，确认后立即请求模型生成调查方案。 */
+    async saveScope(): Promise<void> { if (!this.task || !this.form.systemCode || !this.form.objectKey || !/^\d{4}-\d{2}-\d{2}$/.test(this.form.startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(this.form.endDate) || !this.form.investigationAreas.length) { this.errorMessage = '请完整选择系统、业务对象、日期范围和核查内容'; return }; const payload = buildScopePayload({ systemCode: this.form.systemCode, objectKey: this.form.objectKey, dateRange: [this.form.startDate, this.form.endDate], investigationAreas: this.form.investigationAreas, dataUse: this.form.dataUse }); await this.execute(async () => { this.task = await confirmScope(this.task!.taskId, payload, this.task!.rowVersion); this.activeStep = 3 }); if (this.task?.scopeRevisionNo) await this.requestModelPlan() },
+    /** 调用后端受控模型并把结构化建议转成可人工调整的步骤。 */
+    async requestModelPlan(): Promise<void> { if (!this.task || this.modelLoading) return; this.modelLoading = true; this.modelPlan = null; this.planGoals = []; this.errorMessage = ''; try { this.modelPlan = await generateModelPlan(this.task.taskId); this.planGoals = [this.modelPlan.recommendedGoal, ...this.modelPlan.alternativeGoals] } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '模型暂时无法生成调查方案，请稍后重试' } finally { this.modelLoading = false } },
     /** 提交系统建议的推荐步骤和备选步骤。 */
     async submitPlan(): Promise<void> { if (!this.task || !this.planGoals[0]?.trim()) { this.errorMessage = '调查方案尚未准备完成'; return }; const steps = this.planGoals.map((goal, index) => ({ goal: goal.trim(), recommended: index === 0 })).filter((step) => step.goal); await this.execute(async () => { this.proposal = await proposeSteps(this.task!.taskId, { steps }, this.task!.rowVersion); this.syncTaskProgress(this.proposal.status, this.proposal.rowVersion, this.proposal.scopeRevisionId); this.selectedStepId = this.proposal.currentStepId || this.proposal.steps[0]?.stepId || '' }) },
     /** 自动生成技术绑定后提交业务审批决定。 */

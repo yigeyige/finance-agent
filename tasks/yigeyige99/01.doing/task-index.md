@@ -10,7 +10,7 @@ source: development-workplan
 
 # 财务共享智能运维 Agent 开发顺序任务索引
 
-> 共 90 份独立 task：P0 73 项、P1 9 项、P2 8 项。本索引依据任务卡“前置条件”进行拓扑排序；同一依赖层级按照 BOOT、DATA、RUN、TOOL、HAR、UI、QA、P1、P2 排列。
+> 共 97 份独立 task：P0 78 项、P1 9 项、P2 10 项。本索引依据任务卡“前置条件”进行拓扑排序；同一依赖层级按照 BOOT、DATA、RUN、TOOL、HAR、UI、QA、P1、P2 排列。
 
 ## 使用说明
 
@@ -124,12 +124,13 @@ source: development-workplan
 | 096 | P0 自定义需求 | [20261006-fix-frontend-task-draft-flow](../03.achieved/20261006-跑通前端任务草稿流程.md) | 跑通前端流程并修复任务草稿创建问题 | [20261006-跑通前端任务草稿流程.md](../03.achieved/20261006-跑通前端任务草稿流程.md) | 已完成 | 无 |
 | 097 | P0 自定义需求 | [20261006-verify-remaining-frontend-flows](../03.achieved/20261006-回归前端其他操作.md) | 回归前端其他操作并修复问题 | [20261006-回归前端其他操作.md](../03.achieved/20261006-回归前端其他操作.md) | 已完成 | 无 |
 | 098 | P0 自定义需求 | [20261006-simplify-business-workflow-ui](../03.achieved/20261006-简化业务操作流程.md) | 简化业务操作流程并隐藏 JSON 技术输入 | [20261006-简化业务操作流程.md](../03.achieved/20261006-简化业务操作流程.md) | 已完成 | 无 |
+| 099 | P0 自定义需求 | [20261006-integrate-model-business-interaction](../03.achieved/20261006-接入大模型业务交互.md) | 接入大模型业务交互并明确人工确认边界 | [20261006-接入大模型业务交互.md](../03.achieved/20261006-接入大模型业务交互.md) | 已完成 | `20261006-simplify-business-workflow-ui` |
 
 ## 阶段统计
 
 | 阶段 | 数量 |
 |---|---:|
-| P0 | 77 |
+| P0 | 78 |
 | P1 | 9 |
 | P2 | 10 |
-| 合计 | 96 |
+| 合计 | 97 |

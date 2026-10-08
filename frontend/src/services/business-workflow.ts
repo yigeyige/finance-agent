@@ -1,5 +1,6 @@
 /** 将业务人员可理解的表单和证据转换为后端严格契约，技术字段不进入页面输入。 */
 import { EvidenceOverview } from '../api/generated'
+import { ModelEvidenceAnalysisResponse } from './model-api'
 import { PacketDraftPayload } from './packet-api'
 import { ConfirmScopePayload } from './task-api'
 
@@ -88,7 +89,7 @@ export function createWorkflowUuid(): string {
 }
 
 /** 从脱敏证据生成完整决策包和发布基线。 */
-export function preparePacketFromEvidence(evidence: EvidenceOverview, problem: string, impactConfirmed: boolean): PreparedPacket {
+export function preparePacketFromEvidence(evidence: EvidenceOverview, problem: string, impactConfirmed: boolean, modelAnalysis?: ModelEvidenceAnalysisResponse | null): PreparedPacket {
   const scopeRevisionId = evidence.findings.find((finding) => finding.scopeRevisionId)?.scopeRevisionId
   if (!scopeRevisionId) throw new Error('尚未形成调查结论，请先完成证据采集')
   if (!evidence.snapshots.length) throw new Error('尚未形成事实快照，请先完成调查执行')
@@ -101,13 +102,14 @@ export function preparePacketFromEvidence(evidence: EvidenceOverview, problem: s
   }
   const witnesses = evidence.findings.filter((finding) => finding.witness).map((finding) => ({ findingId: finding.findingId, ...finding.witness }))
   const judgments = evidence.findings.filter((finding) => finding.confirmation).map((finding) => ({ findingId: finding.findingId, statement: finding.statement, ...finding.confirmation }))
-  const recommendations = evidence.findings.map((finding) => ({ findingId: finding.findingId, action: finding.statement, status: finding.status }))
+  const recommendationTexts = modelAnalysis?.recommendations?.length ? modelAnalysis.recommendations : evidence.findings.map((finding) => finding.statement)
+  const recommendations = recommendationTexts.map((action, index) => ({ findingId: evidence.findings[index]?.findingId || null, action, status: 'MODEL_SUGGESTED' }))
   const ruleSetVersion = evidence.findings.find((finding) => finding.witness)?.witness?.ruleSetVersion || 'rules.current'
   const templateVersion = evidence.coverages[0]?.queryTemplateVersion || evidence.snapshots[0].schemaVersion
   const sourceVersion = evidence.snapshots[0].sourceVersion
   const baseline = evidence.snapshots.map((snapshot) => ({ objectKey: snapshot.sourceObjectKey, fieldsDigest: snapshot.resultDigest, effectiveClass: snapshot.effectiveClass, sourceVersion: snapshot.sourceVersion, ruleSetVersion, templateVersion }))
   const coverageLabel = evidence.coverages.every((item) => item.completeness === 'COMPLETE') ? '范围已完整核查' : '仍有范围需要补充核查'
-  const summary = { currentCount: facts.current.length, futureCount: facts.future.length, undeterminedCount: facts.undetermined.length, findingCount: evidence.findings.length, coverageLabel, recommendations: evidence.findings.map((finding) => finding.statement) }
+  const summary = { currentCount: facts.current.length, futureCount: facts.future.length, undeterminedCount: facts.undetermined.length, findingCount: recommendations.length, coverageLabel, recommendations: recommendationTexts }
   const sourceVersions = JSON.stringify({ sourceVersion, ruleSetVersion, templateVersion })
   const coverageSummary = JSON.stringify({ completeness: evidence.coverages.every((item) => item.completeness === 'COMPLETE') ? 'COMPLETE' : 'PARTIAL', observedTotal: evidence.coverages.reduce((total, item) => total + (item.observedTotal || 0), 0), limitations: evidence.coverages.flatMap((item) => textList(item.uncoveredPaths)) })
   return {
@@ -120,7 +122,18 @@ export function preparePacketFromEvidence(evidence: EvidenceOverview, problem: s
       sources: Array.from(new Set(evidence.snapshots.map((item) => item.sourceVersion))).map((version) => ({ sourceVersion: version })),
       facts,
       computations: { witnesses },
-      professionalJudgments: judgments,
+      professionalJudgments: [
+        ...judgments,
+        ...(modelAnalysis ? [{
+          judgmentType: 'MODEL_SUGGESTION',
+          summary: modelAnalysis.summary,
+          riskLevel: modelAnalysis.riskLevel,
+          riskExplanation: modelAnalysis.riskExplanation,
+          modelName: modelAnalysis.metadata.modelName,
+          mode: modelAnalysis.metadata.mode,
+          outputDigest: modelAnalysis.metadata.outputDigest,
+        }] : []),
+      ],
       recommendations,
       businessConfirmations: { impactConfirmed, pendingItems: impactConfirmed ? [] : ['业务影响尚未确认'] },
       validationPreparation: { coverage: evidence.coverages, nextStep: coverageLabel },

@@ -1,0 +1,39 @@
+package cn.com.crc.ems.finance.agent.harness.web;
+
+import java.util.List;
+
+import cn.com.crc.ems.finance.agent.harness.application.BusinessModelCallMetadata;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessModelResult;
+import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
+import cn.com.crc.ems.finance.agent.harness.application.ModelPlanSuggestion;
+
+/** 模型业务建议及安全调用元数据的 REST 响应。 */
+public final class BusinessModelResponse {
+
+    private BusinessModelResponse() {
+    }
+
+    public record Metadata(String mode, String modelName, String inputDigest, String outputDigest,
+            int tokens, long latencyMillis) {
+        static Metadata from(BusinessModelCallMetadata value) {
+            return new Metadata(value.mode(), value.modelName(), value.inputDigest(), value.outputDigest(),
+                    value.tokens(), value.latencyMillis());
+        }
+    }
+
+    public record Plan(String recommendedGoal, List<String> alternativeGoals, String reason, Metadata metadata) {
+        static Plan from(BusinessModelResult<ModelPlanSuggestion> result) {
+            return new Plan(result.value().recommendedGoal(), result.value().alternativeGoals(),
+                    result.value().reason(), Metadata.from(result.metadata()));
+        }
+    }
+
+    public record Analysis(String summary, String riskLevel, String riskExplanation,
+            List<String> recommendations, Metadata metadata) {
+        static Analysis from(BusinessModelResult<EvidenceAnalysisSuggestion> result) {
+            return new Analysis(result.value().summary(), result.value().riskLevel(),
+                    result.value().riskExplanation(), result.value().recommendations(),
+                    Metadata.from(result.metadata()));
+        }
+    }
+}

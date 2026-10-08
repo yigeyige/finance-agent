@@ -10,9 +10,15 @@
         <article><strong>{{ evidence.coverages.length }}</strong><span>覆盖记录</span></article>
         <article><strong>{{ evidence.findings.length }}</strong><span>调查结论</span></article>
       </div>
-      <div v-if="evidence && evidence.findings.length" class="finding-list"><h4>系统形成的结论</h4><ul><li v-for="finding in evidence.findings" :key="finding.findingId">{{ finding.statement }}</li></ul></div>
+      <div v-if="evidence && evidence.findings.length" class="finding-list"><h4>规则和证据形成的判断</h4><ul><li v-for="finding in evidence.findings" :key="finding.findingId">{{ finding.statement }}</li></ul></div>
       <div v-else-if="evidence" class="empty-state" role="status">当前还没有可用于决策包的调查结论，请先完成证据采集。</div>
-      <el-form label-position="top" class="business-confirmation-form">
+      <div v-if="evidence && evidence.findings.length" class="model-stage" :class="{ 'model-stage--ready': modelAnalysis }">
+        <div class="model-stage__heading"><div><p class="eyebrow">大模型交互</p><h4>{{ modelLoading ? '正在分析证据' : modelAnalysis ? '模型分析已完成' : '让模型解释这些证据' }}</h4></div><el-tag v-if="modelAnalysis" :type="modelAnalysis.metadata.mode === 'LIVE' ? 'success' : 'info'">{{ modelAnalysis.metadata.mode === 'LIVE' ? modelAnalysis.metadata.modelName : '本地模拟模型' }}</el-tag></div>
+        <p v-if="modelLoading" class="model-stage__status">模型正在阅读脱敏事实分类、覆盖状态和规则判断，不会接收未授权原始字段。</p>
+        <template v-else-if="modelAnalysis"><p class="model-summary">{{ modelAnalysis.summary }}</p><div class="risk-summary"><el-tag :type="riskTagType">{{ riskLabel }}</el-tag><span>{{ modelAnalysis.riskExplanation }}</span></div><div class="finding-list"><h4>模型建议</h4><ul><li v-for="recommendation in modelAnalysis.recommendations" :key="recommendation">{{ recommendation }}</li></ul></div><el-alert title="模型只提供建议，仍需你核对业务影响后才能生成草稿。" type="warning" :closable="false" show-icon /></template>
+        <el-button v-else type="primary" :loading="modelLoading" @click="analyzeEvidence">开始模型分析</el-button>
+      </div>
+      <el-form v-if="modelAnalysis" label-position="top" class="business-confirmation-form">
         <el-form-item label="本次决策包要回答的问题"><el-input v-model.trim="problem" :maxlength="2000" type="textarea" :rows="3" placeholder="例如：确认当前仍生效的配置及需要后续处理的事项" /></el-form-item>
         <el-checkbox v-model="impactConfirmed" class="impact-confirmation">我已核对上述事实和结论，确认其业务影响可以进入复核</el-checkbox>
         <div class="form-actions"><el-button type="primary" :loading="saving" :disabled="!evidence" @click="assemble">生成决策包草稿</el-button></div>
@@ -41,20 +47,29 @@ import Vue from 'vue'
 import { EvidenceOverview, PacketDraftResponse, PacketPublicationResponse, PacketReviewResponse } from '../api/generated'
 import { PreparedPacket, preparePacketFromEvidence } from '../services/business-workflow'
 import { fetchEvidenceOverview } from '../services/evidence-api'
+import { analyzeEvidenceWithModel, ModelEvidenceAnalysisResponse } from '../services/model-api'
 import { assemblePacketDraft, publishPacket, reviewPacketDraft } from '../services/packet-api'
 
 export default Vue.extend({
   name: 'PacketDraft',
-  data() { return { saving: false, reviewSaving: false, publicationSaving: false, errorMessage: '', evidence: null as EvidenceOverview | null, prepared: null as PreparedPacket | null, result: null as PacketDraftResponse | null, reviewResult: null as PacketReviewResponse | null, publicationResult: null as PacketPublicationResponse | null, problem: '核查已确认范围内的异常并形成可复核结论', impactConfirmed: false, review: { decision: 'APPROVE' as 'APPROVE' | 'REJECT', comment: '' }, publicationId: '', activeTab: 'json' } },
+  data() { return { saving: false, modelLoading: false, reviewSaving: false, publicationSaving: false, errorMessage: '', evidence: null as EvidenceOverview | null, modelAnalysis: null as ModelEvidenceAnalysisResponse | null, prepared: null as PreparedPacket | null, result: null as PacketDraftResponse | null, reviewResult: null as PacketReviewResponse | null, publicationResult: null as PacketPublicationResponse | null, problem: '核查已确认范围内的异常并形成可复核结论', impactConfirmed: false, review: { decision: 'APPROVE' as 'APPROVE' | 'REJECT', comment: '' }, publicationId: '', activeTab: 'json' } },
+  computed: {
+    /** 把模型风险等级转换为业务可见中文。 */
+    riskLabel(): string { return this.modelAnalysis ? ({ LOW: '低风险', MEDIUM: '中风险', HIGH: '高风险' }[this.modelAnalysis.riskLevel] || '待判断') : '待判断' },
+    /** 为风险等级选择同时有文字说明的视觉状态。 */
+    riskTagType(): string { return this.modelAnalysis?.riskLevel === 'HIGH' ? 'danger' : this.modelAnalysis?.riskLevel === 'MEDIUM' ? 'warning' : 'success' },
+  },
   watch: { '$route.params.taskId': 'resetTaskState' },
   async created(): Promise<void> { await this.loadEvidence() },
   methods: {
     /** 清空上一任务的数据并读取当前任务证据。 */
-    async resetTaskState(): Promise<void> { this.prepared = null; this.result = null; this.reviewResult = null; this.publicationResult = null; this.publicationId = ''; this.errorMessage = ''; await this.loadEvidence() },
+    async resetTaskState(): Promise<void> { this.modelAnalysis = null; this.prepared = null; this.result = null; this.reviewResult = null; this.publicationResult = null; this.publicationId = ''; this.errorMessage = ''; await this.loadEvidence() },
     /** 查询自动组装所需的脱敏证据。 */
     async loadEvidence(): Promise<void> { this.evidence = null; try { this.evidence = await fetchEvidenceOverview(String(this.$route.params.taskId)) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '调查证据暂时无法读取，请稍后重试' } },
-    /** 从当前证据自动生成严格草稿请求。 */
-    async assemble(): Promise<void> { if (!this.evidence || !this.problem.trim()) { this.errorMessage = '请填写本次决策包要回答的问题'; return }; if (!this.impactConfirmed) { this.errorMessage = '请先确认已核对事实、结论和业务影响'; return }; try { this.saving = true; this.errorMessage = ''; this.prepared = preparePacketFromEvidence(this.evidence, this.problem, true); this.result = await assemblePacketDraft(String(this.$route.params.taskId), this.prepared.payload) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '决策包草稿未生成，请先完成调查证据' } finally { this.saving = false } },
+    /** 请求模型仅分析后端加载的脱敏证据摘要。 */
+    async analyzeEvidence(): Promise<void> { if (!this.evidence || this.modelLoading) return; this.modelLoading = true; this.modelAnalysis = null; this.errorMessage = ''; try { this.modelAnalysis = await analyzeEvidenceWithModel(String(this.$route.params.taskId)) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '模型暂时无法分析证据，请稍后重试' } finally { this.modelLoading = false } },
+    /** 从当前证据和已核对模型建议自动生成严格草稿请求。 */
+    async assemble(): Promise<void> { if (!this.evidence || !this.modelAnalysis || !this.problem.trim()) { this.errorMessage = '请先完成模型分析并填写决策包要回答的问题'; return }; if (!this.impactConfirmed) { this.errorMessage = '请先确认已核对事实、模型建议和业务影响'; return }; try { this.saving = true; this.errorMessage = ''; this.prepared = preparePacketFromEvidence(this.evidence, this.problem, true, this.modelAnalysis); this.result = await assemblePacketDraft(String(this.$route.params.taskId), this.prepared.payload) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '决策包草稿未生成，请先完成调查证据' } finally { this.saving = false } },
     /** 提交绑定当前草稿摘要的业务复核决定。 */
     async submitReview(): Promise<void> { if (!this.result) return; try { this.reviewSaving = true; this.errorMessage = ''; this.reviewResult = await reviewPacketDraft(this.result.taskId, this.result.draftId, { contentDigest: this.result.contentDigest, scopeRevisionId: this.result.scopeRevisionId, runtimeBundleId: this.result.runtimeBundleId, decision: this.review.decision, comment: this.review.comment }) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '草稿复核未完成，请检查专业确认状态' } finally { this.reviewSaving = false } },
     /** 重新读取证据并自动提交发布前全范围重查。 */

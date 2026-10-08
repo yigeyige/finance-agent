@@ -1,0 +1,41 @@
+package cn.com.crc.ems.finance.agent.harness.web;
+
+import java.util.UUID;
+
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import cn.com.crc.ems.finance.agent.model.application.BusinessModelInteractionService;
+
+/**
+ *
+ * @Description: 面向 OPERATOR 的调查方案生成和脱敏证据分析模型入口。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-06 23:00:00
+ */
+@RestController
+@RequestMapping("/api/v1/tasks/{taskId}/model-interactions")
+public final class BusinessModelController {
+
+    private final BusinessModelInteractionService interactionService;
+
+    public BusinessModelController(BusinessModelInteractionService interactionService) {
+        this.interactionService = interactionService;
+    }
+
+    /** 生成当前范围的模型调查方案，不直接保存或批准步骤。 */
+    @PostMapping("/plan")
+    public BusinessModelResponse.Plan plan(@PathVariable UUID taskId) {
+        return BusinessModelResponse.Plan.from(interactionService.generatePlan(taskId));
+    }
+
+    /** 分析当前任务的脱敏证据摘要，不直接生成或发布决策包。 */
+    @PostMapping("/evidence-analysis")
+    public BusinessModelResponse.Analysis analyzeEvidence(@PathVariable UUID taskId) {
+        return BusinessModelResponse.Analysis.from(interactionService.analyzeEvidence(taskId));
+    }
+}
