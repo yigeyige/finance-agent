@@ -54,6 +54,7 @@ public class ProductionStartupValidator {
         List<String> violations = new ArrayList<>();
         FinanceAgentProperties.Database database = properties.getDatabase();
         FinanceAgentProperties.DeepSeek deepSeek = properties.getDeepSeek();
+        FinanceAgentProperties.Security security = properties.getSecurity();
         FinanceAgentProperties.Source source = properties.getSource();
         FinanceAgentProperties.Workspace workspace = properties.getWorkspace();
         FinanceAgentProperties.Identity identity = properties.getIdentity();
@@ -69,14 +70,11 @@ public class ProductionStartupValidator {
         if (database == null || isBlank(database.getPassword())) {
             violations.add("finance-agent.database.password");
         }
-        if (deepSeek == null || isBlank(deepSeek.getApiKey())) {
-            violations.add("finance-agent.deep-seek.api-key");
-        }
-        if (deepSeek == null || isBlank(deepSeek.getBaseUrl())) {
-            violations.add("finance-agent.deep-seek.base-url");
-        }
         if (deepSeek != null && deepSeek.isStub()) {
             violations.add("finance-agent.deep-seek.stub");
+        }
+        if (security == null || isBlank(security.getModelSecretKey()) || security.getModelSecretKey().length() < 32) {
+            violations.add("finance-agent.security.model-secret-key");
         }
         if (workspace == null || isBlank(workspace.getRoot())) {
             violations.add("finance-agent.workspace.root");

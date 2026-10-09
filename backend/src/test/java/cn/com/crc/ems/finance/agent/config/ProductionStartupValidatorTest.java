@@ -14,15 +14,14 @@ class ProductionStartupValidatorTest {
     void rejectsMissingAndUnsafeProductionConfigurationWithoutSecrets() {
         FinanceAgentProperties properties = new FinanceAgentProperties();
         properties.getDatabase().setPassword("database-secret");
-        properties.getDeepSeek().setApiKey("deepseek-secret");
         properties.getDeepSeek().setStub(true);
         properties.getSource().setStub(true);
 
         assertThatThrownBy(() -> ProductionStartupValidator.validateProduction(properties))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("finance-agent.database.url")
-                .hasMessageContaining("finance-agent.deep-seek.base-url")
                 .hasMessageContaining("finance-agent.deep-seek.stub")
+                .hasMessageContaining("finance-agent.security.model-secret-key")
                 .hasMessageContaining("finance-agent.identity.mode")
                 .hasMessageContaining("finance-agent.storage.mode")
                 .hasMessageContaining("finance-agent.source.stub")
@@ -37,9 +36,8 @@ class ProductionStartupValidatorTest {
         properties.getDatabase().setUrl("jdbc:postgresql://db/finance");
         properties.getDatabase().setUsername("agent");
         properties.getDatabase().setPassword("database-secret");
-        properties.getDeepSeek().setApiKey("deepseek-secret");
-        properties.getDeepSeek().setBaseUrl("https://api.deepseek.com");
         properties.getDeepSeek().setStub(false);
+        properties.getSecurity().setModelSecretKey("01234567890123456789012345678901");
         properties.getWorkspace().setRoot(Path.of("srv", "finance-agent").toAbsolutePath().toString());
         properties.getIdentity().setMode(FinanceAgentProperties.IdentityMode.SSO);
         properties.getStorage().setMode(FinanceAgentProperties.StorageMode.OBJECT_STORE);
@@ -68,9 +66,8 @@ class ProductionStartupValidatorTest {
         properties.getDatabase().setUrl("jdbc:postgresql://db/finance");
         properties.getDatabase().setUsername("agent");
         properties.getDatabase().setPassword("database-secret");
-        properties.getDeepSeek().setApiKey("deepseek-secret");
-        properties.getDeepSeek().setBaseUrl("https://api.deepseek.com");
         properties.getDeepSeek().setStub(false);
+        properties.getSecurity().setModelSecretKey("01234567890123456789012345678901");
         properties.getWorkspace().setRoot(Path.of("srv", "finance-agent").toAbsolutePath().toString());
         properties.getIdentity().setMode(FinanceAgentProperties.IdentityMode.SSO);
         properties.getStorage().setMode(FinanceAgentProperties.StorageMode.OBJECT_STORE);

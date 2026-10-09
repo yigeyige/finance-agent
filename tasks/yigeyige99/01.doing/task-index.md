@@ -128,6 +128,7 @@ source: development-workplan
 | 100 | P0 自定义需求 | [20261008-evolve-business-handling-guide](../03.achieved/20261008-业务处理向导升级.md) | 业务处理向导升级（调查与调整） | [20261008-业务处理向导升级.md](../03.achieved/20261008-业务处理向导升级.md) | 已完成 | `20261006-integrate-model-business-interaction` |
 | 101 | P0 自定义需求 | [20261008-streamline-plan-collaboration-ui](../03.achieved/20261008-精简方案协作界面.md) | 精简方案协作界面与生成后模型修改 | [20261008-精简方案协作界面.md](../03.achieved/20261008-精简方案协作界面.md) | 已完成 | `20261008-evolve-business-handling-guide` |
 | 102 | P0 自定义需求 | [20261009-model-config-skill-analysis](../03.achieved/20261009-模型配置与场景接入.md) | 大模型配置管理与业务场景 Skill 接入模型分析 | [20261009-模型配置与场景接入.md](../03.achieved/20261009-模型配置与场景接入.md) | 已完成 | `20261008-streamline-plan-collaboration-ui` |
+| 103 | P0 自定义需求 | [20261009-fix-model-config-production-startup](../03.achieved/20261009-修复模型配置生产启动.md) | 修复模型配置与生产启动校验一致性 | [20261009-修复模型配置生产启动.md](../03.achieved/20261009-修复模型配置生产启动.md) | 已完成 | `20261009-model-config-skill-analysis` |
 
 ## 阶段统计
 

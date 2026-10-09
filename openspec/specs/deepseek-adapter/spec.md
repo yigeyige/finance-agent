@@ -17,6 +17,11 @@ The system SHALL construct DeepSeek Chat Completions models with API URL, model 
 - **WHEN** a live model is requested without an enabled configuration, encrypted Key or available deployment encryption key
 - **THEN** construction fails with a safe configuration error that does not contain any secret
 
+#### Scenario: Application starts before a model connection is enabled
+
+- **WHEN** production configuration supplies a valid deployment encryption master key but no model connection is enabled
+- **THEN** the application starts and a subsequent live model call returns a safe instruction to enable a model connection
+
 ### Requirement: Model calls preserve bounded execution and response metadata
 
 The adapter SHALL pass tool schemas, structured response configuration, the enabled connection's reasoning effort, and bounded execution timeout to AgentScope, SHALL support Reactor cancellation, and SHALL surface model errors without automatic model switching.

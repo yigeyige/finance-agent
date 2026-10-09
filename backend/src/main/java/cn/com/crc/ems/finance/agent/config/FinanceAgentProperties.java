@@ -31,6 +31,8 @@ public class FinanceAgentProperties {
     @Valid
     private DeepSeek deepSeek = new DeepSeek();
     @Valid
+    private Security security = new Security();
+    @Valid
     private Source source = new Source();
     @Valid
     private Workspace workspace = new Workspace();
@@ -61,6 +63,14 @@ public class FinanceAgentProperties {
 
     public void setDeepSeek(DeepSeek deepSeek) {
         this.deepSeek = deepSeek;
+    }
+
+    public Security getSecurity() {
+        return security;
+    }
+
+    public void setSecurity(Security security) {
+        this.security = security;
     }
 
     public Source getSource() {
@@ -253,6 +263,26 @@ public class FinanceAgentProperties {
 
         public void setStub(boolean stub) {
             this.stub = stub;
+        }
+    }
+
+    /**
+     *
+     * @Description: 保存部署级安全配置；模型连接地址和 API Key 不属于该配置。
+     *
+     * @Version: 0.1.0
+     * @Author: yigeyige99
+     * @Date: 2026-10-09 21:30:00
+     */
+    public static class Security {
+        private String modelSecretKey;
+
+        public String getModelSecretKey() {
+            return modelSecretKey;
+        }
+
+        public void setModelSecretKey(String modelSecretKey) {
+            this.modelSecretKey = modelSecretKey;
         }
     }
 
