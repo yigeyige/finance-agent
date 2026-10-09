@@ -35,12 +35,14 @@ public final class DeepSeekOpenAiAdapter {
     private final Model model;
     private final String baseUrl;
     private final String modelName;
+    private final String reasoningEffort;
 
     public DeepSeekOpenAiAdapter(FinanceAgentProperties.DeepSeek settings) {
         Objects.requireNonNull(settings, "deepseek settings are required");
         String apiKey = requireSecret(settings.getApiKey());
         this.baseUrl = valueOrDefault(settings.getBaseUrl(), FinanceAgentProperties.DeepSeek.DEFAULT_BASE_URL);
         this.modelName = valueOrDefault(settings.getModel(), FinanceAgentProperties.DeepSeek.DEFAULT_MODEL);
+        this.reasoningEffort = "high";
         this.model = OpenAIChatModel.builder()
                 .apiKey(apiKey)
                 .baseUrl(baseUrl)
@@ -51,6 +53,16 @@ public final class DeepSeekOpenAiAdapter {
                 .nativeStructuredOutput(true)
                 .nativeStructuredOutputWithTools(true)
                 .build();
+    }
+
+    /** 使用已解密且仅驻留于本次调用内存的数据库模型配置创建客户端。 */
+    public DeepSeekOpenAiAdapter(String baseUrl, String modelName, String reasoningEffort, String apiKey) {
+        this.baseUrl = valueOrDefault(baseUrl, FinanceAgentProperties.DeepSeek.DEFAULT_BASE_URL);
+        this.modelName = valueOrDefault(modelName, FinanceAgentProperties.DeepSeek.DEFAULT_MODEL);
+        this.reasoningEffort = valueOrDefault(reasoningEffort, "high");
+        this.model = OpenAIChatModel.builder().apiKey(requireSecret(apiKey)).baseUrl(this.baseUrl)
+                .endpointPath(CHAT_COMPLETIONS_PATH).modelName(this.modelName).stream(false)
+                .formatter(new DeepSeekFormatter()).nativeStructuredOutput(true).nativeStructuredOutputWithTools(true).build();
     }
 
     /** 返回 AgentScope 模型，调用方通过 Flux 订阅取消请求。 */
@@ -82,7 +94,7 @@ public final class DeepSeekOpenAiAdapter {
                 .baseUrl(baseUrl)
                 .endpointPath(CHAT_COMPLETIONS_PATH)
                 .stream(false)
-                .reasoningEffort("high")
+                .reasoningEffort(reasoningEffort)
                 .additionalBodyParam("thinking", Map.of("type", "enabled"))
                 .additionalBodyParam("include_reasoning", true)
                 .executionConfig(ExecutionConfig.builder().timeout(timeout).maxAttempts(1).build());

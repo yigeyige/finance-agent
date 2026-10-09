@@ -41,7 +41,8 @@ public final class TaskIntakeController {
         requireIdempotencyKey(idempotencyKey);
         actorUserId = trustedActor(actorUserId);
         var task = intakeService.createTask(new CreateTaskDraftCommand(request.title(), request.originalQuestion(),
-                request.initiatorUserId(), request.runtimeBundleId(), actorUserId, UtcTime.now(applicationClock)));
+                request.initiatorUserId(), request.runtimeBundleId(), actorUserId, UtcTime.now(applicationClock),
+                request.businessSceneSkillId()));
         return ResponseEntity.created(UriComponentsBuilder.fromPath("/api/v1/tasks/{taskId}")
                 .buildAndExpand(task.taskId()).toUri()).body(TaskIntakeResponse.task(task));
     }

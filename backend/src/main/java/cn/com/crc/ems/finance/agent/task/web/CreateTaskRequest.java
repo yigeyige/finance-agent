@@ -13,7 +13,7 @@ import jakarta.validation.constraints.Size;
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record CreateTaskRequest(@NotBlank @Size(max = 300) String title,
         @NotBlank @Size(max = 8000) String originalQuestion, @NotNull UUID initiatorUserId,
-        @NotNull UUID runtimeBundleId) {
+        @NotNull UUID runtimeBundleId, UUID businessSceneSkillId) {
 
     @JsonAnySetter
     public void rejectUnknown(String name, Object value) {

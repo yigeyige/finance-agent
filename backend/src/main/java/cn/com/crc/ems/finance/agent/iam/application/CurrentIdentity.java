@@ -16,8 +16,15 @@ public record CurrentIdentity(UUID userId, String authSubject, String displayNam
         roles = Set.copyOf(roles);
     }
 
-    /** 判断当前身份是否拥有指定角色。 */
+    /**
+     *
+     * @description: 判断当前身份是否拥有指定角色，平台管理员继承工作台内全部业务角色能力。
+     *
+     * @param: role 待判断角色
+     * @return: 是否具备该角色或管理员继承权限
+     * @author: yigeyige99
+     */
     public boolean hasRole(RoleCode role) {
-        return roles.contains(role);
+        return roles.contains(role) || roles.contains(RoleCode.PLATFORM_ADMIN);
     }
 }

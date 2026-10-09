@@ -6,6 +6,10 @@ import EvidenceOverview from '../views/EvidenceOverview.vue'
 import PacketDraft from '../views/PacketDraft.vue'
 import PublishedPacket from '../views/PublishedPacket.vue'
 import TaskDiagnostics from '../views/TaskDiagnostics.vue'
+import TaskList from '../views/TaskList.vue'
+import TaskDetail from '../views/TaskDetail.vue'
+import BusinessSkillCatalog from '../views/BusinessSkillCatalog.vue'
+import ModelConfiguration from '../views/ModelConfiguration.vue'
 import { IdentityPermission } from '../api/generated'
 import { ensureCurrentIdentity, hasPermission } from '../services/identity'
 
@@ -22,11 +26,12 @@ const router = new Router({
         title: '任务总览',
       },
     },
+    { path: '/tasks', name: 'task-list', component: TaskList, meta: { title: '任务列表', permission: 'TASK_READ' } },
+    { path: '/tasks/:taskId', name: 'task-detail', component: TaskDetail, meta: { title: '业务处理详情', permission: 'TASK_READ' } },
+    { path: '/business-skills', name: 'business-skills', component: BusinessSkillCatalog, meta: { title: '业务场景 Skill', permission: 'TASK_READ' } },
     {
-      path: '/configuration',
-      name: 'configuration',
-      component: WorkbenchHome,
-      meta: { title: '配置管理', permission: 'CONFIG_MANAGE' },
+      path: '/model-configurations', name: 'model-configurations', component: ModelConfiguration,
+      meta: { title: '大模型配置', permission: 'CONFIG_MANAGE' },
     },
     {
       path: '/tasks/:taskId/evidence',

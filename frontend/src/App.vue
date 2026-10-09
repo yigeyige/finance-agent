@@ -13,10 +13,16 @@
         active-text-color="#ffffff"
       >
         <el-menu-item v-if="canReadTasks" index="/">
-          <span slot="title">任务总览</span>
+          <span slot="title">新建业务处理</span>
         </el-menu-item>
-        <el-menu-item v-if="canManageConfig" index="/configuration">
-          <span slot="title">配置管理</span>
+        <el-menu-item v-if="canReadTasks" index="/tasks">
+          <span slot="title">任务列表</span>
+        </el-menu-item>
+        <el-menu-item v-if="canReadTasks" index="/business-skills">
+          <span slot="title">业务场景 Skill</span>
+        </el-menu-item>
+        <el-menu-item v-if="canManageConfig" index="/model-configurations">
+          <span slot="title">大模型配置</span>
         </el-menu-item>
       </el-menu>
     </el-aside>
@@ -69,10 +75,11 @@ export default Vue.extend({
   },
   computed: {
     canReadTasks(): boolean {
-      return this.identity?.permissions.includes('TASK_READ') ?? false
+      // 必须直接依赖响应式 identity，避免模块级身份缓存导致菜单权限被首次计算结果锁定。
+      return this.identity?.roles.includes('PLATFORM_ADMIN') || this.identity?.permissions.includes('TASK_READ') || false
     },
     canManageConfig(): boolean {
-      return this.identity?.permissions.includes('CONFIG_MANAGE') ?? false
+      return this.identity?.roles.includes('PLATFORM_ADMIN') || this.identity?.permissions.includes('CONFIG_MANAGE') || false
     },
     viewKey(): string {
       return `${this.identity?.userId || 'identity-loading'}:${this.$route.name || this.$route.path}`

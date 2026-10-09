@@ -11,7 +11,12 @@ import java.util.UUID;
  * @Date: 2026-10-08 21:10:00
  */
 public record BusinessGuidanceContext(UUID taskId, String title, String description, String feedback,
-        BusinessHandlingDraft currentDraft) {
+        BusinessHandlingDraft currentDraft, BusinessSceneSkillContext sceneSkill) {
+
+    public BusinessGuidanceContext(UUID taskId, String title, String description, String feedback,
+            BusinessHandlingDraft currentDraft) {
+        this(taskId, title, description, feedback, currentDraft, null);
+    }
 
     public BusinessGuidanceContext {
         if (taskId == null) {

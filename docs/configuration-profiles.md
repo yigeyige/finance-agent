@@ -6,7 +6,7 @@
 
 - `local`：允许 Stub 模型、本地工作目录和受控临时对象存储，便于开发。
 - `test`：使用测试端口、测试工作目录和受控临时对象存储，允许 Stub 模型。
-- `prod`：要求真实数据库、DeepSeek、工作目录、身份和正式对象存储适配器，并在启动前拒绝开发模式和本地临时回退。
+- `prod`：要求真实数据库、已在管理界面启用的大模型连接、工作目录、身份和正式对象存储适配器，并在启动前拒绝开发模式和本地临时回退。
 
 ## 环境变量
 
@@ -17,7 +17,7 @@
 | `FINANCE_AGENT_PORT` | HTTP 端口 |
 | `FINANCE_AGENT_DB_URL` | PostgreSQL JDBC URL |
 | `FINANCE_AGENT_DB_USERNAME` / `FINANCE_AGENT_DB_PASSWORD` | 数据库账号与密码 |
-| `DEEPSEEK_API_KEY` / `DEEPSEEK_BASE_URL` / `DEEPSEEK_MODEL` | DeepSeek 访问配置 |
+| `FINANCE_AGENT_MODEL_SECRET_KEY` | 仅用于加密数据库中的模型 API Key，长度至少 32；不是模型连接配置 |
 | `FINANCE_AGENT_DEEPSEEK_STUB` | 是否启用 Stub 模型（生产必须为 `false`） |
 | `FINANCE_AGENT_WORKSPACE_ROOT` | 工作目录 |
 | `FINANCE_AGENT_MAX_STEPS` / `FINANCE_AGENT_MAX_TOKENS` / `FINANCE_AGENT_MAX_COST` | Agent 执行预算 |
@@ -32,4 +32,4 @@
 
 ## 生产启动校验
 
-激活 `prod` profile 后，启动校验器会检查数据库 URL、用户名、密码，DeepSeek API Key 和 Base URL、工作目录是否存在，并拒绝 Stub 模型、测试身份、本地/内存存储、`none`/`temporary` 对象存储适配器和宽松字段策略。正式适配器尚未实现时，即使手工填写其他标识，调用仍由 disabled gateway 明确返回“未配置”，不会回退本地文件。失败信息只列出配置项名称，不包含 API Key、数据库密码或完整连接串。
+激活 `prod` profile 后，启动校验器会检查数据库 URL、用户名、密码和工作目录，并拒绝 Stub 模型、测试身份、本地/内存存储、`none`/`temporary` 对象存储适配器和宽松字段策略。模型 API 地址、模型名称和 API Key 只从“大模型配置”页面管理的数据表读取；API Key 以加密形式保存且不经接口返回。失败信息只列出配置项名称，不包含 API Key、数据库密码或完整连接串。

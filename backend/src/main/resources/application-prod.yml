@@ -10,10 +10,9 @@ finance-agent:
     socket-timeout-seconds: ${FINANCE_AGENT_DB_SOCKET_TIMEOUT_SECONDS:2}
     validation-timeout-seconds: ${FINANCE_AGENT_DB_VALIDATION_TIMEOUT_SECONDS:2}
   deep-seek:
-    api-key: ${DEEPSEEK_API_KEY:}
-    base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
-    model: ${DEEPSEEK_MODEL:deepseek-flash}
     stub: ${FINANCE_AGENT_DEEPSEEK_STUB:false}
+  security:
+    model-secret-key: ${FINANCE_AGENT_MODEL_SECRET_KEY:}
   source:
     stub: ${FINANCE_AGENT_SOURCE_STUB:false}
   workspace:

@@ -3,6 +3,7 @@ package cn.com.crc.ems.finance.agent.model.application;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import cn.com.crc.ems.finance.agent.evidence.application.CoverageRecordRepository;
 import cn.com.crc.ems.finance.agent.evidence.application.FactSnapshotRepository;
@@ -19,6 +20,9 @@ import cn.com.crc.ems.finance.agent.harness.application.ModelPlanContext;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanSuggestion;
 import cn.com.crc.ems.finance.agent.task.application.InvestigationTaskRepository;
 import cn.com.crc.ems.finance.agent.task.application.ScopeRevisionRepository;
+import cn.com.crc.ems.finance.agent.task.application.TaskBusinessSceneSkillRepository;
+import cn.com.crc.ems.finance.agent.scenario.application.BusinessSceneSkillRepository;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessSceneSkillContext;
 
 /**
  *
@@ -37,17 +41,31 @@ public final class BusinessModelInteractionService {
     private final FactSnapshotRepository snapshotRepository;
     private final CoverageRecordRepository coverageRepository;
     private final FindingRepository findingRepository;
+    private final TaskBusinessSceneSkillRepository taskBusinessSceneSkillRepository;
+    private final BusinessSceneSkillRepository businessSceneSkillRepository;
 
     public BusinessModelInteractionService(BusinessModelClient modelClient,
             InvestigationTaskRepository taskRepository, ScopeRevisionRepository scopeRepository,
             FactSnapshotRepository snapshotRepository, CoverageRecordRepository coverageRepository,
             FindingRepository findingRepository) {
+        this(modelClient, taskRepository, scopeRepository, snapshotRepository, coverageRepository, findingRepository,
+                null, null);
+    }
+
+    @Autowired
+    public BusinessModelInteractionService(BusinessModelClient modelClient,
+            InvestigationTaskRepository taskRepository, ScopeRevisionRepository scopeRepository,
+            FactSnapshotRepository snapshotRepository, CoverageRecordRepository coverageRepository,
+            FindingRepository findingRepository, TaskBusinessSceneSkillRepository taskBusinessSceneSkillRepository,
+            BusinessSceneSkillRepository businessSceneSkillRepository) {
         this.modelClient = modelClient;
         this.taskRepository = taskRepository;
         this.scopeRepository = scopeRepository;
         this.snapshotRepository = snapshotRepository;
         this.coverageRepository = coverageRepository;
         this.findingRepository = findingRepository;
+        this.taskBusinessSceneSkillRepository = taskBusinessSceneSkillRepository;
+        this.businessSceneSkillRepository = businessSceneSkillRepository;
     }
 
     /**
@@ -66,7 +84,18 @@ public final class BusinessModelInteractionService {
         var task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalStateException("业务处理任务不存在或已失效"));
         return modelClient.guideBusinessHandling(new BusinessGuidanceContext(task.taskId(), task.title(),
-                task.originalQuestion(), feedback, currentDraft));
+                task.originalQuestion(), feedback, currentDraft, findSceneSkill(taskId)));
+    }
+
+    /** 将任务已固化的有效业务场景投影为模型上下文，失效场景拒绝继续生成。 */
+    private BusinessSceneSkillContext findSceneSkill(UUID taskId) {
+        if (taskBusinessSceneSkillRepository == null || businessSceneSkillRepository == null) {
+            return null;
+        }
+        return taskBusinessSceneSkillRepository.findSkillIdByTaskId(taskId).map(skillId -> businessSceneSkillRepository
+                .findActiveById(skillId).map(skill -> new BusinessSceneSkillContext(skill.name(), skill.description(),
+                        skill.handlingType(), skill.premiseType()))
+                .orElseThrow(() -> new IllegalStateException("任务关联的业务场景 Skill 已失效，请重新创建任务"))).orElse(null);
     }
 
     /** 从当前任务和最新已确认范围生成模型调查方案。 */

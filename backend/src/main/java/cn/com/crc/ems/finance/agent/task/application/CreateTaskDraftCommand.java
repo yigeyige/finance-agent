@@ -5,7 +5,12 @@ import java.util.UUID;
 
 /** 创建调查任务草稿的应用命令。 */
 public record CreateTaskDraftCommand(String title, String originalQuestion, UUID initiatorUserId,
-        UUID runtimeBundleId, UUID actorUserId, Instant occurredAt) {
+        UUID runtimeBundleId, UUID actorUserId, Instant occurredAt, UUID businessSceneSkillId) {
+
+    public CreateTaskDraftCommand(String title, String originalQuestion, UUID initiatorUserId,
+            UUID runtimeBundleId, UUID actorUserId, Instant occurredAt) {
+        this(title, originalQuestion, initiatorUserId, runtimeBundleId, actorUserId, occurredAt, null);
+    }
 
     public CreateTaskDraftCommand {
         requireText(title, "title");

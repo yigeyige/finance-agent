@@ -10,7 +10,7 @@ source: development-workplan
 
 # 财务共享智能运维 Agent 开发顺序任务索引
 
-> 共 98 份独立 task：P0 79 项、P1 9 项、P2 10 项。本索引依据任务卡“前置条件”进行拓扑排序；同一依赖层级按照 BOOT、DATA、RUN、TOOL、HAR、UI、QA、P1、P2 排列。
+> 共 99 份独立 task：P0 80 项、P1 9 项、P2 10 项。本索引依据任务卡“前置条件”进行拓扑排序；同一依赖层级按照 BOOT、DATA、RUN、TOOL、HAR、UI、QA、P1、P2 排列。
 
 ## 使用说明
 
@@ -126,12 +126,14 @@ source: development-workplan
 | 098 | P0 自定义需求 | [20261006-simplify-business-workflow-ui](../03.achieved/20261006-简化业务操作流程.md) | 简化业务操作流程并隐藏 JSON 技术输入 | [20261006-简化业务操作流程.md](../03.achieved/20261006-简化业务操作流程.md) | 已完成 | 无 |
 | 099 | P0 自定义需求 | [20261006-integrate-model-business-interaction](../03.achieved/20261006-接入大模型业务交互.md) | 接入大模型业务交互并明确人工确认边界 | [20261006-接入大模型业务交互.md](../03.achieved/20261006-接入大模型业务交互.md) | 已完成 | `20261006-simplify-business-workflow-ui` |
 | 100 | P0 自定义需求 | [20261008-evolve-business-handling-guide](../03.achieved/20261008-业务处理向导升级.md) | 业务处理向导升级（调查与调整） | [20261008-业务处理向导升级.md](../03.achieved/20261008-业务处理向导升级.md) | 已完成 | `20261006-integrate-model-business-interaction` |
+| 101 | P0 自定义需求 | [20261008-streamline-plan-collaboration-ui](../03.achieved/20261008-精简方案协作界面.md) | 精简方案协作界面与生成后模型修改 | [20261008-精简方案协作界面.md](../03.achieved/20261008-精简方案协作界面.md) | 已完成 | `20261008-evolve-business-handling-guide` |
+| 102 | P0 自定义需求 | [20261009-model-config-skill-analysis](../03.achieved/20261009-模型配置与场景接入.md) | 大模型配置管理与业务场景 Skill 接入模型分析 | [20261009-模型配置与场景接入.md](../03.achieved/20261009-模型配置与场景接入.md) | 已完成 | `20261008-streamline-plan-collaboration-ui` |
 
 ## 阶段统计
 
 | 阶段 | 数量 |
 |---|---:|
-| P0 | 79 |
+| P0 | 80 |
 | P1 | 9 |
 | P2 | 10 |
-| 合计 | 98 |
+| 合计 | 99 |

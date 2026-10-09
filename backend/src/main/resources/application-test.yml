@@ -11,9 +11,6 @@ finance-agent:
     validation-timeout-seconds: ${FINANCE_AGENT_DB_VALIDATION_TIMEOUT_SECONDS:2}
     connection-pool-size: ${FINANCE_AGENT_API_CONNECTION_POOL_SIZE:10}
   deep-seek:
-    api-key: ${DEEPSEEK_API_KEY:}
-    base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
-    model: ${DEEPSEEK_MODEL:deepseek-flash}
     stub: ${FINANCE_AGENT_DEEPSEEK_STUB:true}
   source:
     stub: ${FINANCE_AGENT_SOURCE_STUB:true}

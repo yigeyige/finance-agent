@@ -1,14 +1,22 @@
 import { parseTaskResponse, TaskResponse } from '../api/generated'
 import { ApiError, postJson } from './http'
 
-export interface CreateTaskPayload { title: string; originalQuestion: string; initiatorUserId: string; runtimeBundleId: string }
+export interface CreateTaskPayload { title: string; originalQuestion: string; initiatorUserId: string; runtimeBundleId: string; businessSceneSkillId?: string }
 export interface AddPremisePayload { premiseType: string; subjectKey: string; statement: string; sourceDescription: string }
 export interface ConfirmScopePayload { systemCode: string; objectSelector: unknown; effectiveTimeRange: unknown; includedPaths: unknown; excludedPaths: unknown; allowedReadFields: unknown; allowedRetainFields: unknown; allowedModelFields: unknown; schemaVersion: string }
 
 /** 创建任务草稿并校验后端响应。 */
 export async function createTask(payload: CreateTaskPayload): Promise<TaskResponse> {
-  const response = await postJson<unknown, CreateTaskPayload>('/v1/tasks', payload, undefined, { idempotencyKey: createIdempotencyKey() })
+  const response = await postJson<unknown, CreateTaskPayload>('/v1/tasks', withSceneSkill(payload), undefined, { idempotencyKey: createIdempotencyKey() })
   return parseTaskResponse(response)
+}
+
+/** 从业务场景列表跳转进入时，将哈希路由中的 Skill 标识持久化到任务创建请求。 */
+function withSceneSkill(payload: CreateTaskPayload): CreateTaskPayload {
+  if (payload.businessSceneSkillId || typeof window === 'undefined') return payload
+  const query = window.location.hash.split('?')[1]
+  const skillId = query ? new URLSearchParams(query).get('skillId') : null
+  return skillId ? { ...payload, businessSceneSkillId: skillId } : payload
 }
 
 /** 补充任务前提来源并校验后端响应。 */

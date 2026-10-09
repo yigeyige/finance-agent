@@ -7,6 +7,9 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.DeepSeekBusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.DeepSeekOpenAiAdapter;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.StubBusinessModelClient;
+import cn.com.crc.ems.finance.agent.harness.infrastructure.DatabaseConfiguredBusinessModelClient;
+import cn.com.crc.ems.finance.agent.modelconfig.application.ModelApiKeyCipher;
+import cn.com.crc.ems.finance.agent.modelconfig.application.ModelConnectionConfigService;
 
 /**
  *
@@ -21,10 +24,11 @@ public class BusinessModelConfiguration {
 
     /** Stub 模式不创建网络客户端；真实模式缺少密钥时启动即安全失败。 */
     @Bean
-    public BusinessModelClient businessModelClient(FinanceAgentProperties properties) {
+    public BusinessModelClient businessModelClient(FinanceAgentProperties properties,
+            ModelConnectionConfigService configService, ModelApiKeyCipher cipher) {
         if (properties.getDeepSeek().isStub()) {
             return new StubBusinessModelClient();
         }
-        return new DeepSeekBusinessModelClient(new DeepSeekOpenAiAdapter(properties.getDeepSeek()));
+        return new DatabaseConfiguredBusinessModelClient(configService, cipher);
     }
 }

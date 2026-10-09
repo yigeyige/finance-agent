@@ -33,6 +33,8 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
             return true;
         }
         if (!path.startsWith("/api/v1/tasks") && !path.startsWith("/api/v1/tool-catalog")
+                && !path.startsWith("/api/v1/business-scene-skills")
+                && !path.startsWith("/api/v1/model-configurations")
                 && !path.startsWith("/api/tasks/")) {
             return true;
         }
@@ -46,6 +48,12 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
         if (path.startsWith("/api/v1/tool-catalog") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权管理平台配置");
         }
+        if (path.startsWith("/api/v1/business-scene-skills") && !identity.hasRole(RoleCode.OPERATOR)) {
+            return reject(response, HttpStatus.FORBIDDEN, "当前身份无权维护业务场景 Skill");
+        }
+        if (path.startsWith("/api/v1/model-configurations") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
+            return reject(response, HttpStatus.FORBIDDEN, "当前身份无权维护大模型配置");
+        }
         if (path.startsWith("/api/tasks/") && !identity.hasRole(RoleCode.OPERATOR)
                 && !identity.hasRole(RoleCode.VIEWER)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权查看任务事件");
@@ -54,6 +62,9 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
     }
 
     private static boolean allowedTaskRequest(HttpServletRequest request, Set<RoleCode> roles) {
+        if (roles.contains(RoleCode.PLATFORM_ADMIN)) {
+            return true;
+        }
         if (HttpMethod.GET.matches(request.getMethod())) {
             return roles.contains(RoleCode.OPERATOR) || roles.contains(RoleCode.VIEWER);
         }

@@ -31,7 +31,8 @@ export function getCurrentIdentity(): CurrentIdentityResponse | undefined {
 
 /** 判断当前身份是否拥有指定导航权限。 */
 export function hasPermission(permission: IdentityPermission): boolean {
-  return currentIdentity?.permissions.includes(permission) ?? false
+  // 平台管理员在工作台中具备全量导航权限；具体接口仍由后端权限守卫决定。
+  return currentIdentity?.roles.includes('PLATFORM_ADMIN') || currentIdentity?.permissions.includes(permission) || false
 }
 
 /** 保存 local/test 身份选择并触发后续请求携带该标识。 */

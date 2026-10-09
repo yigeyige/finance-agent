@@ -27,6 +27,7 @@ import cn.com.crc.ems.finance.agent.task.infrastructure.TaskAuditEventAppender;
 import cn.com.crc.ems.finance.agent.task.infrastructure.TaskStateTransitionService;
 import cn.com.crc.ems.finance.agent.packet.application.PacketDraftRepository;
 import cn.com.crc.ems.finance.agent.task.application.StepApprovalRepository;
+import cn.com.crc.ems.finance.agent.scenario.application.BusinessSceneSkillRepository;
 
 /** 任务发起、运维前提和范围确认的事务应用边界。 */
 @Service
@@ -43,19 +44,32 @@ public class TaskIntakeApplicationService {
     private final TaskAuditEventAppender auditEventAppender;
     private final StepApprovalRepository stepApprovalRepository;
     private final PacketDraftRepository packetDraftRepository;
+    private final BusinessSceneSkillRepository businessSceneSkillRepository;
+    private final TaskBusinessSceneSkillRepository taskBusinessSceneSkillRepository;
 
     public TaskIntakeApplicationService(InvestigationTaskRepository taskRepository,
             TaskPremiseRepository premiseRepository, ScopeRevisionRepository scopeRevisionRepository,
             TaskStateTransitionService stateTransitionService, TaskAuditEventAppender auditEventAppender) {
         this(taskRepository, premiseRepository, scopeRevisionRepository, stateTransitionService, auditEventAppender,
-                null, null);
+                null, null, null, null);
+    }
+
+    /** 保留既有任务范围测试使用的构造方式。 */
+    public TaskIntakeApplicationService(InvestigationTaskRepository taskRepository,
+            TaskPremiseRepository premiseRepository, ScopeRevisionRepository scopeRevisionRepository,
+            TaskStateTransitionService stateTransitionService, TaskAuditEventAppender auditEventAppender,
+            StepApprovalRepository stepApprovalRepository, PacketDraftRepository packetDraftRepository) {
+        this(taskRepository, premiseRepository, scopeRevisionRepository, stateTransitionService, auditEventAppender,
+                stepApprovalRepository, packetDraftRepository, null, null);
     }
 
     @Autowired
     public TaskIntakeApplicationService(InvestigationTaskRepository taskRepository,
             TaskPremiseRepository premiseRepository, ScopeRevisionRepository scopeRevisionRepository,
             TaskStateTransitionService stateTransitionService, TaskAuditEventAppender auditEventAppender,
-            StepApprovalRepository stepApprovalRepository, PacketDraftRepository packetDraftRepository) {
+            StepApprovalRepository stepApprovalRepository, PacketDraftRepository packetDraftRepository,
+            BusinessSceneSkillRepository businessSceneSkillRepository,
+            TaskBusinessSceneSkillRepository taskBusinessSceneSkillRepository) {
         this.taskRepository = taskRepository;
         this.premiseRepository = premiseRepository;
         this.scopeRevisionRepository = scopeRevisionRepository;
@@ -63,6 +77,8 @@ public class TaskIntakeApplicationService {
         this.auditEventAppender = auditEventAppender;
         this.stepApprovalRepository = stepApprovalRepository;
         this.packetDraftRepository = packetDraftRepository;
+        this.businessSceneSkillRepository = businessSceneSkillRepository;
+        this.taskBusinessSceneSkillRepository = taskBusinessSceneSkillRepository;
     }
 
     @Transactional
@@ -73,6 +89,7 @@ public class TaskIntakeApplicationService {
                 command.initiatorUserId(), TaskStatus.DRAFT, command.runtimeBundleId(), null, null,
                 command.occurredAt(), command.occurredAt(), 0, null, command.actorUserId(), command.actorUserId());
         taskRepository.insert(task);
+        persistBusinessSceneSkill(command, taskId);
         auditEventAppender.append(UuidGenerator.newUuid(), taskId, command.actorUserId(), "TASK_CREATED", "task",
                 taskId.toString(), command.occurredAt(), payload -> {
                     payload.put("status", TaskStatus.DRAFT.name());
@@ -81,6 +98,26 @@ public class TaskIntakeApplicationService {
                     payload.put("rowVersion", task.rowVersion());
                 });
         return task;
+    }
+
+    /**
+     *
+     * @description: 校验并固化任务创建时选择的有效业务场景 Skill，避免页面参数直接影响模型上下文。
+     *
+     * @param: command 创建任务命令
+     * @param: taskId 已创建任务标识
+     * @author: yigeyige99
+     */
+    private void persistBusinessSceneSkill(CreateTaskDraftCommand command, UUID taskId) {
+        if (command.businessSceneSkillId() == null) {
+            return;
+        }
+        if (businessSceneSkillRepository == null || taskBusinessSceneSkillRepository == null
+                || businessSceneSkillRepository.findActiveById(command.businessSceneSkillId()).isEmpty()) {
+            throw new IllegalArgumentException("业务场景 Skill 不存在或已失效");
+        }
+        taskBusinessSceneSkillRepository.insert(taskId, command.businessSceneSkillId(), command.actorUserId(),
+                command.occurredAt());
     }
 
     @Transactional

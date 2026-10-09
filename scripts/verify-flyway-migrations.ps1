@@ -8,12 +8,12 @@ if ([string]::IsNullOrWhiteSpace($MigrationDirectory)) {
     $MigrationDirectory = Join-Path $repoRoot "backend\src\main\resources\db\migration"
 }
 
-$expected = 1..8 | ForEach-Object { "V{0}__" -f $_ }
+$expected = 1..14 | ForEach-Object { "V{0}__" -f $_ }
 $files = Get-ChildItem -LiteralPath $MigrationDirectory -Filter "V*.sql" -File |
     Where-Object { $_.Name -match '^V[1-9][0-9]*__.*\.sql$' } |
-    Sort-Object Name
-if ($files.Count -ne 8) {
-    throw "Expected exactly 8 Flyway migration files (V1-V8)."
+    Sort-Object { [int]([regex]::Match($_.Name, '^V(\d+)__').Groups[1].Value) }
+if ($files.Count -ne 14) {
+    throw "Expected exactly 14 Flyway migration files (V1-V14)."
 }
 for ($index = 0; $index -lt $expected.Count; $index++) {
     if (-not $files[$index].Name.StartsWith($expected[$index])) {

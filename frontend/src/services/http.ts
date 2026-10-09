@@ -52,6 +52,22 @@ export async function postJson<TResponse, TRequest>(
   return response.data
 }
 
+/** 发起带统一请求标识的 PUT 请求。 */
+export async function putJson<TResponse, TRequest>(
+  url: string,
+  payload: TRequest,
+  config?: AxiosRequestConfig,
+  options?: ApiRequestOptions,
+): Promise<TResponse> {
+  const response = await httpClient.put<TResponse>(url, payload, withRequestHeaders(config, options))
+  return response.data
+}
+
+/** 发起带统一请求标识的 DELETE 请求。 */
+export async function deleteJson(url: string, config?: AxiosRequestConfig, options?: ApiRequestOptions): Promise<void> {
+  await httpClient.delete(url, withRequestHeaders(config, options))
+}
+
 /** 生成请求头并保留调用方已有配置。 */
 function withRequestHeaders(config?: AxiosRequestConfig, options?: ApiRequestOptions): AxiosRequestConfig {
   const headers = { ...(config?.headers ?? {}) }

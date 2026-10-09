@@ -116,6 +116,13 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         ObjectNode node = JsonNodeFactory.instance.objectNode();
         node.put("title", context.title());
         node.put("description", context.description());
+        if (context.sceneSkill() != null) {
+            ObjectNode skill = node.putObject("sceneSkill");
+            skill.put("name", context.sceneSkill().name());
+            skill.put("description", context.sceneSkill().description());
+            skill.put("handlingType", context.sceneSkill().handlingType());
+            skill.put("premiseType", context.sceneSkill().premiseType());
+        }
         if (context.feedback() != null) {
             node.put("feedback", context.feedback());
             node.set("currentDraft", context.currentDraft().toJson());
