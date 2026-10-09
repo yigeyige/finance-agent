@@ -8,6 +8,7 @@ export interface ModelCallMetadata {
   outputDigest: string
   tokens: number
   latencyMillis: number
+  reasoningEffort?: string
 }
 
 export interface ModelPlanResponse {

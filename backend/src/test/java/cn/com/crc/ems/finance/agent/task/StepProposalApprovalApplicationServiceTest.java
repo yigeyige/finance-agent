@@ -23,6 +23,7 @@ import cn.com.crc.ems.finance.agent.task.application.ExecutionPermit;
 import cn.com.crc.ems.finance.agent.task.application.InvestigationStepRepository;
 import cn.com.crc.ems.finance.agent.task.application.InvestigationTaskRepository;
 import cn.com.crc.ems.finance.agent.task.application.ProposeStepsCommand;
+import cn.com.crc.ems.finance.agent.task.application.ReviseStepProposalCommand;
 import cn.com.crc.ems.finance.agent.task.application.StepApprovalApplicationService;
 import cn.com.crc.ems.finance.agent.task.application.StepApprovalRepository;
 import cn.com.crc.ems.finance.agent.task.application.StepExecutionGuard;
@@ -81,6 +82,39 @@ class StepProposalApprovalApplicationServiceTest {
         assertThat(result.task().status()).isEqualTo(TaskStatus.WAITING_STEP_APPROVAL);
         verify(steps, org.mockito.Mockito.times(2)).insert(any());
         verify(state).transition(any());
+    }
+
+    @Test
+    void revisesOnlyCurrentProposedRecommendation() {
+        var tasks = mock(InvestigationTaskRepository.class);
+        var steps = mock(InvestigationStepRepository.class);
+        UUID scopeId = UUID.randomUUID();
+        UUID stepId = UUID.randomUUID();
+        InvestigationTask waiting = task(TaskStatus.WAITING_STEP_APPROVAL, scopeId, stepId, 3);
+        InvestigationStep proposed = step(stepId, waiting.taskId(), "old goal");
+        when(tasks.findByIdForUpdate(waiting.taskId())).thenReturn(Optional.of(waiting));
+        when(steps.findById(stepId)).thenReturn(Optional.of(proposed));
+        when(steps.updateProposedGoal(stepId, "new goal", ACTOR, NOW)).thenReturn(1);
+
+        InvestigationStep revised = new StepProposalApplicationService(tasks, steps,
+                mock(TaskStateTransitionService.class), mock(TaskAuditEventAppender.class), clock())
+                .revise(new ReviseStepProposalCommand(waiting.taskId(), stepId, "new goal", ACTOR, NOW));
+
+        assertThat(revised.goal()).isEqualTo("new goal");
+        verify(steps).updateProposedGoal(stepId, "new goal", ACTOR, NOW);
+    }
+
+    @Test
+    void rejectsRevisionOutsideWaitingProposalState() {
+        var tasks = mock(InvestigationTaskRepository.class);
+        UUID stepId = UUID.randomUUID();
+        InvestigationTask running = task(TaskStatus.RUNNING_STEP, UUID.randomUUID(), stepId, 3);
+        when(tasks.findByIdForUpdate(running.taskId())).thenReturn(Optional.of(running));
+        var service = new StepProposalApplicationService(tasks, mock(InvestigationStepRepository.class),
+                mock(TaskStateTransitionService.class), mock(TaskAuditEventAppender.class), clock());
+
+        assertThatThrownBy(() -> service.revise(new ReviseStepProposalCommand(running.taskId(), stepId, "new goal", ACTOR, NOW)))
+                .isInstanceOf(IllegalStateException.class);
     }
 
     @Test

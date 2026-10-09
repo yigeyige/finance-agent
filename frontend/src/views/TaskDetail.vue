@@ -1,0 +1,24 @@
+<!-- 只读展示任务的业务说明、处理范围和方案，避免在历史任务中直接修改权威状态。 -->
+<template>
+  <section class="evidence-page list-page task-detail-page" v-loading="loading">
+    <div class="page-heading"><div><h2>{{ detail ? detail.title : '业务处理详情' }}</h2></div><el-button @click="$router.push('/tasks')">返回任务列表</el-button></div>
+    <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
+    <template v-else-if="detail"><el-row :gutter="20"><el-col :span="16"><el-card shadow="never"><div slot="header">业务说明</div><dl class="readonly-detail-list"><dt>处理状态</dt><dd>{{ statusLabel(detail.status) }}</dd><dt>业务说明</dt><dd>{{ detail.description }}</dd><dt>创建时间</dt><dd>{{ formatTime(detail.createdAt) }}</dd></dl></el-card><el-card shadow="never" class="detail-section"><div slot="header">对象与处理范围</div><p v-if="!detail.scope" class="readonly-empty">尚未确认处理范围</p><dl v-else class="readonly-detail-list"><dt>处理系统</dt><dd>{{ detail.scope.systemCode }}</dd><dt>处理对象</dt><dd>{{ businessObject(detail.scope.objectSelector) }}</dd><dt>有效时间</dt><dd>{{ timeRange(detail.scope.effectiveTimeRange) }}</dd></dl></el-card></el-col><el-col :span="8"><el-card shadow="never"><div slot="header">推荐业务方案</div><p v-if="!detail.plans.length" class="readonly-empty">尚未生成业务方案</p><ol v-else class="readonly-plan-list"><li v-for="plan in detail.plans" :key="plan.sequenceNo"><el-tag v-if="plan.recommended" size="mini" type="success">推荐</el-tag><span>{{ plan.goal }}</span><small>{{ planStatusLabel(plan.status) }}</small></li></ol></el-card><el-card shadow="never" class="detail-section"><div slot="header">已知业务信息</div><p v-if="!detail.premises.length" class="readonly-empty">暂无已知业务信息</p><div v-for="(premise, index) in detail.premises" :key="`${premise.subjectKey}-${index}`" class="premise-item"><strong>{{ premise.premiseType }} · {{ premise.subjectKey }}</strong><p>{{ premise.statement }}</p><span>{{ premise.sourceDescription }}</span></div></el-card></el-col></el-row></template>
+  </section>
+</template>
+<script lang="ts">
+import Vue from 'vue'
+import { getTaskDetail, TaskDetail } from '../services/task-list-api'
+/** 任务只读详情页，双击任务列表中的行进入。 */
+export default Vue.extend({ name: 'TaskDetail', data: () => ({ detail: null as TaskDetail | null, loading: false, errorMessage: '' }), created() { void this.loadDetail() }, methods: {
+  /** 加载路由参数指向的只读详情。 */ async loadDetail(): Promise<void> { const taskId = this.$route.params.taskId; if (!taskId) { this.errorMessage = '未识别任务标识'; return } this.loading = true; try { this.detail = await getTaskDetail(taskId) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '任务详情暂时无法读取' } finally { this.loading = false } },
+  /** 转换状态为业务中文。 */ statusLabel(status: string): string { return ({ DRAFT: '草稿', WAITING_SCOPE_CONFIRMATION: '待确认范围', READY: '待生成方案', WAITING_STEP_APPROVAL: '待处理', RUNNING_STEP: '处理中', ANALYZING: '分析中', WAITING_PROFESSIONAL_CONFIRMATION: '待专业确认', DRAFT_PACKET: '决策包草稿', WAITING_REVIEW: '待复核', RECHECKING_SCOPE: '重新核查范围', READY_TO_PUBLISH: '待发布', PUBLISHED: '已发布', HANDED_OFF: '已移交', CLOSED: '已关闭', PAUSED_MODEL_UNAVAILABLE: '模型暂不可用', PAUSED_BUDGET: '预算已暂停', PAUSED_SOURCE_UNAVAILABLE: '来源暂不可用', STALE_APPROVAL: '审批已失效', FAILED_RECOVERABLE: '处理失败，可重试', CANCELLED: '已取消' } as Record<string, string>)[status] || '状态待确认' },
+  /** 从范围存储值中读取业务对象，旧数据无法识别时保留原始值。 */ businessObject(value: string): string { try { const parsed = JSON.parse(value) as { businessObject?: string }; return parsed.businessObject || value } catch { return value } },
+  /** 从范围存储值中读取业务时间段，旧数据无法识别时保留原始值。 */ timeRange(value: string): string { try { const parsed = JSON.parse(value) as { from?: string; to?: string }; return parsed.from && parsed.to ? `${parsed.from} 至 ${parsed.to}` : value } catch { return value } },
+  /** 转换方案步骤状态为业务中文。 */ planStatusLabel(status: string): string { return ({ PROPOSED: '待确认', APPROVED: '已确认', RUNNING: '执行中', COMPLETED: '已完成', REJECTED: '未采纳' } as Record<string, string>)[status] || '状态待确认' },
+  /** 以中文地区格式展示创建时间。 */ formatTime(value: string): string { const date = new Date(value); return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN', { hour12: false }) },
+} })
+</script>
+<style scoped>
+.detail-section{margin-top:20px}.readonly-detail-list{display:grid;grid-template-columns:112px 1fr;margin:0;border-top:1px solid #ebeef5}.readonly-detail-list dt,.readonly-detail-list dd{margin:0;padding:12px;border-bottom:1px solid #ebeef5}.readonly-detail-list dt{background:#f8fafc;color:#687386}.readonly-detail-list dd{white-space:pre-wrap;line-height:1.6}.readonly-empty{color:#909399;margin:8px 0}.readonly-plan-list{margin:0;padding-left:20px}.readonly-plan-list li{margin-bottom:14px}.readonly-plan-list span{display:block;margin-top:6px;line-height:1.6}.readonly-plan-list small,.premise-item span{color:#8492a6}.premise-item{padding:0 0 14px;border-bottom:1px solid #ebeef5;margin-bottom:14px}.premise-item p{line-height:1.6;margin:8px 0}
+</style>

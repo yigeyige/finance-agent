@@ -1,0 +1,14 @@
+package cn.com.crc.ems.finance.agent.task.web;
+
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+/** 仅允许修改推荐方案目标的 REST 请求。 */
+@JsonIgnoreProperties(ignoreUnknown = false)
+public record StepProposalRevisionRequest(@NotBlank @Size(max = 1000) String goal) {
+    @JsonAnySetter
+    public void rejectUnknown(String name, Object value) { throw new IllegalArgumentException("unknown request field: " + name); }
+}

@@ -6,11 +6,11 @@
 ## Requirements
 
 ### Requirement: Controlled handling draft and chat revision
-系统 SHALL 在业务标题和业务说明创建任务后，提供受控模型交互以生成或修订业务处理草稿。草稿 MUST 包含处理类型、对象前提、信息来源、系统、日期范围、处理内容、推荐方案、备选方案和简短说明；模型输入 MUST 仅来自服务端任务投影、管理员明确提交的消息及白名单化草稿字段。
+系统 SHALL 在业务标题和业务说明创建任务后，提供受控模型交互以生成或修订业务处理草稿。草稿 MUST 包含处理类型、对象前提、信息来源、系统、日期范围、处理内容、推荐方案和简短说明；模型输入 MUST 仅来自服务端任务投影、管理员明确提交的消息及白名单化草稿字段。
 
 #### Scenario: Initial handling draft is generated
 - **WHEN** OPERATOR 已创建有效业务标题和业务说明的任务并请求处理初稿
-- **THEN** 系统返回严格校验的对象范围初稿、推荐业务方案、备选方案、模型显示信息和非敏感调用元数据
+- **THEN** 系统返回严格校验的对象范围初稿、推荐业务方案、模型显示信息和非敏感调用元数据
 
 #### Scenario: Administrator revises the draft in chat
 - **WHEN** OPERATOR 提交不超过约定长度的中文修改意见和当前草稿
@@ -26,3 +26,29 @@
 #### Scenario: Draft is not persisted as scope
 - **WHEN** 模型返回业务处理初稿
 - **THEN** 任务仍保持未确认范围状态，直到 OPERATOR 提交有效的前提与范围确认请求
+
+### Requirement: Business scenario Skill management
+系统 SHALL 为 OPERATOR 提供业务场景 Skill 的列表、新增、编辑和删除能力。每个 Skill MUST 包含业务名称、业务说明、处理方式和业务场景；接口 MUST 校验输入字段，删除 MUST 仅对当前有效记录生效并保留操作审计。
+
+#### Scenario: Administrator creates or edits a business scenario Skill
+- **WHEN** OPERATOR 提交合法的业务名称、业务说明、处理方式和业务场景
+- **THEN** 系统保存 Skill 并返回最新内容，后续列表显示该 Skill
+
+#### Scenario: Administrator removes a business scenario Skill
+- **WHEN** OPERATOR 确认删除一个当前有效的 Skill
+- **THEN** 系统将其标记为删除、记录操作者和时间，且后续列表不再显示该 Skill
+
+#### Scenario: Non-operator attempts to maintain Skills
+- **WHEN** 非 OPERATOR 身份请求新增、编辑或删除业务场景 Skill
+- **THEN** 系统拒绝写操作且不修改任何 Skill
+
+### Requirement: Task records selected business scenario Skill
+系统 SHALL 允许业务处理任务在创建时关联一个当前有效的业务场景 Skill，并在后续业务处理初稿和会话修订中复用该关联。未选择 Skill 的任务 MUST 保持既有通用业务处理向导能力。
+
+#### Scenario: Administrator starts handling from a business scenario Skill
+- **WHEN** OPERATOR 从业务场景 Skill 目录进入新建业务处理并创建任务
+- **THEN** 系统将所选 Skill 标识持久化到任务，并在后续模型初稿调用中使用该 Skill 的受控上下文
+
+#### Scenario: Administrator creates a generic task
+- **WHEN** OPERATOR 未选择业务场景 Skill 创建任务
+- **THEN** 系统创建不关联 Skill 的任务，且业务处理向导仍可生成通用初稿

@@ -25,7 +25,7 @@ public record StepProposalResponse(UUID taskId, String status, long rowVersion, 
 
     /** 步骤审批卡展示所需字段。 */
     public record StepView(UUID stepId, int sequenceNo, String goal, boolean recommended, String status) {
-        private static StepView from(InvestigationStep step) {
+        public static StepView from(InvestigationStep step) {
             return new StepView(step.stepId(), step.sequenceNo(), step.goal(), step.recommended(), step.status().name());
         }
     }

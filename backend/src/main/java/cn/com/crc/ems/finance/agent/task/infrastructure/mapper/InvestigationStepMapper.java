@@ -29,4 +29,10 @@ public interface InvestigationStepMapper extends BaseMapper<InvestigationStepEnt
             + "updated_at = #{updatedAt} WHERE step_id = #{stepId}")
     int updateStatus(@Param("stepId") UUID stepId, @Param("status") String status,
             @Param("actorUserId") UUID actorUserId, @Param("updatedAt") java.time.Instant updatedAt);
+
+    /** 在数据库侧限制只修改尚未处理的提议步骤。 */
+    @Update("UPDATE task.investigation_step SET goal = #{goal}, updated_by = #{actorUserId}, "
+            + "updated_at = #{updatedAt} WHERE step_id = #{stepId} AND status = 'PROPOSED'")
+    int updateProposedGoal(@Param("stepId") UUID stepId, @Param("goal") String goal,
+            @Param("actorUserId") UUID actorUserId, @Param("updatedAt") java.time.Instant updatedAt);
 }

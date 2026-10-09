@@ -94,6 +94,34 @@ public class StepProposalApplicationService {
         return new StepProposalResult(transitioned, steps);
     }
 
+    /**
+     *
+     * @description: 修改尚未执行的当前推荐方案，避免聊天修改只停留在界面。
+     *
+     * @param: command 受限的方案修改命令
+     * @return: 更新后的推荐步骤
+     * @throws: IllegalStateException 当前任务或步骤不允许修改
+     * @author: yigeyige99
+     */
+    @Transactional
+    public InvestigationStep revise(ReviseStepProposalCommand command) {
+        InvestigationTask task = taskRepository.findByIdForUpdate(command.taskId())
+                .orElseThrow(() -> new RepositoryEntityNotFoundException("investigation task not found"));
+        if (task.status() != TaskStatus.WAITING_STEP_APPROVAL || !command.stepId().equals(task.currentStepId())) {
+            throw new IllegalStateException("current business plan cannot be revised");
+        }
+        InvestigationStep step = stepRepository.findById(command.stepId())
+                .orElseThrow(() -> new RepositoryEntityNotFoundException("investigation step not found"));
+        if (!task.taskId().equals(step.taskId()) || !step.recommended() || step.status() != StepStatus.PROPOSED
+                || stepRepository.updateProposedGoal(step.stepId(), command.goal(), command.actorUserId(), command.occurredAt()) != 1) {
+            throw new IllegalStateException("current business plan cannot be revised");
+        }
+        auditEventAppender.append(UuidGenerator.newUuid(), task.taskId(), command.actorUserId(), "STEP_PROPOSAL_REVISED",
+                "TASK", task.taskId().toString(), command.occurredAt(), payload -> payload.put("stepId", step.stepId().toString()));
+        return new InvestigationStep(step.stepId(), step.taskId(), step.sequenceNo(), command.goal(), step.recommended(),
+                step.status(), step.createdAt(), step.completedAt(), step.createdBy(), command.occurredAt(), command.actorUserId());
+    }
+
     private static void validateCardinality(List<StepProposalItem> steps) {
         if (steps == null || steps.isEmpty() || steps.size() > 3) {
             throw new IllegalArgumentException("steps must contain one recommendation and at most two alternatives");

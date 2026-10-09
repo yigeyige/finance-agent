@@ -1,6 +1,7 @@
 package cn.com.crc.ems.finance.agent.task.infrastructure;
 
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
@@ -34,6 +35,20 @@ public class MybatisInvestigationTaskRepository implements InvestigationTaskRepo
         return Optional.ofNullable(mapper.selectByIdForUpdate(
                 cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid.toStorage(taskId)))
                 .map(MybatisTaskMappings::toDomain);
+    }
+
+    @Override
+    public List<InvestigationTask> findRecentByInitiator(UUID initiatorUserId) {
+        return mapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<InvestigationTaskEntity>()
+                .eq("initiator_user_id", initiatorUserId).orderByDesc("created_at").last("LIMIT 50"))
+                .stream().map(MybatisTaskMappings::toDomain).toList();
+    }
+
+    @Override
+    public List<InvestigationTask> findRecent() {
+        return mapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<InvestigationTaskEntity>()
+                .orderByDesc("created_at").last("LIMIT 50"))
+                .stream().map(MybatisTaskMappings::toDomain).toList();
     }
 
     @Override

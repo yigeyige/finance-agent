@@ -24,4 +24,7 @@ public interface InvestigationStepRepository {
     /** 更新步骤审批状态并记录审计操作者和时间。 */
     int updateStatus(UUID stepId, cn.com.crc.ems.finance.agent.task.domain.StepStatus status,
             UUID actorUserId, java.time.Instant updatedAt);
+
+    /** 仅更新仍处于提议状态的步骤目标。 */
+    int updateProposedGoal(UUID stepId, String goal, UUID actorUserId, java.time.Instant updatedAt);
 }

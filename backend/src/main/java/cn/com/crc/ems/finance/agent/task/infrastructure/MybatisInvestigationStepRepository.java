@@ -56,4 +56,9 @@ public class MybatisInvestigationStepRepository implements InvestigationStepRepo
             UUID actorUserId, java.time.Instant updatedAt) {
         return mapper.updateStatus(stepId, status.name(), actorUserId, updatedAt);
     }
+
+    @Override
+    public int updateProposedGoal(UUID stepId, String goal, UUID actorUserId, java.time.Instant updatedAt) {
+        return mapper.updateProposedGoal(stepId, goal, actorUserId, updatedAt);
+    }
 }

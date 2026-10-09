@@ -4,7 +4,7 @@
 TBD - created by archiving change task-intake-scope-ui. Update Purpose after archive.
 ## Requirements
 ### Requirement: Task intake and scope confirmation form
-工作台 SHALL 以两步业务处理向导提供任务标题、业务说明、对象前提和范围确认表单，并在每次写请求进行中阻止重复提交。第一步仅要求业务标题和业务说明；创建任务后第二步 SHALL 展示模型预填且可编辑的对象、信息依据、系统、日期范围、处理内容与数据使用范围。范围确认 SHALL 使用这些业务字段，由系统生成后端所需的结构化对象和字段数组，不得要求业务人员输入 JSON。
+工作台 SHALL 以两步业务处理向导提供任务标题、业务说明、对象前提和范围确认表单，并在每次写请求进行中阻止重复提交。第一步仅要求业务标题和业务说明；创建任务后第二步 SHALL 展示模型预填且可编辑的单一处理对象、信息依据、系统、日期范围、处理内容与数据使用范围。处理方式、业务场景等短字段 MUST 紧凑地并列展示，长文本和多选内容保持整行可读。系统 MUST 用该处理对象映射前提与范围所需的内部对象字段，不得要求业务人员输入 JSON 或重复填写对象。
 
 #### Scenario: Create and confirm handling scope
 - **WHEN** OPERATOR 填写业务标题和说明，接受或修改模型初稿，并确认对象和处理范围
@@ -21,7 +21,7 @@ TBD - created by archiving change task-intake-scope-ui. Update Purpose after arc
 - **THEN** 页面不发送第二个创建请求
 
 #### Scenario: Incomplete business scope
-- **WHEN** 业务对象、日期范围或处理内容未填写完整
+- **WHEN** 处理对象、日期范围或处理内容未填写完整
 - **THEN** 页面阻止确认并用业务语言指出缺失内容，不显示 JSON 格式错误
 
 ### Requirement: Stale scope feedback
