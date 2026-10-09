@@ -71,9 +71,111 @@ export interface TaskDiagnosticStep { stepId: string; sequenceNo: number; goal: 
 export interface TaskDiagnosticLease { status: 'NONE' | 'ACTIVE' | 'EXPIRED'; heartbeatAt: string | null; expiresAt: string | null }
 export interface TaskDiagnosticResponse { taskId: string; taskStatus: TaskStatus; currentStep: TaskDiagnosticStep | null; lease: TaskDiagnosticLease; approvalValid: boolean; pauseReason: string | null; lastErrorCode: string | null; manualReconciliationRequired: boolean; recoveryActions: string[] }
 
+/** 业务场景 Skill 的契约枚举与读写模型。 */
+export type BusinessHandlingType = 'INVESTIGATE' | 'ADJUST'
+export interface BusinessSceneSkill { skillId: string; name: string; description: string; handlingType: BusinessHandlingType; premiseType: string; updatedAt: string }
+export interface BusinessSceneSkillPayload { name: string; description: string; handlingType: BusinessHandlingType; premiseType: string }
+
+/** 大模型连接安全视图；API Key 仅允许通过写入载荷传入。 */
+export interface ModelConnectionConfig { configId: string; name: string; provider: string; apiUrl: string; modelName: string; reasoningEffort: string | null; enabled: boolean; apiKeyConfigured: boolean; updatedAt: string }
+export interface ModelConnectionConfigPayload { name: string; provider: string; apiUrl: string; modelName: string; reasoningEffort: string; apiKey?: string }
+
+/** 任务列表与只读详情的契约模型。 */
+export interface TaskListItem { taskId: string; title: string; status: string; createdAt: string }
+export interface TaskPremise { premiseType: string; subjectKey: string; statement: string; sourceDescription: string }
+export interface TaskScope { systemCode: string; objectSelector: string; effectiveTimeRange: string; revisionNo: number }
+export interface TaskPlan { sequenceNo: number; goal: string; recommended: boolean; status: string }
+export interface TaskDetail { taskId: string; title: string; description: string; status: string; createdAt: string; premises: TaskPremise[]; scope: TaskScope | null; plans: TaskPlan[] }
+
+/** 业务方案修订与受控模型协作的契约模型。 */
+export interface StepProposalRevisionPayload { goal: string }
+export interface ModelCallMetadata { mode: 'LIVE' | 'STUB'; modelName: string; inputDigest: string; outputDigest: string; tokens: number; latencyMillis: number; reasoningEffort?: string }
+export interface ModelPlanResponse { recommendedGoal: string; alternativeGoals: string[]; reason: string; metadata: ModelCallMetadata }
+export interface ModelEvidenceAnalysisResponse { summary: string; riskLevel: 'LOW' | 'MEDIUM' | 'HIGH'; riskExplanation: string; recommendations: string[]; metadata: ModelCallMetadata }
+export interface BusinessHandlingDraft { handlingType: BusinessHandlingType; premiseType: string; subjectKey: string; statement: string; sourceDescription: string; systemCode: string; objectKey: string; startDate: string; endDate: string; investigationAreas: string[]; dataUse: string; recommendedGoal: string; alternativeGoals: string[]; reason: string }
+export interface BusinessGuidanceRequest { message?: string; currentDraft?: BusinessHandlingDraft }
+export interface BusinessGuidanceResponse { reply: string; draft: BusinessHandlingDraft; metadata: ModelCallMetadata }
+export interface TaskDraftRequest { title: string; originalQuestion: string; initiatorUserId: string; runtimeBundleId: string; businessSceneSkillId?: string }
+
 const TASK_RESPONSE_FIELDS = ['taskId', 'title', 'status', 'rowVersion', 'currentScopeRevisionId', 'createdAt', 'premiseId', 'scopeRevisionNo', 'scopeDigest']
 const PUBLIC_EVENT_FIELDS = ['taskId', 'userId', 'sequence', 'eventType', 'status', 'publicReason', 'resultReference', 'occurredAt']
 const IDENTITY_FIELDS = ['userId', 'authSubject', 'displayName', 'roles', 'permissions', 'testIdentity']
+const BUSINESS_SCENE_SKILL_FIELDS = ['skillId', 'name', 'description', 'handlingType', 'premiseType', 'updatedAt']
+const MODEL_CONFIGURATION_FIELDS = ['configId', 'name', 'provider', 'apiUrl', 'modelName', 'reasoningEffort', 'enabled', 'apiKeyConfigured', 'updatedAt']
+const TASK_LIST_ITEM_FIELDS = ['taskId', 'title', 'status', 'createdAt']
+const TASK_DETAIL_FIELDS = ['taskId', 'title', 'description', 'status', 'createdAt', 'premises', 'scope', 'plans']
+const TASK_PREMISE_FIELDS = ['premiseType', 'subjectKey', 'statement', 'sourceDescription']
+const TASK_SCOPE_FIELDS = ['systemCode', 'objectSelector', 'effectiveTimeRange', 'revisionNo']
+const TASK_PLAN_FIELDS = ['sequenceNo', 'goal', 'recommended', 'status']
+const STEP_VIEW_FIELDS = ['stepId', 'sequenceNo', 'goal', 'recommended', 'status']
+const MODEL_METADATA_FIELDS = ['mode', 'modelName', 'inputDigest', 'outputDigest', 'tokens', 'latencyMillis', 'reasoningEffort']
+const BUSINESS_DRAFT_FIELDS = ['handlingType', 'premiseType', 'subjectKey', 'statement', 'sourceDescription', 'systemCode', 'objectKey', 'startDate', 'endDate', 'investigationAreas', 'dataUse', 'recommendedGoal', 'alternativeGoals', 'reason']
+
+/** 校验业务场景 Skill 响应。 */
+export function parseBusinessSceneSkill(value: unknown): BusinessSceneSkill {
+  const record = assertObjectFields(value, BUSINESS_SCENE_SKILL_FIELDS, '业务场景 Skill 响应')
+  return { skillId: requireString(record.skillId, 'Skill 标识'), name: requireString(record.name, 'Skill 名称'), description: requireString(record.description, 'Skill 说明'), handlingType: parseBusinessHandlingType(record.handlingType), premiseType: requireString(record.premiseType, '业务场景'), updatedAt: requireString(record.updatedAt, '更新时间') }
+}
+
+/** 校验业务场景 Skill 列表响应。 */
+export function parseBusinessSceneSkills(value: unknown): BusinessSceneSkill[] {
+  return requireArray(value, '业务场景 Skill 列表').map(parseBusinessSceneSkill)
+}
+
+/** 校验不含密钥的大模型连接响应。 */
+export function parseModelConnectionConfig(value: unknown): ModelConnectionConfig {
+  const record = assertObjectFields(value, MODEL_CONFIGURATION_FIELDS, '大模型连接响应')
+  return { configId: requireString(record.configId, '模型连接标识'), name: requireString(record.name, '连接名称'), provider: requireString(record.provider, '模型供应商'), apiUrl: requireString(record.apiUrl, '模型地址'), modelName: requireString(record.modelName, '模型名称'), reasoningEffort: nullableString(record.reasoningEffort), enabled: requireBoolean(record.enabled, '启用状态'), apiKeyConfigured: requireBoolean(record.apiKeyConfigured, '密钥状态'), updatedAt: requireString(record.updatedAt, '更新时间') }
+}
+
+/** 校验大模型连接列表响应。 */
+export function parseModelConnectionConfigs(value: unknown): ModelConnectionConfig[] {
+  return requireArray(value, '大模型连接列表').map(parseModelConnectionConfig)
+}
+
+/** 校验任务列表项。 */
+export function parseTaskListItem(value: unknown): TaskListItem {
+  const record = assertObjectFields(value, TASK_LIST_ITEM_FIELDS, '任务列表项')
+  return { taskId: requireString(record.taskId, '任务标识'), title: requireString(record.title, '任务标题'), status: requireString(record.status, '任务状态'), createdAt: requireString(record.createdAt, '创建时间') }
+}
+
+/** 校验任务列表响应。 */
+export function parseTaskList(value: unknown): TaskListItem[] {
+  return requireArray(value, '任务列表').map(parseTaskListItem)
+}
+
+/** 校验推荐方案步骤响应。 */
+export function parseStepView(value: unknown): StepView {
+  const record = assertObjectFields(value, STEP_VIEW_FIELDS, '推荐方案步骤')
+  return { stepId: requireString(record.stepId, '步骤标识'), sequenceNo: requirePositiveNumber(record.sequenceNo, '步骤序号'), goal: requireString(record.goal, '方案内容'), recommended: requireBoolean(record.recommended, '推荐标识'), status: requireString(record.status, '步骤状态') }
+}
+
+/** 校验任务只读详情响应。 */
+export function parseTaskDetail(value: unknown): TaskDetail {
+  const record = assertObjectFields(value, TASK_DETAIL_FIELDS, '任务详情')
+  const scope = record.scope === null ? null : parseTaskScope(record.scope)
+  return { taskId: requireString(record.taskId, '任务标识'), title: requireString(record.title, '任务标题'), description: requireString(record.description, '业务说明'), status: requireString(record.status, '任务状态'), createdAt: requireString(record.createdAt, '创建时间'), premises: requireArray(record.premises, '任务前提').map(parseTaskPremise), scope, plans: requireArray(record.plans, '推荐方案').map(parseTaskPlan) }
+}
+
+/** 校验业务处理向导模型响应。 */
+export function parseBusinessGuidance(value: unknown): BusinessGuidanceResponse {
+  const record = assertObjectFields(value, ['reply', 'draft', 'metadata'], '模型业务初稿')
+  return { reply: requireString(record.reply, '模型回复'), draft: parseBusinessHandlingDraft(record.draft), metadata: parseModelCallMetadata(record.metadata) }
+}
+
+/** 校验模型方案建议响应。 */
+export function parseModelPlan(value: unknown): ModelPlanResponse {
+  const record = assertObjectFields(value, ['recommendedGoal', 'alternativeGoals', 'reason', 'metadata'], '模型方案建议')
+  return { recommendedGoal: requireString(record.recommendedGoal, '推荐方案'), alternativeGoals: requireStringArray(record.alternativeGoals, '备选方案'), reason: requireString(record.reason, '推荐理由'), metadata: parseModelCallMetadata(record.metadata) }
+}
+
+/** 校验模型证据分析响应。 */
+export function parseModelEvidenceAnalysis(value: unknown): ModelEvidenceAnalysisResponse {
+  const record = assertObjectFields(value, ['summary', 'riskLevel', 'riskExplanation', 'recommendations', 'metadata'], '模型证据分析')
+  const riskLevel = record.riskLevel
+  if (riskLevel !== 'LOW' && riskLevel !== 'MEDIUM' && riskLevel !== 'HIGH') throw new Error('风险等级格式无法识别，请联系管理员同步接口契约')
+  return { summary: requireString(record.summary, '分析摘要'), riskLevel, riskExplanation: requireString(record.riskExplanation, '风险说明'), recommendations: requireStringArray(record.recommendations, '处理建议'), metadata: parseModelCallMetadata(record.metadata) }
+}
 
 /** 校验对象并拒绝契约外字段，避免未声明状态流入页面。 */
 export function assertObjectFields(value: unknown, fields: readonly string[], label: string): Record<string, unknown> {
@@ -183,4 +285,59 @@ function nullableString(value: unknown): string | null {
 function nullableNonNegativeNumber(value: unknown, label: string): number | null {
   if (value === null || value === undefined) return null
   return requireNonNegativeNumber(value, label)
+}
+
+/** 要求布尔值字段。 */
+function requireBoolean(value: unknown, label: string): boolean {
+  if (typeof value !== 'boolean') throw new Error(`${label}格式无法识别，请稍后重试`)
+  return value
+}
+
+/** 要求数组字段。 */
+function requireArray(value: unknown, label: string): unknown[] {
+  if (!Array.isArray(value)) throw new Error(`${label}格式无法识别，请稍后重试`)
+  return value
+}
+
+/** 要求字符串数组字段。 */
+function requireStringArray(value: unknown, label: string): string[] {
+  return requireArray(value, label).map((item) => requireString(item, label))
+}
+
+/** 收窄业务处理类型。 */
+function parseBusinessHandlingType(value: unknown): BusinessHandlingType {
+  if (value === 'INVESTIGATE' || value === 'ADJUST') return value
+  throw new Error('处理方式格式无法识别，请联系管理员同步接口契约')
+}
+
+/** 校验任务前提。 */
+function parseTaskPremise(value: unknown): TaskPremise {
+  const record = assertObjectFields(value, TASK_PREMISE_FIELDS, '任务前提')
+  return { premiseType: requireString(record.premiseType, '业务场景'), subjectKey: requireString(record.subjectKey, '处理对象'), statement: requireString(record.statement, '已知情况'), sourceDescription: requireString(record.sourceDescription, '信息来源') }
+}
+
+/** 校验任务范围。 */
+function parseTaskScope(value: unknown): TaskScope {
+  const record = assertObjectFields(value, TASK_SCOPE_FIELDS, '处理范围')
+  return { systemCode: requireString(record.systemCode, '处理系统'), objectSelector: requireString(record.objectSelector, '对象范围'), effectiveTimeRange: requireString(record.effectiveTimeRange, '时间范围'), revisionNo: requirePositiveNumber(record.revisionNo, '范围版本') }
+}
+
+/** 校验任务方案。 */
+function parseTaskPlan(value: unknown): TaskPlan {
+  const record = assertObjectFields(value, TASK_PLAN_FIELDS, '任务方案')
+  return { sequenceNo: requirePositiveNumber(record.sequenceNo, '方案序号'), goal: requireString(record.goal, '方案内容'), recommended: requireBoolean(record.recommended, '推荐标识'), status: requireString(record.status, '方案状态') }
+}
+
+/** 校验模型调用元数据。 */
+function parseModelCallMetadata(value: unknown): ModelCallMetadata {
+  const record = assertObjectFields(value, MODEL_METADATA_FIELDS, '模型调用信息')
+  const mode = record.mode
+  if (mode !== 'LIVE' && mode !== 'STUB') throw new Error('模型调用方式格式无法识别，请联系管理员同步接口契约')
+  return { mode, modelName: requireString(record.modelName, '模型名称'), inputDigest: requireString(record.inputDigest, '输入摘要'), outputDigest: requireString(record.outputDigest, '输出摘要'), tokens: requireNonNegativeNumber(record.tokens, 'Token 数'), latencyMillis: requireNonNegativeNumber(record.latencyMillis, '调用耗时'), reasoningEffort: nullableString(record.reasoningEffort) ?? undefined }
+}
+
+/** 校验模型业务处理草稿。 */
+function parseBusinessHandlingDraft(value: unknown): BusinessHandlingDraft {
+  const record = assertObjectFields(value, BUSINESS_DRAFT_FIELDS, '业务处理草稿')
+  return { handlingType: parseBusinessHandlingType(record.handlingType), premiseType: requireString(record.premiseType, '业务场景'), subjectKey: requireString(record.subjectKey, '处理对象'), statement: requireString(record.statement, '已知情况'), sourceDescription: requireString(record.sourceDescription, '信息来源'), systemCode: requireString(record.systemCode, '处理系统'), objectKey: requireString(record.objectKey, '对象标识'), startDate: requireString(record.startDate, '开始日期'), endDate: requireString(record.endDate, '结束日期'), investigationAreas: requireStringArray(record.investigationAreas, '处理内容'), dataUse: requireString(record.dataUse, '数据使用方式'), recommendedGoal: requireString(record.recommendedGoal, '推荐方案'), alternativeGoals: requireStringArray(record.alternativeGoals, '备选方案'), reason: requireString(record.reason, '推荐理由') }
 }

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://task-detail-response/1.0.0",
+  "title": "Task detail response",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["taskId", "title", "description", "status", "createdAt", "premises", "scope", "plans"],
+  "properties": {
+    "taskId": {"type": "string", "format": "uuid"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 300},
+    "description": {"type": "string", "minLength": 1, "maxLength": 8000},
+    "status": {"type": "string", "minLength": 1, "maxLength": 100},
+    "createdAt": {"type": "string", "format": "date-time"},
+    "premises": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["premiseType", "subjectKey", "statement", "sourceDescription"], "properties": {"premiseType": {"type": "string", "minLength": 1, "maxLength": 100}, "subjectKey": {"type": "string", "minLength": 1, "maxLength": 1000}, "statement": {"type": "string", "minLength": 1, "maxLength": 8000}, "sourceDescription": {"type": "string", "minLength": 1, "maxLength": 1000}}}},
+    "scope": {"type": ["object", "null"], "additionalProperties": false, "required": ["systemCode", "objectSelector", "effectiveTimeRange", "revisionNo"], "properties": {"systemCode": {"type": "string", "minLength": 1, "maxLength": 100}, "objectSelector": {"type": "string", "minLength": 1}, "effectiveTimeRange": {"type": "string", "minLength": 1}, "revisionNo": {"type": "integer", "minimum": 1}}},
+    "plans": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["sequenceNo", "goal", "recommended", "status"], "properties": {"sequenceNo": {"type": "integer", "minimum": 1}, "goal": {"type": "string", "minLength": 1, "maxLength": 1000}, "recommended": {"type": "boolean"}, "status": {"type": "string", "minLength": 1, "maxLength": 100}}}}
+  }
+}

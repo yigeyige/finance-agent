@@ -1,31 +1,16 @@
 import { deleteJson, getJson, postJson, putJson } from './http'
+import { BusinessHandlingType, BusinessSceneSkill, BusinessSceneSkillPayload, parseBusinessSceneSkill, parseBusinessSceneSkills } from '../api/generated'
 
-export type BusinessHandlingType = 'INVESTIGATE' | 'ADJUST'
-
-export interface BusinessSceneSkill {
-  skillId: string
-  name: string
-  description: string
-  handlingType: BusinessHandlingType
-  premiseType: string
-  updatedAt: string
-}
-
-export interface BusinessSceneSkillPayload {
-  name: string
-  description: string
-  handlingType: BusinessHandlingType
-  premiseType: string
-}
+export type { BusinessHandlingType, BusinessSceneSkill, BusinessSceneSkillPayload }
 
 /** 查询全部可维护的业务场景 Skill。 */
-export function listBusinessSceneSkills(): Promise<BusinessSceneSkill[]> {
-  return getJson<BusinessSceneSkill[]>('/v1/business-scene-skills')
+export async function listBusinessSceneSkills(): Promise<BusinessSceneSkill[]> {
+  return parseBusinessSceneSkills(await getJson<unknown>('/v1/business-scene-skills'))
 }
 
 /** 新增一个业务场景 Skill。 */
-export function createBusinessSceneSkill(payload: BusinessSceneSkillPayload): Promise<BusinessSceneSkill> {
-  return postJson<BusinessSceneSkill, BusinessSceneSkillPayload>('/v1/business-scene-skills', payload)
+export async function createBusinessSceneSkill(payload: BusinessSceneSkillPayload): Promise<BusinessSceneSkill> {
+  return parseBusinessSceneSkill(await postJson<unknown, BusinessSceneSkillPayload>('/v1/business-scene-skills', payload))
 }
 
 /** 更新一个业务场景 Skill。 */
@@ -33,7 +18,7 @@ export function updateBusinessSceneSkill(
   skillId: string,
   payload: BusinessSceneSkillPayload,
 ): Promise<BusinessSceneSkill> {
-  return putJson<BusinessSceneSkill, BusinessSceneSkillPayload>(`/v1/business-scene-skills/${skillId}`, payload)
+  return putJson<unknown, BusinessSceneSkillPayload>(`/v1/business-scene-skills/${skillId}`, payload).then(parseBusinessSceneSkill)
 }
 
 /** 删除一个业务场景 Skill。 */

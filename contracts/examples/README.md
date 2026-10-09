@@ -1,6 +1,6 @@
 # 契约样例
 
-文件名第一段绑定 schema：`task.*`、`step-approval.*`、`event.*`、`decision-packet.*`、`error-response.*`。
+文件名第一段绑定 schema，例如 `task.*`、`step-approval.*`、`business-scene-skill-request.*`、`model-connection-config-request.*`、`event.*`、`decision-packet.*`、`error-response.*`。
 
 - `*.valid.json`：必须通过校验。
 - `*.invalid.json`：必须被校验器拒绝；文件名说明负向场景。

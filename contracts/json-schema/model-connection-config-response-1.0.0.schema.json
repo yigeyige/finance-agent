@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://model-connection-config-response/1.0.0",
+  "title": "Model connection configuration response",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["configId", "name", "provider", "apiUrl", "modelName", "reasoningEffort", "enabled", "apiKeyConfigured", "updatedAt"],
+  "properties": {
+    "configId": {"type": "string", "format": "uuid"},
+    "name": {"type": "string", "minLength": 1, "maxLength": 100},
+    "provider": {"type": "string", "minLength": 1, "maxLength": 30},
+    "apiUrl": {"type": "string", "minLength": 1, "maxLength": 500},
+    "modelName": {"type": "string", "minLength": 1, "maxLength": 100},
+    "reasoningEffort": {"type": ["string", "null"], "maxLength": 30},
+    "enabled": {"type": "boolean"},
+    "apiKeyConfigured": {"type": "boolean"},
+    "updatedAt": {"type": "string", "format": "date-time"}
+  }
+}

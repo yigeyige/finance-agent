@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://business-guidance-response/1.0.0",
+  "title": "Business guidance response",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["reply", "draft", "metadata"],
+  "properties": {
+    "reply": {"type": "string", "minLength": 1, "maxLength": 4000},
+    "draft": {"type": "object", "additionalProperties": false, "required": ["handlingType", "premiseType", "subjectKey", "statement", "sourceDescription", "systemCode", "objectKey", "startDate", "endDate", "investigationAreas", "dataUse", "recommendedGoal", "alternativeGoals", "reason"], "properties": {"handlingType": {"type": "string", "enum": ["INVESTIGATE", "ADJUST"]}, "premiseType": {"type": "string", "minLength": 1, "maxLength": 100}, "subjectKey": {"type": "string", "minLength": 1, "maxLength": 1000}, "statement": {"type": "string", "minLength": 1, "maxLength": 8000}, "sourceDescription": {"type": "string", "minLength": 1, "maxLength": 1000}, "systemCode": {"type": "string", "minLength": 1, "maxLength": 100}, "objectKey": {"type": "string", "minLength": 1, "maxLength": 1000}, "startDate": {"type": "string", "minLength": 1, "maxLength": 30}, "endDate": {"type": "string", "minLength": 1, "maxLength": 30}, "investigationAreas": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 100}}, "dataUse": {"type": "string", "minLength": 1, "maxLength": 100}, "recommendedGoal": {"type": "string", "minLength": 1, "maxLength": 1000}, "alternativeGoals": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 1000}}, "reason": {"type": "string", "minLength": 1, "maxLength": 4000}}},
+    "metadata": {"type": "object", "additionalProperties": false, "required": ["mode", "modelName", "inputDigest", "outputDigest", "tokens", "latencyMillis"], "properties": {"mode": {"type": "string", "enum": ["LIVE", "STUB"]}, "modelName": {"type": "string", "minLength": 1, "maxLength": 100}, "inputDigest": {"type": "string", "minLength": 1, "maxLength": 128}, "outputDigest": {"type": "string", "minLength": 1, "maxLength": 128}, "tokens": {"type": "integer", "minimum": 0}, "latencyMillis": {"type": "integer", "minimum": 0}, "reasoningEffort": {"type": "string", "maxLength": 30}}}
+  }
+}

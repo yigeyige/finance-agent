@@ -10,6 +10,7 @@
     "title": {"type": "string", "minLength": 1, "maxLength": 300},
     "originalQuestion": {"type": "string", "minLength": 1, "maxLength": 8000},
     "initiatorUserId": {"type": "string", "format": "uuid"},
-    "runtimeBundleId": {"type": "string", "format": "uuid"}
+    "runtimeBundleId": {"type": "string", "format": "uuid"},
+    "businessSceneSkillId": {"type": "string", "format": "uuid"}
   }
 }

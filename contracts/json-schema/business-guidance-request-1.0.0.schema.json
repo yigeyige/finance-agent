@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://business-guidance-request/1.0.0",
+  "title": "Business guidance request",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "message": {"type": ["string", "null"], "maxLength": 4000},
+    "currentDraft": {"type": ["object", "null"], "additionalProperties": false, "required": ["handlingType", "premiseType", "subjectKey", "statement", "sourceDescription", "systemCode", "objectKey", "startDate", "endDate", "investigationAreas", "dataUse", "recommendedGoal", "alternativeGoals", "reason"], "properties": {"handlingType": {"type": "string", "enum": ["INVESTIGATE", "ADJUST"]}, "premiseType": {"type": "string", "minLength": 1, "maxLength": 100}, "subjectKey": {"type": "string", "minLength": 1, "maxLength": 1000}, "statement": {"type": "string", "minLength": 1, "maxLength": 8000}, "sourceDescription": {"type": "string", "minLength": 1, "maxLength": 1000}, "systemCode": {"type": "string", "minLength": 1, "maxLength": 100}, "objectKey": {"type": "string", "minLength": 1, "maxLength": 1000}, "startDate": {"type": "string", "minLength": 1, "maxLength": 30}, "endDate": {"type": "string", "minLength": 1, "maxLength": 30}, "investigationAreas": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 100}}, "dataUse": {"type": "string", "minLength": 1, "maxLength": 100}, "recommendedGoal": {"type": "string", "minLength": 1, "maxLength": 1000}, "alternativeGoals": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 1000}}, "reason": {"type": "string", "minLength": 1, "maxLength": 4000}}}
+  }
+}

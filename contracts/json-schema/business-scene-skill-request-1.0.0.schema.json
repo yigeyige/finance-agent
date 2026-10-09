@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://business-scene-skill-request/1.0.0",
+  "title": "Business scene Skill request",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "description", "handlingType", "premiseType"],
+  "properties": {
+    "name": {"type": "string", "minLength": 1, "maxLength": 100},
+    "description": {"type": "string", "minLength": 1, "maxLength": 1000},
+    "handlingType": {"type": "string", "enum": ["INVESTIGATE", "ADJUST"]},
+    "premiseType": {"type": "string", "minLength": 1, "maxLength": 100}
+  }
+}

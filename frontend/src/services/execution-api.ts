@@ -1,8 +1,8 @@
-import { StepApprovalResponse, StepProposalResponse } from '../api/generated'
-import { postJson } from './http'
+import { parseStepView, StepApprovalResponse, StepProposalResponse, StepProposalRevisionPayload, StepView } from '../api/generated'
+import { patchJson, postJson } from './http'
 
 export interface ProposeStepsPayload { steps: { goal: string; recommended: boolean }[] }
-export interface StepView { stepId: string; sequenceNo: number; goal: string; recommended: boolean; status: string }
+export type { StepView }
 export interface ApproveStepPayload { stepId: string; goalHash: string; sourceBindingId: string; scopeRevisionId: string; fieldPolicyVersion: string; queryTemplateVersion: string; maxCalls: number; expiresAt: string | null; expectedRowVersion: number; decision: 'APPROVED' | 'REJECTED' }
 
 /** 提交一个推荐和最多两个备选步骤。 */
@@ -12,7 +12,7 @@ export async function proposeSteps(taskId: string, payload: ProposeStepsPayload,
 
 /** 保存尚未执行的推荐方案文本。 */
 export async function reviseStepProposal(taskId: string, stepId: string, goal: string): Promise<StepView> {
-  return postJson<StepView, { goal: string }>(`/v1/tasks/${taskId}/step-proposals/${stepId}`, { goal }, undefined, { idempotencyKey: createKey() })
+  return parseStepView(await patchJson<unknown, StepProposalRevisionPayload>(`/v1/tasks/${taskId}/step-proposals/${stepId}`, { goal }, undefined, { idempotencyKey: createKey() }))
 }
 
 /** 提交审批卡决定并返回新的任务版本。 */

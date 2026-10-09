@@ -1,0 +1,7 @@
+{
+  "name": "测试模型连接",
+  "provider": "DEEPSEEK",
+  "apiUrl": "https://model.example.invalid/v1",
+  "modelName": "deepseek-chat",
+  "plaintextApiKey": "must-not-be-accepted"
+}

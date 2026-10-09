@@ -1,7 +1,7 @@
-import { parseTaskResponse, TaskResponse } from '../api/generated'
+import { parseTaskResponse, TaskDraftRequest, TaskResponse } from '../api/generated'
 import { ApiError, postJson } from './http'
 
-export interface CreateTaskPayload { title: string; originalQuestion: string; initiatorUserId: string; runtimeBundleId: string; businessSceneSkillId?: string }
+export type CreateTaskPayload = TaskDraftRequest
 export interface AddPremisePayload { premiseType: string; subjectKey: string; statement: string; sourceDescription: string }
 export interface ConfirmScopePayload { systemCode: string; objectSelector: unknown; effectiveTimeRange: unknown; includedPaths: unknown; excludedPaths: unknown; allowedReadFields: unknown; allowedRetainFields: unknown; allowedModelFields: unknown; schemaVersion: string }
 

@@ -1,0 +1,6 @@
+{
+  "name": "离任权限处置",
+  "description": "识别离任人员仍持有的业务权限并形成处置建议。",
+  "handlingType": "ADJUST",
+  "premiseType": "人员变更"
+}

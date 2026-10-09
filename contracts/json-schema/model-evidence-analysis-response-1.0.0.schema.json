@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://model-evidence-analysis-response/1.0.0",
+  "title": "Model evidence analysis response",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["summary", "riskLevel", "riskExplanation", "recommendations", "metadata"],
+  "properties": {
+    "summary": {"type": "string", "minLength": 1, "maxLength": 8000},
+    "riskLevel": {"type": "string", "enum": ["LOW", "MEDIUM", "HIGH"]},
+    "riskExplanation": {"type": "string", "minLength": 1, "maxLength": 4000},
+    "recommendations": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 1000}},
+    "metadata": {"type": "object", "additionalProperties": false, "required": ["mode", "modelName", "inputDigest", "outputDigest", "tokens", "latencyMillis"], "properties": {"mode": {"type": "string", "enum": ["LIVE", "STUB"]}, "modelName": {"type": "string", "minLength": 1, "maxLength": 100}, "inputDigest": {"type": "string", "minLength": 1, "maxLength": 128}, "outputDigest": {"type": "string", "minLength": 1, "maxLength": 128}, "tokens": {"type": "integer", "minimum": 0}, "latencyMillis": {"type": "integer", "minimum": 0}, "reasoningEffort": {"type": "string", "maxLength": 30}}}
+  }
+}

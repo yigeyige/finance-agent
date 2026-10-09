@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://model-connection-config-request/1.0.0",
+  "title": "Model connection configuration request",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "provider", "apiUrl", "modelName"],
+  "properties": {
+    "name": {"type": "string", "minLength": 1, "maxLength": 100},
+    "provider": {"type": "string", "minLength": 1, "maxLength": 30},
+    "apiUrl": {"type": "string", "minLength": 1, "maxLength": 500},
+    "modelName": {"type": "string", "minLength": 1, "maxLength": 100},
+    "reasoningEffort": {"type": "string", "maxLength": 30},
+    "apiKey": {"type": "string", "maxLength": 1000}
+  }
+}
