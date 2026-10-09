@@ -17,7 +17,7 @@
 | `FINANCE_AGENT_PORT` | HTTP 端口 |
 | `FINANCE_AGENT_DB_URL` | PostgreSQL JDBC URL |
 | `FINANCE_AGENT_DB_USERNAME` / `FINANCE_AGENT_DB_PASSWORD` | 数据库账号与密码 |
-| `FINANCE_AGENT_MODEL_SECRET_KEY` | 仅用于加密数据库中的模型 API Key，长度至少 32；不是模型连接配置 |
+| `FINANCE_AGENT_MODEL_SECRET_KEY` | 仅用于加密数据库中的模型 API Key，长度至少 32；新密文使用完整值派生 AES-256 Key，部署后须稳定保管；不是模型连接配置 |
 | `FINANCE_AGENT_DEEPSEEK_STUB` | 是否启用 Stub 模型（生产必须为 `false`） |
 | `FINANCE_AGENT_WORKSPACE_ROOT` | 工作目录 |
 | `FINANCE_AGENT_MAX_STEPS` / `FINANCE_AGENT_MAX_TOKENS` / `FINANCE_AGENT_MAX_COST` | Agent 执行预算 |

@@ -2,6 +2,7 @@ package cn.com.crc.ems.finance.agent.modelconfig.infrastructure;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.security.MessageDigest;
 import java.util.Base64;
 
 import javax.crypto.Cipher;
@@ -17,28 +18,33 @@ import cn.com.crc.ems.finance.agent.modelconfig.application.ModelApiKeyCipher;
 @Component
 public final class AesGcmModelApiKeyCipher implements ModelApiKeyCipher {
     private static final SecureRandom RANDOM = new SecureRandom();
+    private static final String V2_PREFIX = "v2:";
     private final byte[] key;
+    private final byte[] legacyKey;
 
     public AesGcmModelApiKeyCipher(@Value("${finance-agent.security.model-secret-key:}") String secret) {
-        this.key = secret != null && secret.length() >= 32 ? secret.substring(0, 32).getBytes(StandardCharsets.UTF_8) : null;
+        this.key = derive(secret);
+        this.legacyKey = legacy(secret);
     }
 
     @Override
-    public String encrypt(String plaintext) { return crypt(Cipher.ENCRYPT_MODE, plaintext, null); }
+    public String encrypt(String plaintext) { return V2_PREFIX + crypt(Cipher.ENCRYPT_MODE, plaintext, key); }
     @Override
-    public String decrypt(String ciphertext) { return crypt(Cipher.DECRYPT_MODE, ciphertext, null); }
-    private String crypt(int mode, String value, byte[] ignored) {
+    public String decrypt(String ciphertext) { return crypt(Cipher.DECRYPT_MODE, ciphertext.startsWith(V2_PREFIX) ? ciphertext.substring(V2_PREFIX.length()) : ciphertext, ciphertext.startsWith(V2_PREFIX) ? key : legacyKey); }
+    private String crypt(int mode, String value, byte[] cipherKey) {
         try {
-            if (key == null) throw new IllegalStateException("模型密钥加密主密钥未配置或长度不足");
+            if (cipherKey == null) throw new IllegalStateException("模型密钥加密主密钥未配置或长度不足");
             byte[] nonce;
             byte[] data;
             if (mode == Cipher.ENCRYPT_MODE) { nonce = new byte[12]; RANDOM.nextBytes(nonce); data = value.getBytes(StandardCharsets.UTF_8); }
             else { byte[] encoded = Base64.getDecoder().decode(value); nonce = java.util.Arrays.copyOf(encoded, 12); data = java.util.Arrays.copyOfRange(encoded, 12, encoded.length); }
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-            cipher.init(mode, new SecretKeySpec(key, "AES"), new GCMParameterSpec(128, nonce));
+            cipher.init(mode, new SecretKeySpec(cipherKey, "AES"), new GCMParameterSpec(128, nonce));
             byte[] result = cipher.doFinal(data);
             return mode == Cipher.ENCRYPT_MODE ? Base64.getEncoder().encodeToString(concat(nonce, result)) : new String(result, StandardCharsets.UTF_8);
         } catch (Exception exception) { throw new IllegalStateException("模型密钥加密处理失败", exception); }
     }
+    private static byte[] derive(String secret) { try { return secret == null || secret.length() < 32 ? null : MessageDigest.getInstance("SHA-256").digest(secret.getBytes(StandardCharsets.UTF_8)); } catch (Exception exception) { throw new IllegalStateException("模型密钥加密处理失败", exception); } }
+    private static byte[] legacy(String secret) { return secret != null && secret.length() >= 32 ? secret.substring(0, 32).getBytes(StandardCharsets.UTF_8) : null; }
     private static byte[] concat(byte[] first, byte[] second) { byte[] merged = new byte[first.length + second.length]; System.arraycopy(first, 0, merged, 0, first.length); System.arraycopy(second, 0, merged, first.length, second.length); return merged; }
 }
