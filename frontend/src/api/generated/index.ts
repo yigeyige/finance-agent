@@ -81,11 +81,12 @@ export interface ModelConnectionConfig { configId: string; name: string; provide
 export interface ModelConnectionConfigPayload { name: string; provider: string; apiUrl: string; modelName: string; reasoningEffort: string; apiKey?: string }
 
 /** 任务列表与只读详情的契约模型。 */
-export interface TaskListItem { taskId: string; title: string; status: string; createdAt: string }
+export interface TaskListItem { taskId: string; title: string; status: string; initiatorUserId: string; createdAt: string }
+export interface TaskListPage { items: TaskListItem[]; total: number; page: number; pageSize: number }
 export interface TaskPremise { premiseType: string; subjectKey: string; statement: string; sourceDescription: string }
 export interface TaskScope { systemCode: string; objectSelector: string; effectiveTimeRange: string; revisionNo: number }
 export interface TaskPlan { sequenceNo: number; goal: string; recommended: boolean; status: string }
-export interface TaskDetail { taskId: string; title: string; description: string; status: string; createdAt: string; premises: TaskPremise[]; scope: TaskScope | null; plans: TaskPlan[] }
+export interface TaskDetail { taskId: string; title: string; description: string; status: string; initiatorUserId: string; createdAt: string; premises: TaskPremise[]; scope: TaskScope | null; plans: TaskPlan[] }
 
 /** 业务方案修订与受控模型协作的契约模型。 */
 export interface StepProposalRevisionPayload { goal: string }
@@ -102,8 +103,9 @@ const PUBLIC_EVENT_FIELDS = ['taskId', 'userId', 'sequence', 'eventType', 'statu
 const IDENTITY_FIELDS = ['userId', 'authSubject', 'displayName', 'roles', 'permissions', 'testIdentity']
 const BUSINESS_SCENE_SKILL_FIELDS = ['skillId', 'name', 'description', 'handlingType', 'premiseType', 'updatedAt']
 const MODEL_CONFIGURATION_FIELDS = ['configId', 'name', 'provider', 'apiUrl', 'modelName', 'reasoningEffort', 'enabled', 'apiKeyConfigured', 'updatedAt']
-const TASK_LIST_ITEM_FIELDS = ['taskId', 'title', 'status', 'createdAt']
-const TASK_DETAIL_FIELDS = ['taskId', 'title', 'description', 'status', 'createdAt', 'premises', 'scope', 'plans']
+const TASK_LIST_ITEM_FIELDS = ['taskId', 'title', 'status', 'initiatorUserId', 'createdAt']
+const TASK_LIST_PAGE_FIELDS = ['items', 'total', 'page', 'pageSize']
+const TASK_DETAIL_FIELDS = ['taskId', 'title', 'description', 'status', 'initiatorUserId', 'createdAt', 'premises', 'scope', 'plans']
 const TASK_PREMISE_FIELDS = ['premiseType', 'subjectKey', 'statement', 'sourceDescription']
 const TASK_SCOPE_FIELDS = ['systemCode', 'objectSelector', 'effectiveTimeRange', 'revisionNo']
 const TASK_PLAN_FIELDS = ['sequenceNo', 'goal', 'recommended', 'status']
@@ -136,12 +138,13 @@ export function parseModelConnectionConfigs(value: unknown): ModelConnectionConf
 /** 校验任务列表项。 */
 export function parseTaskListItem(value: unknown): TaskListItem {
   const record = assertObjectFields(value, TASK_LIST_ITEM_FIELDS, '任务列表项')
-  return { taskId: requireString(record.taskId, '任务标识'), title: requireString(record.title, '任务标题'), status: requireString(record.status, '任务状态'), createdAt: requireString(record.createdAt, '创建时间') }
+  return { taskId: requireString(record.taskId, '任务标识'), title: requireString(record.title, '任务标题'), status: requireString(record.status, '任务状态'), initiatorUserId: requireString(record.initiatorUserId, '发起人标识'), createdAt: requireString(record.createdAt, '创建时间') }
 }
 
 /** 校验任务列表响应。 */
-export function parseTaskList(value: unknown): TaskListItem[] {
-  return requireArray(value, '任务列表').map(parseTaskListItem)
+export function parseTaskList(value: unknown): TaskListPage {
+  const record = assertObjectFields(value, TASK_LIST_PAGE_FIELDS, '任务列表')
+  return { items: requireArray(record.items, '任务列表').map(parseTaskListItem), total: requireNonNegativeNumber(record.total, '任务总数'), page: requirePositiveNumber(record.page, '页码'), pageSize: requirePositiveNumber(record.pageSize, '每页条数') }
 }
 
 /** 校验推荐方案步骤响应。 */
@@ -154,7 +157,7 @@ export function parseStepView(value: unknown): StepView {
 export function parseTaskDetail(value: unknown): TaskDetail {
   const record = assertObjectFields(value, TASK_DETAIL_FIELDS, '任务详情')
   const scope = record.scope === null ? null : parseTaskScope(record.scope)
-  return { taskId: requireString(record.taskId, '任务标识'), title: requireString(record.title, '任务标题'), description: requireString(record.description, '业务说明'), status: requireString(record.status, '任务状态'), createdAt: requireString(record.createdAt, '创建时间'), premises: requireArray(record.premises, '任务前提').map(parseTaskPremise), scope, plans: requireArray(record.plans, '推荐方案').map(parseTaskPlan) }
+  return { taskId: requireString(record.taskId, '任务标识'), title: requireString(record.title, '任务标题'), description: requireString(record.description, '业务说明'), status: requireString(record.status, '任务状态'), initiatorUserId: requireString(record.initiatorUserId, '发起人标识'), createdAt: requireString(record.createdAt, '创建时间'), premises: requireArray(record.premises, '任务前提').map(parseTaskPremise), scope, plans: requireArray(record.plans, '推荐方案').map(parseTaskPlan) }
 }
 
 /** 校验业务处理向导模型响应。 */

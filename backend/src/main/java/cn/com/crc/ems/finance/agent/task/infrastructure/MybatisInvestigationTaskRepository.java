@@ -1,15 +1,18 @@
 package cn.com.crc.ems.finance.agent.task.infrastructure;
 
 import java.util.Optional;
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 import cn.com.crc.ems.finance.agent.task.application.InvestigationTaskRepository;
+import cn.com.crc.ems.finance.agent.task.application.TaskPage;
 import cn.com.crc.ems.finance.agent.task.domain.InvestigationTask;
+import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
 import cn.com.crc.ems.finance.agent.task.infrastructure.entity.InvestigationTaskEntity;
 import cn.com.crc.ems.finance.agent.task.infrastructure.mapper.InvestigationTaskMapper;
 
@@ -38,17 +41,14 @@ public class MybatisInvestigationTaskRepository implements InvestigationTaskRepo
     }
 
     @Override
-    public List<InvestigationTask> findRecentByInitiator(UUID initiatorUserId) {
-        return mapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<InvestigationTaskEntity>()
-                .eq("initiator_user_id", initiatorUserId).orderByDesc("created_at").last("LIMIT 50"))
-                .stream().map(MybatisTaskMappings::toDomain).toList();
+    public TaskPage findPageByInitiator(UUID initiatorUserId, int page, int pageSize, TaskStatus status, String keyword) {
+        return findPage(new QueryWrapper<InvestigationTaskEntity>().eq("initiator_user_id", initiatorUserId), page,
+                pageSize, status, keyword);
     }
 
     @Override
-    public List<InvestigationTask> findRecent() {
-        return mapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<InvestigationTaskEntity>()
-                .orderByDesc("created_at").last("LIMIT 50"))
-                .stream().map(MybatisTaskMappings::toDomain).toList();
+    public TaskPage findPage(int page, int pageSize, TaskStatus status, String keyword) {
+        return findPage(new QueryWrapper<>(), page, pageSize, status, keyword);
     }
 
     @Override
@@ -62,5 +62,15 @@ public class MybatisInvestigationTaskRepository implements InvestigationTaskRepo
         entity.rowVersion = expectedRowVersion + 1;
         return mapper.update(entity, new UpdateWrapper<InvestigationTaskEntity>().eq("task_id", task.taskId())
                 .eq("row_version", expectedRowVersion)) == 1;
+    }
+
+    private TaskPage findPage(QueryWrapper<InvestigationTaskEntity> query, int page, int pageSize, TaskStatus status,
+            String keyword) {
+        if (status != null) query.eq("status", status.name());
+        if (keyword != null) query.like("title", keyword);
+        query.orderByDesc("created_at").orderByDesc("task_id");
+        Page<InvestigationTaskEntity> result = mapper.selectPage(new Page<>(page, pageSize), query);
+        return new TaskPage(result.getRecords().stream().map(MybatisTaskMappings::toDomain).toList(), result.getTotal(),
+                page, pageSize);
     }
 }

@@ -9,6 +9,11 @@
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
 
     <div v-else class="standard-table-panel">
+      <el-form :inline="true" class="task-list-filters" @submit.native.prevent="searchTasks">
+        <el-form-item label="业务标题"><el-input v-model.trim="filters.keyword" maxlength="100" clearable placeholder="输入标题关键字" @keyup.enter.native="searchTasks" /></el-form-item>
+        <el-form-item label="处理状态"><el-select v-model="filters.status" clearable placeholder="全部状态"><el-option v-for="status in statuses" :key="status" :label="statusLabel(status)" :value="status" /></el-select></el-form-item>
+        <el-form-item><el-button type="primary" @click="searchTasks">查询</el-button><el-button @click="resetFilters">重置</el-button></el-form-item>
+      </el-form>
       <el-table v-loading="loading" :data="tasks" row-key="taskId" class="standard-data-table" border stripe
         @row-dblclick="openDetail"
         empty-text="暂无任务">
@@ -18,10 +23,12 @@
             <el-tag :type="statusTagType(scope.row.status)" effect="plain">{{ statusLabel(scope.row.status) }}</el-tag>
           </template>
         </el-table-column>
+        <el-table-column prop="initiatorUserId" label="发起人标识" min-width="210" show-overflow-tooltip />
         <el-table-column label="创建时间" width="190">
           <template slot-scope="scope">{{ formatTime(scope.row.createdAt) }}</template>
         </el-table-column>
       </el-table>
+      <el-pagination class="task-list-pagination" background layout="total, sizes, prev, pager, next" :current-page="currentPage" :page-size="pageSize" :page-sizes="[20, 50, 100]" :total="total" @current-change="changePage" @size-change="changePageSize" />
     </div>
   </section>
 </template>
@@ -29,7 +36,8 @@
 <script lang="ts">
 import Vue from 'vue'
 
-import { listRecentTasks, TaskListItem } from '../services/task-list-api'
+import { listTasks, TaskListPage } from '../services/task-list-api'
+import { TaskListItem } from '../api/generated'
 
 type StatusTagType = 'success' | 'warning' | 'danger' | 'info' | ''
 
@@ -62,6 +70,10 @@ export default Vue.extend({
   data() {
     return {
       tasks: [] as TaskListItem[],
+      total: 0,
+      currentPage: 1,
+      pageSize: 20,
+      filters: { keyword: '', status: '' },
       loading: false,
       errorMessage: '',
     }
@@ -69,19 +81,32 @@ export default Vue.extend({
   created() {
     void this.loadTasks()
   },
+  computed: {
+    statuses(): string[] { return Object.keys(statusLabels) },
+  },
   methods: {
-    /** 加载当前管理员可见的最近任务，并在失败时保留页面错误反馈。 */
+    /** 加载当前身份范围内的任务页，并在失败时保留页面错误反馈。 */
     async loadTasks() {
       this.loading = true
       this.errorMessage = ''
       try {
-        this.tasks = await listRecentTasks()
+        const result: TaskListPage = await listTasks({ page: this.currentPage, pageSize: this.pageSize, status: this.filters.status || undefined, keyword: this.filters.keyword || undefined })
+        this.tasks = result.items
+        this.total = result.total
       } catch (error: unknown) {
         this.errorMessage = error instanceof Error ? error.message : '任务列表暂时无法读取'
       } finally {
         this.loading = false
       }
     },
+    /** 使用当前筛选条件从第一页重新查询。 */
+    searchTasks() { this.currentPage = 1; void this.loadTasks() },
+    /** 清除筛选条件并恢复第一页。 */
+    resetFilters() { this.filters = { keyword: '', status: '' }; this.currentPage = 1; void this.loadTasks() },
+    /** 切换任务页码。 */
+    changePage(page: number) { this.currentPage = page; void this.loadTasks() },
+    /** 调整每页条数并回到第一页。 */
+    changePageSize(pageSize: number) { this.pageSize = pageSize; this.currentPage = 1; void this.loadTasks() },
     /** 将服务端任务状态转为业务可读中文文案。 */
     statusLabel(status: string) {
       return statusLabels[status] || '状态待确认'
@@ -105,3 +130,6 @@ export default Vue.extend({
   },
 })
 </script>
+<style scoped>
+.task-list-filters{margin-bottom:16px}.task-list-pagination{margin-top:18px;text-align:right}
+</style>

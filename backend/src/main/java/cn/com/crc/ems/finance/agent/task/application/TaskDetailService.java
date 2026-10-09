@@ -57,12 +57,12 @@ public class TaskDetailService {
         }
         ScopeRevision scope = task.currentScopeRevisionId() == null ? null
                 : scopeRevisionRepository.findById(task.currentScopeRevisionId()).orElse(null);
-        return new Detail(task.taskId(), task.title(), task.originalQuestion(), task.status().name(), task.createdAt(),
+        return new Detail(task.taskId(), task.title(), task.originalQuestion(), task.status().name(), task.initiatorUserId(), task.createdAt(),
                 premiseRepository.findByTaskId(task.taskId()).stream().map(Premise::from).toList(), Scope.from(scope),
                 stepRepository.findByTaskId(task.taskId()).stream().map(PlanStep::from).toList());
     }
 
-    public record Detail(UUID taskId, String title, String description, String status, Instant createdAt,
+    public record Detail(UUID taskId, String title, String description, String status, UUID initiatorUserId, Instant createdAt,
             List<Premise> premises, Scope scope, List<PlanStep> plans) { }
     public record Premise(String premiseType, String subjectKey, String statement, String sourceDescription) {
         static Premise from(TaskPremise value) { return new Premise(value.premiseType(), value.subjectKey(), value.statement(), value.sourceDescription()); }

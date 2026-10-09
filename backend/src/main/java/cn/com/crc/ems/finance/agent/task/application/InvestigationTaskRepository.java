@@ -1,10 +1,10 @@
 package cn.com.crc.ems.finance.agent.task.application;
 
 import java.util.Optional;
-import java.util.List;
 import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.task.domain.InvestigationTask;
+import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
 
 /** 调查任务持久化端口。 */
 public interface InvestigationTaskRepository {
@@ -15,11 +15,11 @@ public interface InvestigationTaskRepository {
     /** 在当前写事务中按任务 ID 加行锁。 */
     Optional<InvestigationTask> findByIdForUpdate(UUID taskId);
 
-    /** 查询当前发起人的最近任务，列表上限由仓储固定控制。 */
-    List<InvestigationTask> findRecentByInitiator(UUID initiatorUserId);
+    /** 在当前发起人范围内分页查询任务。 */
+    TaskPage findPageByInitiator(UUID initiatorUserId, int page, int pageSize, TaskStatus status, String keyword);
 
-    /** 查询最近创建的任务，供平台管理员查看全量业务处理进展。 */
-    List<InvestigationTask> findRecent();
+    /** 分页查询全部任务，供平台管理员审计业务处理进展。 */
+    TaskPage findPage(int page, int pageSize, TaskStatus status, String keyword);
 
     /** 插入新任务。 */
     void insert(InvestigationTask task);

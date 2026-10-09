@@ -5,11 +5,12 @@
   "x-contract-version": "1.0.0",
   "type": "object",
   "additionalProperties": false,
-  "required": ["taskId", "title", "status", "createdAt"],
+  "required": ["taskId", "title", "status", "initiatorUserId", "createdAt"],
   "properties": {
     "taskId": {"type": "string", "format": "uuid"},
     "title": {"type": "string", "minLength": 1, "maxLength": 300},
     "status": {"type": "string", "minLength": 1, "maxLength": 100},
+    "initiatorUserId": {"type": "string", "format": "uuid"},
     "createdAt": {"type": "string", "format": "date-time"}
   }
 }
