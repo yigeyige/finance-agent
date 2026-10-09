@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -69,6 +70,38 @@ class ModelConnectionConfigServiceTest {
 
         verify(repository).disableAll(OPERATOR, NOW);
         verify(repository).update(any(ModelConnectionConfig.class));
+    }
+
+    @Test
+    void disablesCurrentConfigAndLeavesNoEnabledConnection() {
+        ModelConnectionConfigRepository repository = mock(ModelConnectionConfigRepository.class);
+        UUID configId = UUID.randomUUID();
+        when(repository.findById(configId)).thenReturn(Optional.of(config(configId, "ciphertext", true)));
+        when(repository.findEnabled()).thenReturn(Optional.empty());
+        ModelConnectionConfigService service = new ModelConnectionConfigService(repository, mock(ModelApiKeyCipher.class), clock());
+
+        service.disable(configId, OPERATOR);
+
+        org.mockito.ArgumentCaptor<ModelConnectionConfig> captor = org.mockito.ArgumentCaptor.forClass(ModelConnectionConfig.class);
+        verify(repository).update(captor.capture());
+        assertThat(captor.getValue().enabled()).isFalse();
+        assertThat(captor.getValue().apiKeyCiphertext()).isEqualTo("ciphertext");
+        assertThat(captor.getValue().updatedBy()).isEqualTo(OPERATOR);
+        assertThat(captor.getValue().updatedAt()).isEqualTo(NOW);
+        assertThatThrownBy(service::requireEnabled).isInstanceOf(IllegalStateException.class)
+                .hasMessage("请先在大模型配置中启用一个模型");
+    }
+
+    @Test
+    void ignoresRepeatedDisableForAlreadyDisabledConfig() {
+        ModelConnectionConfigRepository repository = mock(ModelConnectionConfigRepository.class);
+        UUID configId = UUID.randomUUID();
+        when(repository.findById(configId)).thenReturn(Optional.of(config(configId, "ciphertext", false)));
+        ModelConnectionConfigService service = new ModelConnectionConfigService(repository, mock(ModelApiKeyCipher.class), clock());
+
+        service.disable(configId, OPERATOR);
+
+        verify(repository, never()).update(any(ModelConnectionConfig.class));
     }
 
     @Test

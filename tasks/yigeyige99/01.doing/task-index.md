@@ -130,12 +130,13 @@ source: development-workplan
 | 102 | P0 自定义需求 | [20261009-model-config-skill-analysis](../03.achieved/20261009-模型配置与场景接入.md) | 大模型配置管理与业务场景 Skill 接入模型分析 | [20261009-模型配置与场景接入.md](../03.achieved/20261009-模型配置与场景接入.md) | 已完成 | `20261008-streamline-plan-collaboration-ui` |
 | 103 | P0 自定义需求 | [20261009-fix-model-config-production-startup](../03.achieved/20261009-修复模型配置生产启动.md) | 修复模型配置与生产启动校验一致性 | [20261009-修复模型配置生产启动.md](../03.achieved/20261009-修复模型配置生产启动.md) | 已完成 | `20261009-model-config-skill-analysis` |
 | 104 | P0 自定义需求 | [20261009-sync-model-configuration-contracts](../03.achieved/20261009-同步模型配置接口契约.md) | 同步模型配置与业务处理扩展接口契约 | [20261009-同步模型配置接口契约.md](../03.achieved/20261009-同步模型配置接口契约.md) | 已完成 | `20261009-fix-model-config-production-startup` |
+| 105 | P0 自定义需求 | [20261009-complete-model-configuration-lifecycle](../03.achieved/20261009-完善模型配置停用生命周期.md) | 完善大模型配置启停生命周期 | [20261009-完善模型配置停用生命周期.md](../03.achieved/20261009-完善模型配置停用生命周期.md) | 已完成 | `20261009-sync-model-configuration-contracts` |
 
 ## 阶段统计
 
 | 阶段 | 数量 |
 |---|---:|
-| P0 | 81 |
+| P0 | 82 |
 | P1 | 9 |
 | P2 | 10 |
-| 合计 | 100 |
+| 合计 | 101 |

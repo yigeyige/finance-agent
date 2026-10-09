@@ -7,7 +7,7 @@
       <el-table-column prop="modelName" label="模型名称" min-width="140" /><el-table-column prop="reasoningEffort" label="推理强度" width="120"><template slot-scope="scope">{{ scope.row.reasoningEffort || '默认' }}</template></el-table-column>
       <el-table-column label="状态" width="110"><template slot-scope="scope"><el-tag :type="scope.row.enabled ? 'success' : 'info'">{{ scope.row.enabled ? '已启用' : '未启用' }}</el-tag></template></el-table-column>
       <el-table-column label="密钥" width="100"><template slot-scope="scope">{{ scope.row.apiKeyConfigured ? '已配置' : '未配置' }}</template></el-table-column>
-      <el-table-column label="操作" width="170"><template slot-scope="scope"><el-button type="text" :disabled="scope.row.enabled" @click="enable(scope.row)">启用</el-button><el-button type="text" @click="openEdit(scope.row)">编辑</el-button></template></el-table-column>
+      <el-table-column label="操作" width="220"><template slot-scope="scope"><el-button type="text" :disabled="scope.row.enabled" @click="enable(scope.row)">启用</el-button><el-button type="text" :disabled="!scope.row.enabled" @click="disable(scope.row)">停用</el-button><el-button type="text" @click="openEdit(scope.row)">编辑</el-button></template></el-table-column>
     </el-table></div>
     <el-dialog :title="editing ? '编辑大模型' : '新增大模型'" :visible.sync="dialogVisible" width="600px" :close-on-click-modal="false"><el-form :model="form" label-width="100px">
       <el-form-item label="配置名称" required><el-input v-model.trim="form.name" maxlength="100" /></el-form-item><el-form-item label="提供方"><el-select v-model="form.provider" disabled><el-option label="DeepSeek" value="DEEPSEEK" /></el-select></el-form-item>
@@ -19,7 +19,7 @@
 </template>
 <script lang="ts">
 import Vue from 'vue'
-import { ModelConnectionConfig, ModelConnectionConfigPayload, createModelConfiguration, enableModelConfiguration, listModelConfigurations, updateModelConfiguration } from '../services/model-config-api'
+import { ModelConnectionConfig, ModelConnectionConfigPayload, createModelConfiguration, disableModelConfiguration, enableModelConfiguration, listModelConfigurations, updateModelConfiguration } from '../services/model-config-api'
 interface Form extends ModelConnectionConfigPayload { apiKey: string }
 const blank = (): Form => ({ name: '', provider: 'DEEPSEEK', apiUrl: 'https://api.deepseek.com', modelName: '', reasoningEffort: '', apiKey: '' })
 /** 平台管理员维护数据库中的大模型连接信息，密钥只可写入不可回显。 */
@@ -29,5 +29,6 @@ export default Vue.extend({ name: 'ModelConfiguration', data: () => ({ items: []
   /** 打开编辑表单并确保密钥不回显。 */ openEdit(item: ModelConnectionConfig): void { this.editing = item.configId; this.form = { name: item.name, provider: item.provider, apiUrl: item.apiUrl, modelName: item.modelName, reasoningEffort: item.reasoningEffort || '', apiKey: '' }; this.dialogVisible = true },
   /** 保存配置及可选的新密钥。 */ async save(): Promise<void> { if (!this.form.name || !this.form.apiUrl || !this.form.modelName || (!this.editing && !this.form.apiKey)) { this.$message.warning('请填写名称、API 地址、模型名称和 API Key'); return } this.saving = true; try { if (this.editing) await updateModelConfiguration(this.editing, this.form); else await createModelConfiguration(this.form); this.dialogVisible = false; await this.load(); this.$message.success('大模型配置已保存') } catch (error: unknown) { this.$message.error(error instanceof Error ? error.message : '大模型配置保存失败') } finally { this.saving = false } },
   /** 启用选中模型作为唯一运行时连接。 */ async enable(item: ModelConnectionConfig): Promise<void> { try { await enableModelConfiguration(item.configId); await this.load(); this.$message.success('已启用该大模型') } catch (error: unknown) { this.$message.error(error instanceof Error ? error.message : '启用失败') } },
+  /** 停用当前模型，后续模型调用将进入安全维护状态。 */ async disable(item: ModelConnectionConfig): Promise<void> { try { await this.$confirm(`停用“${item.name}”后，业务处理将无法调用大模型，直到重新启用一个模型。`, '确认停用大模型', { confirmButtonText: '确认停用', cancelButtonText: '取消', type: 'warning' }); await disableModelConfiguration(item.configId); await this.load(); this.$message.success('大模型已停用') } catch (error: unknown) { if (error === 'cancel' || error === 'close') return; this.$message.error(error instanceof Error ? error.message : '停用失败') } },
 } })
 </script>

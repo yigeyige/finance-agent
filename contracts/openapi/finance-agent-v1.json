@@ -2,10 +2,10 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Finance Operations Agent API",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "财务共享智能运维 Agent P0 API 契约。"
   },
-  "x-contract-version": "1.1.0",
+  "x-contract-version": "1.2.0",
   "servers": [
     {
       "url": "/"
@@ -433,6 +433,19 @@
         "parameters": [{"$ref": "#/components/parameters/ConfigId"}],
         "responses": {
           "204": {"description": "Model connection becomes the only enabled connection"},
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "403": {"$ref": "#/components/responses/Forbidden"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      }
+    },
+    "/api/v1/model-configurations/{configId}/disable": {
+      "post": {
+        "operationId": "disableModelConfiguration",
+        "security": [{"unifiedAuth": ["PLATFORM_ADMIN"]}],
+        "parameters": [{"$ref": "#/components/parameters/ConfigId"}],
+        "responses": {
+          "204": {"description": "Model connection is disabled and remains available for later re-enable"},
           "401": {"$ref": "#/components/responses/Unauthorized"},
           "403": {"$ref": "#/components/responses/Forbidden"},
           "404": {"$ref": "#/components/responses/NotFound"}

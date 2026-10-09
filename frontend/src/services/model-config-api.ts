@@ -11,3 +11,5 @@ export async function createModelConfiguration(payload: ModelConnectionConfigPay
 export async function updateModelConfiguration(id: string, payload: ModelConnectionConfigPayload): Promise<ModelConnectionConfig> { return parseModelConnectionConfig(await putJson<unknown, ModelConnectionConfigPayload>(`/v1/model-configurations/${id}`, payload)) }
 /** 将此模型设为唯一启用连接。 */
 export function enableModelConfiguration(id: string): Promise<void> { return postJson<void, Record<string, never>>(`/v1/model-configurations/${id}/enable`, {}) }
+/** 停用当前模型连接，保留配置和加密密钥以便后续重新启用。 */
+export function disableModelConfiguration(id: string): Promise<void> { return postJson<void, Record<string, never>>(`/v1/model-configurations/${id}/disable`, {}) }

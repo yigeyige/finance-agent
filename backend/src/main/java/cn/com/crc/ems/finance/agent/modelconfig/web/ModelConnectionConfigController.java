@@ -26,5 +26,7 @@ public class ModelConnectionConfigController {
     @PostMapping public ResponseEntity<ModelConnectionConfigResponse> create(@Valid @RequestBody ModelConnectionConfigRequest request) { return ResponseEntity.status(HttpStatus.CREATED).body(ModelConnectionConfigResponse.from(service.create(request.name(), request.provider(), request.apiUrl(), request.modelName(), request.reasoningEffort(), request.apiKey(), requireAdmin()))); }
     @PutMapping("/{configId}") public ModelConnectionConfigResponse update(@PathVariable UUID configId, @Valid @RequestBody ModelConnectionConfigRequest request) { return ModelConnectionConfigResponse.from(service.update(configId, request.name(), request.provider(), request.apiUrl(), request.modelName(), request.reasoningEffort(), request.apiKey(), requireAdmin())); }
     @PostMapping("/{configId}/enable") public ResponseEntity<Void> enable(@PathVariable UUID configId) { service.enable(configId, requireAdmin()); return ResponseEntity.noContent().build(); }
+    /** 停用模型连接，后续真实模型调用将要求管理员重新启用一个模型。 */
+    @PostMapping("/{configId}/disable") public ResponseEntity<Void> disable(@PathVariable UUID configId) { service.disable(configId, requireAdmin()); return ResponseEntity.noContent().build(); }
     private static UUID requireAdmin() { var identity = IdentityContext.require(); if (!identity.hasRole(RoleCode.PLATFORM_ADMIN)) throw new org.springframework.web.server.ResponseStatusException(HttpStatus.FORBIDDEN, "当前身份无权维护大模型配置"); return identity.userId(); }
 }
