@@ -133,12 +133,13 @@ source: development-workplan
 | 105 | P0 自定义需求 | [20261009-complete-model-configuration-lifecycle](../03.achieved/20261009-完善模型配置停用生命周期.md) | 完善大模型配置启停生命周期 | [20261009-完善模型配置停用生命周期.md](../03.achieved/20261009-完善模型配置停用生命周期.md) | 已完成 | `20261009-sync-model-configuration-contracts` |
 | 106 | P0 自定义需求 | [20261009-scale-task-list-audit-query](../03.achieved/20261009-扩展任务列表审计查询.md) | 扩展任务列表分页筛选与审计查询 | [20261009-扩展任务列表审计查询.md](../03.achieved/20261009-扩展任务列表审计查询.md) | 已完成 | `20261009-complete-model-configuration-lifecycle` |
 | 107 | P0 自定义需求 | [20261009-harden-model-secret-key-derivation](../03.achieved/20261009-加固模型主密钥派生.md) | 加固模型主密钥派生与兼容解密 | [20261009-加固模型主密钥派生.md](../03.achieved/20261009-加固模型主密钥派生.md) | 已完成 | `20261009-scale-task-list-audit-query` |
+| 108 | P0 自定义需求 | [20261009-align-platform-admin-role-matrix](../03.achieved/20261009-调整平台管理员权限矩阵.md) | 调整平台管理员最高权限矩阵 | [20261009-调整平台管理员权限矩阵.md](../03.achieved/20261009-调整平台管理员权限矩阵.md) | 已完成 | `20261009-harden-model-secret-key-derivation` |
 
 ## 阶段统计
 
 | 阶段 | 数量 |
 |---|---:|
-| P0 | 84 |
+| P0 | 85 |
 | P1 | 9 |
 | P2 | 10 |
-| 合计 | 103 |
+| 合计 | 104 |
