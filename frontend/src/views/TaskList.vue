@@ -31,9 +31,6 @@
       </section>
 
       <section class="task-list-section">
-        <div class="task-list-section-heading">
-          <div><span class="task-list-section-dot" aria-hidden="true"></span><h3>筛选与操作</h3></div>
-        </div>
         <el-form :inline="true" class="task-list-toolbar" @submit.native.prevent="searchTasks">
           <div class="task-list-filter-fields">
             <el-form-item label="业务标题"><el-input v-model.trim="filters.keyword" maxlength="100" clearable placeholder="输入标题关键字" @keyup.enter.native="searchTasks" /></el-form-item>
@@ -67,7 +64,7 @@
               <template slot-scope="scope">{{ formatTime(scope.row.createdAt) }}</template>
             </el-table-column>
           </el-table>
-          <el-pagination class="task-list-pagination" background layout="total, sizes, prev, pager, next" :current-page="currentPage" :page-size="pageSize" :page-sizes="[20, 50, 100]" :total="total" @current-change="changePage" @size-change="changePageSize" />
+          <el-pagination class="task-list-pagination" background layout="total, sizes, prev, pager, next" :current-page="currentPage" :page-size="pageSize" :page-sizes="[10, 20, 50, 100]" :total="total" @current-change="changePage" @size-change="changePageSize" />
         </div>
       </section>
     </template>
@@ -113,7 +110,7 @@ export default Vue.extend({
       tasks: [] as TaskListItem[],
       total: 0,
       currentPage: 1,
-      pageSize: 20,
+      pageSize: 10,
       filters: { keyword: '', status: '' },
       loading: false,
       errorMessage: '',
@@ -189,7 +186,7 @@ export default Vue.extend({
   display: grid;
   grid-template-columns: minmax(280px, 1.7fr) repeat(3, minmax(140px, 1fr));
   align-items: stretch;
-  margin-bottom: 26px;
+  margin-bottom: 22px;
   overflow: hidden;
   background: #fffdf9;
   border: 1px solid #e7dfd4;
@@ -201,8 +198,8 @@ export default Vue.extend({
 .task-list-overview-item {
   display: flex;
   align-items: center;
-  min-height: 108px;
-  padding: 22px 28px;
+  min-height: 88px;
+  padding: 16px 24px;
 }
 
 .task-list-overview-main {
@@ -231,9 +228,9 @@ export default Vue.extend({
 }
 
 .task-list-overview strong {
-  margin-top: 7px;
+  margin-top: 6px;
   color: #2e2c29;
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1.2;
 }
 

@@ -201,6 +201,98 @@ body,
   margin-bottom: 24px;
 }
 
+/* 主要业务入口复用紧凑概览、操作区和内容卡片，保持跨页面操作节奏一致。 */
+.entry-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding-top: 6px;
+}
+
+.entry-page-heading {
+  margin-bottom: 18px;
+}
+
+.entry-overview {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.7fr) repeat(2, minmax(160px, 1fr));
+  align-items: stretch;
+  margin-bottom: 24px;
+  overflow: hidden;
+  background: #fffdf9;
+  border: 1px solid #e7dfd4;
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(83, 70, 48, 0.07);
+}
+
+.entry-overview__main,
+.entry-overview__item {
+  display: flex;
+  align-items: center;
+  min-height: 88px;
+  padding: 16px 24px;
+}
+
+.entry-overview__main {
+  gap: 15px;
+}
+
+.entry-overview__main > div,
+.entry-overview__item {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.entry-overview__marker {
+  width: 10px;
+  height: 10px;
+  background: #dd7a13;
+  border-radius: 50%;
+  box-shadow: 0 0 0 6px #fff0dc;
+}
+
+.entry-overview span,
+.entry-content-toolbar__meta {
+  color: #817b73;
+  font-size: 14px;
+}
+
+.entry-overview strong {
+  margin-top: 6px;
+  color: #2e2c29;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.entry-overview small {
+  margin-left: 4px;
+  color: #817b73;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.entry-overview__item {
+  border-left: 1px solid #e8e1d8;
+}
+
+.entry-content-card {
+  overflow: hidden;
+  background: #fffdf9;
+  border: 1px solid #e7dfd4;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(83, 70, 48, 0.06);
+}
+
+.entry-content-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 68px;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #e8e1d8;
+}
+
 .page-heading h2,
 .result-heading h3,
 .card-heading h3,
@@ -222,6 +314,33 @@ body,
 
 .guided-workflow {
   border-top: 4px solid #2c6e6f;
+}
+
+.entry-page .guided-workflow,
+.entry-page .detail-card {
+  border-color: #e7dfd4;
+  border-top-color: #dd7a13;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(83, 70, 48, 0.06);
+}
+
+/* 业务处理向导保留两步流程，但沿用入口页的卡片边界和暖色强调。 */
+.task-workbench {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding-top: 6px;
+}
+
+.task-workbench > .page-heading {
+  margin-bottom: 18px;
+}
+
+.task-workbench .guided-workflow,
+.task-workbench .detail-card {
+  border-color: #e7dfd4;
+  border-top-color: #dd7a13;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(83, 70, 48, 0.06);
 }
 
 .guided-workflow .el-steps {
@@ -652,6 +771,26 @@ body,
 
   .workbench-content {
     padding: 18px;
+  }
+
+  .entry-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .entry-overview__main,
+  .entry-overview__item {
+    min-height: auto;
+    padding: 16px 20px;
+  }
+
+  .entry-overview__item {
+    border-top: 1px solid #e8e1d8;
+    border-left: 0;
+  }
+
+  .entry-content-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .page-heading,

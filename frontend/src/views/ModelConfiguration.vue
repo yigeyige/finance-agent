@@ -1,14 +1,35 @@
 <template>
-  <section class="evidence-page list-page">
-    <div class="page-heading"><h2>大模型配置</h2><el-button type="primary" @click="openCreate">新增模型</el-button></div>
+  <section class="evidence-page list-page entry-page">
+    <div class="page-heading entry-page-heading"><h2>大模型配置</h2></div>
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
-    <div v-else class="standard-table-panel"><el-table v-loading="loading" :data="items" row-key="configId" border stripe empty-text="暂无大模型配置">
-      <el-table-column prop="name" label="配置名称" min-width="140" /><el-table-column prop="provider" label="提供方" width="120" />
-      <el-table-column prop="modelName" label="模型名称" min-width="140" /><el-table-column prop="reasoningEffort" label="推理强度" width="120"><template slot-scope="scope">{{ scope.row.reasoningEffort || '默认' }}</template></el-table-column>
-      <el-table-column label="状态" width="110"><template slot-scope="scope"><el-tag :type="scope.row.enabled ? 'success' : 'info'">{{ scope.row.enabled ? '已启用' : '未启用' }}</el-tag></template></el-table-column>
-      <el-table-column label="密钥" width="100"><template slot-scope="scope">{{ scope.row.apiKeyConfigured ? '已配置' : '未配置' }}</template></el-table-column>
-      <el-table-column label="操作" width="220"><template slot-scope="scope"><el-button type="text" :disabled="scope.row.enabled" @click="enable(scope.row)">启用</el-button><el-button type="text" :disabled="!scope.row.enabled" @click="disable(scope.row)">停用</el-button><el-button type="text" @click="openEdit(scope.row)">编辑</el-button></template></el-table-column>
-    </el-table></div>
+    <template v-else>
+      <section class="entry-overview" aria-label="大模型配置概览">
+        <div class="entry-overview__main">
+          <span class="entry-overview__marker" aria-hidden="true"></span>
+          <div><span>当前维护</span><strong>大模型配置</strong></div>
+        </div>
+        <div class="entry-overview__item"><span>配置总数</span><strong>{{ items.length }}<small>项</small></strong></div>
+        <div class="entry-overview__item"><span>已启用</span><strong>{{ enabledCount }}<small>项</small></strong></div>
+      </section>
+
+      <section class="entry-content-card">
+        <div class="entry-content-toolbar">
+          <span class="entry-content-toolbar__meta">共 {{ items.length }} 项</span>
+          <el-button type="primary" @click="openCreate">新增模型</el-button>
+        </div>
+        <div class="standard-table-panel model-config-table">
+          <el-table v-loading="loading" :data="items" row-key="configId" class="standard-data-table" border stripe empty-text="暂无大模型配置">
+            <el-table-column prop="name" label="配置名称" min-width="140" />
+            <el-table-column prop="provider" label="提供方" width="120" />
+            <el-table-column prop="modelName" label="模型名称" min-width="140" />
+            <el-table-column prop="reasoningEffort" label="推理强度" width="120"><template slot-scope="scope">{{ scope.row.reasoningEffort || '默认' }}</template></el-table-column>
+            <el-table-column label="状态" width="110"><template slot-scope="scope"><el-tag :type="scope.row.enabled ? 'success' : 'info'">{{ scope.row.enabled ? '已启用' : '未启用' }}</el-tag></template></el-table-column>
+            <el-table-column label="密钥" width="100"><template slot-scope="scope">{{ scope.row.apiKeyConfigured ? '已配置' : '未配置' }}</template></el-table-column>
+            <el-table-column label="操作" width="220"><template slot-scope="scope"><el-button type="text" :disabled="scope.row.enabled" @click="enable(scope.row)">启用</el-button><el-button type="text" :disabled="!scope.row.enabled" @click="disable(scope.row)">停用</el-button><el-button type="text" @click="openEdit(scope.row)">编辑</el-button></template></el-table-column>
+          </el-table>
+        </div>
+      </section>
+    </template>
     <el-dialog :title="editing ? '编辑大模型' : '新增大模型'" :visible.sync="dialogVisible" width="600px" :close-on-click-modal="false"><el-form :model="form" label-width="100px">
       <el-form-item label="配置名称" required><el-input v-model.trim="form.name" maxlength="100" /></el-form-item><el-form-item label="提供方"><el-select v-model="form.provider" disabled><el-option label="DeepSeek" value="DEEPSEEK" /></el-select></el-form-item>
       <el-form-item label="API 地址" required><el-input v-model.trim="form.apiUrl" placeholder="例如：https://api.deepseek.com" /></el-form-item><el-form-item label="模型名称" required><el-input v-model.trim="form.modelName" placeholder="例如：deepseek-chat" /></el-form-item>
@@ -23,7 +44,9 @@ import { ModelConnectionConfig, ModelConnectionConfigPayload, createModelConfigu
 interface Form extends ModelConnectionConfigPayload { apiKey: string }
 const blank = (): Form => ({ name: '', provider: 'DEEPSEEK', apiUrl: 'https://api.deepseek.com', modelName: '', reasoningEffort: '', apiKey: '' })
 /** 平台管理员维护数据库中的大模型连接信息，密钥只可写入不可回显。 */
-export default Vue.extend({ name: 'ModelConfiguration', data: () => ({ items: [] as ModelConnectionConfig[], loading: false, saving: false, errorMessage: '', dialogVisible: false, editing: '' as string, form: blank() }), created() { void this.load() }, methods: {
+export default Vue.extend({ name: 'ModelConfiguration', data: () => ({ items: [] as ModelConnectionConfig[], loading: false, saving: false, errorMessage: '', dialogVisible: false, editing: '' as string, form: blank() }), created() { void this.load() }, computed: {
+  /** 汇总当前已启用的模型连接数量，仅用于概览展示。 */ enabledCount(): number { return this.items.filter(item => item.enabled).length },
+}, methods: {
   /** 加载可维护的模型连接。 */ async load(): Promise<void> { this.loading = true; try { this.items = await listModelConfigurations() } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '大模型配置暂时无法读取' } finally { this.loading = false } },
   /** 打开新增表单。 */ openCreate(): void { this.editing = ''; this.form = blank(); this.dialogVisible = true },
   /** 打开编辑表单并确保密钥不回显。 */ openEdit(item: ModelConnectionConfig): void { this.editing = item.configId; this.form = { name: item.name, provider: item.provider, apiUrl: item.apiUrl, modelName: item.modelName, reasoningEffort: item.reasoningEffort || '', apiKey: '' }; this.dialogVisible = true },
@@ -32,3 +55,9 @@ export default Vue.extend({ name: 'ModelConfiguration', data: () => ({ items: []
   /** 停用当前模型，后续模型调用将进入安全维护状态。 */ async disable(item: ModelConnectionConfig): Promise<void> { try { await this.$confirm(`停用“${item.name}”后，业务处理将无法调用大模型，直到重新启用一个模型。`, '确认停用大模型', { confirmButtonText: '确认停用', cancelButtonText: '取消', type: 'warning' }); await disableModelConfiguration(item.configId); await this.load(); this.$message.success('大模型已停用') } catch (error: unknown) { if (error === 'cancel' || error === 'close') return; this.$message.error(error instanceof Error ? error.message : '停用失败') } },
 } })
 </script>
+<style scoped>
+.model-config-table {
+  border: 0;
+  border-radius: 0;
+}
+</style>

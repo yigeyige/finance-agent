@@ -1,37 +1,53 @@
 <template>
-  <section class="evidence-page list-page skill-catalog">
-    <div class="page-heading">
+  <section class="evidence-page list-page skill-catalog entry-page">
+    <div class="page-heading entry-page-heading">
       <h2>业务场景 Skill</h2>
-      <el-button type="primary" @click="openCreateDialog">新增业务场景</el-button>
     </div>
 
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
 
-    <div v-else class="standard-table-panel">
-      <el-table v-loading="loading" :data="skills" row-key="skillId" class="standard-data-table" border stripe
-        empty-text="暂无业务场景">
-        <el-table-column prop="name" label="业务名称" min-width="180" show-overflow-tooltip />
-        <el-table-column label="处理方式" width="128">
-          <template slot-scope="scope">
-            <el-tag :type="scope.row.handlingType === 'ADJUST' ? 'warning' : 'success'" effect="plain">
-              {{ handlingTypeLabel(scope.row.handlingType) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="premiseType" label="业务场景" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="description" label="业务说明" min-width="320" show-overflow-tooltip />
-        <el-table-column label="更新时间" width="190">
-          <template slot-scope="scope">{{ formatTime(scope.row.updatedAt) }}</template>
-        </el-table-column>
-        <el-table-column label="操作" width="190" align="center">
-          <template slot-scope="scope">
-            <el-button type="text" @click="startHandling(scope.row)">开始处理</el-button>
-            <el-button type="text" @click="openEditDialog(scope.row)">编辑</el-button>
-            <el-button type="text" class="skill-delete-action" @click="confirmDelete(scope.row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
+    <template v-else>
+      <section class="entry-overview" aria-label="业务场景概览">
+        <div class="entry-overview__main">
+          <span class="entry-overview__marker" aria-hidden="true"></span>
+          <div><span>当前维护</span><strong>业务场景 Skill</strong></div>
+        </div>
+        <div class="entry-overview__item"><span>场景总数</span><strong>{{ skills.length }}<small>项</small></strong></div>
+        <div class="entry-overview__item"><span>管理范围</span><strong>集中维护</strong></div>
+      </section>
+
+      <section class="entry-content-card">
+        <div class="entry-content-toolbar">
+          <span class="entry-content-toolbar__meta">共 {{ skills.length }} 项</span>
+          <el-button type="primary" @click="openCreateDialog">新增业务场景</el-button>
+        </div>
+        <div class="standard-table-panel skill-catalog-table">
+          <el-table v-loading="loading" :data="skills" row-key="skillId" class="standard-data-table" border stripe
+            empty-text="暂无业务场景">
+            <el-table-column prop="name" label="业务名称" min-width="180" show-overflow-tooltip />
+            <el-table-column label="处理方式" width="128">
+              <template slot-scope="scope">
+                <el-tag :type="scope.row.handlingType === 'ADJUST' ? 'warning' : 'success'" effect="plain">
+                  {{ handlingTypeLabel(scope.row.handlingType) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="premiseType" label="业务场景" min-width="180" show-overflow-tooltip />
+            <el-table-column prop="description" label="业务说明" min-width="320" show-overflow-tooltip />
+            <el-table-column label="更新时间" width="190">
+              <template slot-scope="scope">{{ formatTime(scope.row.updatedAt) }}</template>
+            </el-table-column>
+            <el-table-column label="操作" width="190" align="center">
+              <template slot-scope="scope">
+                <el-button type="text" @click="startHandling(scope.row)">开始处理</el-button>
+                <el-button type="text" @click="openEditDialog(scope.row)">编辑</el-button>
+                <el-button type="text" class="skill-delete-action" @click="confirmDelete(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </section>
+    </template>
 
     <el-dialog :title="editingId ? '编辑业务场景' : '新增业务场景'" :visible.sync="dialogVisible" width="560px"
       :close-on-click-modal="false" @closed="resetForm">
@@ -190,3 +206,9 @@ export default Vue.extend({
   },
 })
 </script>
+<style scoped>
+.skill-catalog-table {
+  border: 0;
+  border-radius: 0;
+}
+</style>
