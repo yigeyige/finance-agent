@@ -134,12 +134,13 @@ source: development-workplan
 | 106 | P0 自定义需求 | [20261009-scale-task-list-audit-query](../03.achieved/20261009-扩展任务列表审计查询.md) | 扩展任务列表分页筛选与审计查询 | [20261009-扩展任务列表审计查询.md](../03.achieved/20261009-扩展任务列表审计查询.md) | 已完成 | `20261009-complete-model-configuration-lifecycle` |
 | 107 | P0 自定义需求 | [20261009-harden-model-secret-key-derivation](../03.achieved/20261009-加固模型主密钥派生.md) | 加固模型主密钥派生与兼容解密 | [20261009-加固模型主密钥派生.md](../03.achieved/20261009-加固模型主密钥派生.md) | 已完成 | `20261009-scale-task-list-audit-query` |
 | 108 | P0 自定义需求 | [20261009-align-platform-admin-role-matrix](../03.achieved/20261009-调整平台管理员权限矩阵.md) | 调整平台管理员最高权限矩阵 | [20261009-调整平台管理员权限矩阵.md](../03.achieved/20261009-调整平台管理员权限矩阵.md) | 已完成 | `20261009-harden-model-secret-key-derivation` |
+| 109 | P0 自定义需求 | [20261010-add-local-startup-script](../03.achieved/20261010-新增前后端本地启动脚本.md) | 新增前后端本地 local 启动脚本 | [20261010-新增前后端本地启动脚本.md](../03.achieved/20261010-新增前后端本地启动脚本.md) | 已完成 | 无 |
 
 ## 阶段统计
 
 | 阶段 | 数量 |
 |---|---:|
-| P0 | 85 |
+| P0 | 86 |
 | P1 | 9 |
 | P2 | 10 |
-| 合计 | 104 |
+| 合计 | 105 |
