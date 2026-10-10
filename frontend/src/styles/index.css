@@ -764,7 +764,7 @@ body,
     padding: 14px 18px;
   }
 
-  .identity-tools {
+.identity-tools {
     display: flex;
     gap: 8px;
   }
@@ -843,4 +843,14 @@ body,
     grid-template-columns: 1fr;
     gap: 6px;
   }
+}
+
+.identity-user {
+  cursor: pointer;
+  color: #33415c;
+  font-weight: 600;
+}
+
+.identity-user i {
+  margin-left: 8px;
 }

@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import cn.com.crc.ems.finance.agent.iam.domain.AgentUser;
@@ -15,7 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 /**
  *
- * @Description: 解析生产 Principal 或 local/test 白名单标识，并只提供具有活动角色的可信身份。
+ * @Description: 解析会话、生产 Principal 或 local/test 白名单标识，并只提供具有活动角色的可信身份。
  *
  * @Version: 0.1.0
  * @Author: yigeyige99
@@ -32,16 +33,39 @@ public class IdentityResolver {
     private final AgentUserRepository agentUserRepository;
     private final RoleBindingRepository roleBindingRepository;
     private final Environment environment;
+    private final PasswordLoginService passwordLoginService;
 
     public IdentityResolver(AgentUserRepository agentUserRepository, RoleBindingRepository roleBindingRepository,
             Environment environment) {
+        this(agentUserRepository, roleBindingRepository, environment, null);
+    }
+
+    @Autowired
+    public IdentityResolver(AgentUserRepository agentUserRepository, RoleBindingRepository roleBindingRepository,
+            Environment environment, PasswordLoginService passwordLoginService) {
         this.agentUserRepository = agentUserRepository;
         this.roleBindingRepository = roleBindingRepository;
         this.environment = environment;
+        this.passwordLoginService = passwordLoginService;
     }
 
-    /** 解析请求身份；无可信来源时返回空。 */
+    /**
+     *
+     * @description: 按会话、生产 Principal、local/test 白名单的顺序解析请求身份；无可信来源时返回空。
+     *
+     * @param: request 当前 HTTP 请求
+     * @return: 当前可信身份；无法解析时为 null
+     * @author: yigeyige99
+     */
     public CurrentIdentity resolve(HttpServletRequest request) {
+        if (passwordLoginService != null && request.getCookies() != null) {
+            for (var cookie : request.getCookies()) {
+                if (PasswordLoginService.COOKIE_NAME.equals(cookie.getName())) {
+                    var identity = passwordLoginService.resolve(cookie.getValue());
+                    if (identity.isPresent()) return identity.get();
+                }
+            }
+        }
         Principal principal = request.getUserPrincipal();
         if (principal != null) {
             return agentUserRepository.findByAuthSubject(principal.getName()).map(this::toIdentity).orElse(null);

@@ -92,7 +92,7 @@ public class ProductionStartupValidator {
                 || workspace.getAllowedMediaTypes().isEmpty()) {
             violations.add("finance-agent.workspace.allowed-media-types");
         }
-        if (identity == null || identity.getMode() != FinanceAgentProperties.IdentityMode.SSO) {
+        if (identity == null || identity.getMode() != FinanceAgentProperties.IdentityMode.PASSWORD) {
             violations.add("finance-agent.identity.mode");
         }
         if (identity != null && identity.isSeedEnabled()) {

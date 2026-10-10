@@ -1,5 +1,6 @@
 <template>
-  <el-container class="workbench-shell">
+  <div>
+    <el-container v-if="!isLoginRoute" class="workbench-shell">
     <el-aside width="232px" class="workbench-sidebar">
       <div class="brand" aria-label="财务运维工作台">
         <span class="brand-mark" aria-hidden="true">财</span>
@@ -33,16 +34,12 @@
           <h1>运维工作台</h1>
         </div>
         <div class="identity-tools">
-          <el-select
-            v-if="testIdentityMode"
-            v-model="selectedIdentity"
-            size="small"
-            aria-label="选择测试身份"
-            @change="switchIdentity"
-          >
-            <el-option v-for="identity in testIdentities" :key="identity.value" :label="identity.label" :value="identity.value" />
-          </el-select>
-          <el-tag v-if="identity" type="info">{{ identity.displayName }}</el-tag>
+          <el-dropdown v-if="identity" trigger="click" @command="handleUserCommand">
+            <span class="identity-user">{{ identity.displayName }}<i class="el-icon-arrow-down"></i></span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
           <el-tag v-else type="warning">身份加载中</el-tag>
         </div>
       </el-header>
@@ -53,14 +50,16 @@
         </keep-alive>
       </el-main>
     </el-container>
-  </el-container>
+    </el-container>
+    <router-view v-else />
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 
 import { CurrentIdentityResponse } from './api/generated'
-import { ensureCurrentIdentity, fetchCurrentIdentity, selectTestIdentity, TEST_IDENTITIES } from './services/identity'
+import { ensureCurrentIdentity, logout } from './services/identity'
 
 export default Vue.extend({
   name: 'App',
@@ -68,12 +67,13 @@ export default Vue.extend({
     return {
       identity: null as CurrentIdentityResponse | null,
       identityError: '',
-      selectedIdentity: typeof localStorage === 'undefined' ? 'operator' : localStorage.getItem('finance-agent.test-identity') || 'operator',
-      testIdentities: TEST_IDENTITIES,
-      testIdentityMode: import.meta.env.VITE_IDENTITY_MODE !== 'prod',
     }
   },
   computed: {
+    /** 判断当前是否展示独立登录页。 */
+    isLoginRoute(): boolean {
+      return this.$route.name === 'login'
+    },
     canReadTasks(): boolean {
       // 必须直接依赖响应式 identity，避免模块级身份缓存导致菜单权限被首次计算结果锁定。
       return this.identity?.roles.includes('PLATFORM_ADMIN') || this.identity?.permissions.includes('TASK_READ') || false
@@ -99,17 +99,12 @@ export default Vue.extend({
         this.identityError = '当前身份不可用，请检查本地服务配置'
       }
     },
-    /** 切换 local/test 合成身份并刷新服务端权限。 */
-    async switchIdentity(value: string): Promise<void> {
-      selectTestIdentity(value)
-      try {
-        this.identity = await fetchCurrentIdentity()
-        this.identityError = ''
-      } catch {
-        this.identity = null
-        this.identityError = '当前身份不可用，请检查本地服务配置'
-      }
-      await this.$router.push('/')
+    /** 执行用户下拉菜单中的退出登录操作。 */
+    async handleUserCommand(command: string): Promise<void> {
+      if (command !== 'logout') return
+      await logout()
+      this.identity = null
+      await this.$router.replace('/login')
     },
   },
 })

@@ -39,7 +39,7 @@ class ProductionStartupValidatorTest {
         properties.getDeepSeek().setStub(false);
         properties.getSecurity().setModelSecretKey("01234567890123456789012345678901");
         properties.getWorkspace().setRoot(Path.of("srv", "finance-agent").toAbsolutePath().toString());
-        properties.getIdentity().setMode(FinanceAgentProperties.IdentityMode.SSO);
+        properties.getIdentity().setMode(FinanceAgentProperties.IdentityMode.PASSWORD);
         properties.getStorage().setMode(FinanceAgentProperties.StorageMode.OBJECT_STORE);
         properties.getStorage().setAdapterId("s3");
         properties.getSource().setStub(false);
@@ -69,7 +69,7 @@ class ProductionStartupValidatorTest {
         properties.getDeepSeek().setStub(false);
         properties.getSecurity().setModelSecretKey("01234567890123456789012345678901");
         properties.getWorkspace().setRoot(Path.of("srv", "finance-agent").toAbsolutePath().toString());
-        properties.getIdentity().setMode(FinanceAgentProperties.IdentityMode.SSO);
+        properties.getIdentity().setMode(FinanceAgentProperties.IdentityMode.PASSWORD);
         properties.getStorage().setMode(FinanceAgentProperties.StorageMode.OBJECT_STORE);
         properties.getStorage().setAdapterId("none");
         properties.getSource().setStub(false);

@@ -25,7 +25,7 @@ finance-agent:
     max-tokens: ${FINANCE_AGENT_MAX_TOKENS:16000}
     max-cost: ${FINANCE_AGENT_MAX_COST:0}
   identity:
-    mode: ${FINANCE_AGENT_IDENTITY_MODE:sso}
+    mode: ${FINANCE_AGENT_IDENTITY_MODE:password}
   storage:
     mode: ${FINANCE_AGENT_STORAGE_MODE:object-store}
     adapter-id: ${FINANCE_AGENT_STORAGE_ADAPTER_ID:none}

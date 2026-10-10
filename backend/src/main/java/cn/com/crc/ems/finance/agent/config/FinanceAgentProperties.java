@@ -636,6 +636,7 @@ public class FinanceAgentProperties {
     public enum IdentityMode {
         TEST,
         STUB,
+        PASSWORD,
         SSO
     }
 

@@ -10,6 +10,7 @@ import TaskList from '../views/TaskList.vue'
 import TaskDetail from '../views/TaskDetail.vue'
 import BusinessSkillCatalog from '../views/BusinessSkillCatalog.vue'
 import ModelConfiguration from '../views/ModelConfiguration.vue'
+import Login from '../views/Login.vue'
 import { IdentityPermission } from '../api/generated'
 import { ensureCurrentIdentity, hasPermission } from '../services/identity'
 
@@ -18,6 +19,7 @@ Vue.use(Router)
 const router = new Router({
   mode: 'hash',
   routes: [
+    { path: '/login', name: 'login', component: Login, meta: { public: true } },
     {
       path: '/',
       name: 'workbench-home',
@@ -62,17 +64,18 @@ const router = new Router({
 
 /** 依据已加载的服务端权限做前端路由防御，最终授权仍由后端执行。 */
 router.beforeEach(async (to, _from, next) => {
+  if (to.meta?.public) { next(); return }
   const permissions = Array.isArray(to.meta?.permissions)
     ? to.meta.permissions.filter((permission): permission is IdentityPermission => typeof permission === 'string')
     : typeof to.meta?.permission === 'string' ? [to.meta.permission as IdentityPermission] : []
-  if (permissions.length) {
+  if (permissions.length || to.path === '/') {
     try {
       await ensureCurrentIdentity()
     } catch {
-      next(to.path === '/' ? undefined : '/')
+      next({ path: '/login', query: { redirect: to.fullPath } })
       return
     }
-    if (!permissions.some((permission) => hasPermission(permission))) {
+    if (permissions.length > 0 && !permissions.some((permission) => hasPermission(permission))) {
       next('/')
       return
     }

@@ -8,12 +8,12 @@ if ([string]::IsNullOrWhiteSpace($MigrationDirectory)) {
     $MigrationDirectory = Join-Path $repoRoot "backend\src\main\resources\db\migration"
 }
 
-$expected = 1..15 | ForEach-Object { "V{0}__" -f $_ }
+$expected = 1..16 | ForEach-Object { "V{0}__" -f $_ }
 $files = Get-ChildItem -LiteralPath $MigrationDirectory -Filter "V*.sql" -File |
     Where-Object { $_.Name -match '^V[1-9][0-9]*__.*\.sql$' } |
     Sort-Object { [int]([regex]::Match($_.Name, '^V(\d+)__').Groups[1].Value) }
-if ($files.Count -ne 15) {
-    throw "Expected exactly 15 Flyway migration files (V1-V15)."
+if ($files.Count -ne 16) {
+    throw "Expected exactly 16 Flyway migration files (V1-V16)."
 }
 for ($index = 0; $index -lt $expected.Count; $index++) {
     if (-not $files[$index].Name.StartsWith($expected[$index])) {
@@ -81,6 +81,12 @@ $commentedColumns = [regex]::Matches($columnSection.Groups["body"].Value, "WHEN 
     ForEach-Object { $_.Groups["column"].Value }
 if (($commentedColumns | Select-Object -Unique).Count -ne 201 -or $commentedColumns.Count -ne 201) {
     throw "Schema comments column mapping must contain exactly 201 unique business column names."
+}
+$passwordMigrationPath = Join-Path $MigrationDirectory "V16__password_login.sql"
+if (-not (Test-Path -LiteralPath $passwordMigrationPath -PathType Leaf)) { throw "Missing password login migration: V16__password_login.sql" }
+$passwordSql = Get-Content -LiteralPath $passwordMigrationPath -Raw -Encoding UTF8
+foreach ($requiredToken in @("iam.user_password", "COMMENT ON TABLE iam.user_password", "COMMENT ON COLUMN iam.user_password")) {
+    if ($passwordSql -notmatch [regex]::Escape($requiredToken)) { throw "Password login migration is missing required token: $requiredToken" }
 }
 
 Write-Output "status=OK"

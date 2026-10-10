@@ -6,11 +6,15 @@
 
 ### Requirement: Complete business schema comments
 
-系统 SHALL 通过一个高于当前最新版本的前向 Flyway 迁移，为 `iam`、`task`、`evidence`、`packet`、`harness`、`knowledge`、`governance` schema 中的每张业务表及其每个字段写入中文 PostgreSQL 注释。迁移 MUST 不改写既有迁移文件，也 MUST 不修改业务数据。
+系统 SHALL 通过前向 Flyway 迁移，为 `iam`、`task`、`evidence`、`packet`、`harness`、`knowledge`、`governance` schema 中的每张业务表及其每个字段写入中文 PostgreSQL 注释。新增业务表的迁移 MUST 同时写入其表和字段注释；迁移 MUST 不改写既有迁移文件，也 MUST 不修改既有业务数据。
 
 #### Scenario: Apply comments after existing schema migrations
 - **WHEN** 已执行现有建表迁移的数据库执行该注释迁移
 - **THEN** 每张业务表和字段均可从 PostgreSQL 元数据读取非空中文注释，且表结构和业务数据保持不变
+
+#### Scenario: Login credential table is introduced
+- **WHEN** 数据库执行创建 IAM 密码凭据表的迁移
+- **THEN** 该迁移同时写入密码凭据表及其全部字段的中文注释，且不修改既有用户或角色数据
 
 ### Requirement: Fail closed for undocumented objects
 

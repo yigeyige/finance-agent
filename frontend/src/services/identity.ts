@@ -1,11 +1,5 @@
 import { CurrentIdentityResponse, IdentityPermission, parseCurrentIdentity } from '../api/generated'
-import { getJson } from './http'
-
-export const TEST_IDENTITIES = [
-  { value: 'operator', label: '本地操作员' },
-  { value: 'viewer', label: '本地查看员' },
-  { value: 'platform-admin', label: '本地平台管理员' },
-] as const
+import { getJson, postJson } from './http'
 
 let currentIdentity: CurrentIdentityResponse | undefined
 let identityPromise: Promise<CurrentIdentityResponse> | undefined
@@ -34,12 +28,16 @@ export function hasPermission(permission: IdentityPermission): boolean {
   // 平台管理员在工作台中具备全量导航权限；具体接口仍由后端权限守卫决定。
   return currentIdentity?.roles.includes('PLATFORM_ADMIN') || currentIdentity?.permissions.includes(permission) || false
 }
+/** 使用账号密码建立会话并更新当前身份缓存。 */
+export async function login(username: string, password: string): Promise<CurrentIdentityResponse> {
+  const response = await postJson<unknown, { username: string; password: string }>('/v1/identity/login', { username, password })
+  currentIdentity = parseCurrentIdentity(response)
+  return currentIdentity
+}
 
-/** 保存 local/test 身份选择并触发后续请求携带该标识。 */
-export function selectTestIdentity(value: string): void {
-  if (TEST_IDENTITIES.some((identity) => identity.value === value)) {
-    localStorage.setItem('finance-agent.test-identity', value)
-    currentIdentity = undefined
-    identityPromise = undefined
-  }
+/** 退出当前会话并清除前端身份缓存。 */
+export async function logout(): Promise<void> {
+  await postJson<void, Record<string, never>>('/v1/identity/logout', {})
+  currentIdentity = undefined
+  identityPromise = undefined
 }
