@@ -1,35 +1,76 @@
 <!-- 当前管理员最近任务的标准数据列表，只展示当前可信身份可见的任务。 -->
 <template>
-  <section class="evidence-page list-page">
-    <div class="page-heading">
+  <section class="evidence-page list-page task-list-page">
+    <div class="page-heading task-list-heading">
       <h2>任务列表</h2>
-      <el-button type="primary" @click="$router.push('/')">新建业务处理</el-button>
     </div>
 
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
 
-    <div v-else class="standard-table-panel">
-      <el-form :inline="true" class="task-list-filters" @submit.native.prevent="searchTasks">
-        <el-form-item label="业务标题"><el-input v-model.trim="filters.keyword" maxlength="100" clearable placeholder="输入标题关键字" @keyup.enter.native="searchTasks" /></el-form-item>
-        <el-form-item label="处理状态"><el-select v-model="filters.status" clearable placeholder="全部状态"><el-option v-for="status in statuses" :key="status" :label="statusLabel(status)" :value="status" /></el-select></el-form-item>
-        <el-form-item><el-button type="primary" @click="searchTasks">查询</el-button><el-button @click="resetFilters">重置</el-button></el-form-item>
-      </el-form>
-      <el-table v-loading="loading" :data="tasks" row-key="taskId" class="standard-data-table" border stripe
-        @row-dblclick="openDetail"
-        empty-text="暂无任务">
-        <el-table-column prop="title" label="业务标题" min-width="320" show-overflow-tooltip />
-        <el-table-column label="处理状态" width="168">
-          <template slot-scope="scope">
-            <el-tag :type="statusTagType(scope.row.status)" effect="plain">{{ statusLabel(scope.row.status) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="initiatorUserId" label="发起人标识" min-width="210" show-overflow-tooltip />
-        <el-table-column label="创建时间" width="190">
-          <template slot-scope="scope">{{ formatTime(scope.row.createdAt) }}</template>
-        </el-table-column>
-      </el-table>
-      <el-pagination class="task-list-pagination" background layout="total, sizes, prev, pager, next" :current-page="currentPage" :page-size="pageSize" :page-sizes="[20, 50, 100]" :total="total" @current-change="changePage" @size-change="changePageSize" />
-    </div>
+    <template v-else>
+      <section class="task-list-overview" aria-label="任务概览">
+        <div class="task-list-overview-main">
+          <span class="task-list-overview-dot" aria-hidden="true"></span>
+          <div>
+            <span>当前查看</span>
+            <strong>业务处理任务</strong>
+          </div>
+        </div>
+        <div class="task-list-overview-item">
+          <span>任务总数</span>
+          <strong>{{ total }}<small>项</small></strong>
+        </div>
+        <div class="task-list-overview-item">
+          <span>当前显示</span>
+          <strong>{{ tasks.length }}<small>项</small></strong>
+        </div>
+        <div class="task-list-overview-item">
+          <span>当前页</span>
+          <strong>{{ currentPage }}<small>/ {{ pageCount }}</small></strong>
+        </div>
+      </section>
+
+      <section class="task-list-section">
+        <div class="task-list-section-heading">
+          <div><span class="task-list-section-dot" aria-hidden="true"></span><h3>筛选与操作</h3></div>
+        </div>
+        <el-form :inline="true" class="task-list-toolbar" @submit.native.prevent="searchTasks">
+          <div class="task-list-filter-fields">
+            <el-form-item label="业务标题"><el-input v-model.trim="filters.keyword" maxlength="100" clearable placeholder="输入标题关键字" @keyup.enter.native="searchTasks" /></el-form-item>
+            <el-form-item label="处理状态"><el-select v-model="filters.status" clearable placeholder="全部状态"><el-option v-for="status in statuses" :key="status" :label="statusLabel(status)" :value="status" /></el-select></el-form-item>
+          </div>
+          <div class="task-list-filter-actions" aria-label="任务操作">
+            <el-button type="primary" @click="searchTasks">查询</el-button>
+            <el-button @click="resetFilters">重置</el-button>
+            <el-button type="primary" plain @click="$router.push('/')">新建业务处理</el-button>
+          </div>
+        </el-form>
+      </section>
+
+      <section class="task-list-section">
+        <div class="task-list-section-heading task-list-record-heading">
+          <div><span class="task-list-section-dot" aria-hidden="true"></span><h3>业务处理记录</h3></div>
+          <span>共 {{ total }} 项</span>
+        </div>
+        <div class="standard-table-panel task-list-table-panel">
+          <el-table v-loading="loading" :data="tasks" row-key="taskId" class="standard-data-table" border stripe
+            @row-dblclick="openDetail"
+            empty-text="暂无任务">
+            <el-table-column prop="title" label="业务标题" min-width="320" show-overflow-tooltip />
+            <el-table-column label="处理状态" width="168">
+              <template slot-scope="scope">
+                <el-tag :type="statusTagType(scope.row.status)" effect="plain">{{ statusLabel(scope.row.status) }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="initiatorUserId" label="发起人标识" min-width="210" show-overflow-tooltip />
+            <el-table-column label="创建时间" width="190">
+              <template slot-scope="scope">{{ formatTime(scope.row.createdAt) }}</template>
+            </el-table-column>
+          </el-table>
+          <el-pagination class="task-list-pagination" background layout="total, sizes, prev, pager, next" :current-page="currentPage" :page-size="pageSize" :page-sizes="[20, 50, 100]" :total="total" @current-change="changePage" @size-change="changePageSize" />
+        </div>
+      </section>
+    </template>
   </section>
 </template>
 
@@ -82,7 +123,10 @@ export default Vue.extend({
     void this.loadTasks()
   },
   computed: {
+    /** 提供可筛选的任务状态集合。 */
     statuses(): string[] { return Object.keys(statusLabels) },
+    /** 计算筛选结果的页数，用于顶部概览展示。 */
+    pageCount(): number { return Math.max(1, Math.ceil(this.total / this.pageSize)) },
   },
   methods: {
     /** 加载当前身份范围内的任务页，并在失败时保留页面错误反馈。 */
@@ -131,5 +175,213 @@ export default Vue.extend({
 })
 </script>
 <style scoped>
-.task-list-filters{margin-bottom:16px}.task-list-pagination{margin-top:18px;text-align:right}
+.task-list-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding-top: 6px;
+}
+
+.task-list-heading {
+  margin-bottom: 18px;
+}
+
+.task-list-overview {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.7fr) repeat(3, minmax(140px, 1fr));
+  align-items: stretch;
+  margin-bottom: 26px;
+  overflow: hidden;
+  background: #fffdf9;
+  border: 1px solid #e7dfd4;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(83, 70, 48, 0.08);
+}
+
+.task-list-overview-main,
+.task-list-overview-item {
+  display: flex;
+  align-items: center;
+  min-height: 108px;
+  padding: 22px 28px;
+}
+
+.task-list-overview-main {
+  gap: 16px;
+}
+
+.task-list-overview-main > div,
+.task-list-overview-item {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.task-list-overview-dot {
+  width: 12px;
+  height: 12px;
+  background: #dd7a13;
+  border-radius: 50%;
+  box-shadow: 0 0 0 7px #fff0dc;
+}
+
+.task-list-overview span,
+.task-list-record-heading > span {
+  color: #817b73;
+  font-size: 14px;
+}
+
+.task-list-overview strong {
+  margin-top: 7px;
+  color: #2e2c29;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.task-list-overview small {
+  margin-left: 4px;
+  color: #817b73;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.task-list-overview-item {
+  border-left: 1px solid #e8e1d8;
+}
+
+.task-list-section + .task-list-section {
+  margin-top: 28px;
+}
+
+.task-list-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.task-list-section-heading > div {
+  display: flex;
+  align-items: center;
+}
+
+.task-list-section-heading h3 {
+  margin: 0;
+  color: #2e2c29;
+  font-size: 20px;
+}
+
+.task-list-section-dot {
+  width: 6px;
+  height: 6px;
+  margin-right: 10px;
+  background: #dd7a13;
+  border-radius: 50%;
+}
+
+.task-list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 4px;
+  background: #fffdf9;
+  border: 1px solid #e7dfd4;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(83, 70, 48, 0.06);
+}
+
+.task-list-filter-fields,
+.task-list-filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 12px;
+}
+
+.task-list-filter-actions {
+  gap: 8px;
+  padding-bottom: 14px;
+}
+
+.task-list-toolbar ::v-deep .el-form-item {
+  margin-right: 0;
+  margin-bottom: 14px;
+}
+
+.task-list-toolbar ::v-deep .el-input,
+.task-list-toolbar ::v-deep .el-select {
+  width: 220px;
+}
+
+.task-list-table-panel {
+  overflow: hidden;
+  border-color: #e7dfd4;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(83, 70, 48, 0.06);
+}
+
+.task-list-pagination {
+  margin: 18px 20px;
+  text-align: right;
+}
+
+@media (max-width: 980px) {
+  .task-list-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .task-list-overview-main {
+    grid-column: 1 / -1;
+  }
+
+  .task-list-overview-item:nth-child(2) {
+    border-left: 0;
+  }
+
+  .task-list-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .task-list-page {
+    padding-top: 0;
+  }
+
+  .task-list-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .task-list-overview-main,
+  .task-list-overview-item {
+    min-height: auto;
+    padding: 18px 20px;
+  }
+
+  .task-list-overview-item {
+    border-top: 1px solid #e8e1d8;
+    border-left: 0;
+  }
+
+  .task-list-toolbar ::v-deep .el-input,
+  .task-list-toolbar ::v-deep .el-select {
+    width: 100%;
+  }
+
+  .task-list-filter-fields,
+  .task-list-filter-actions,
+  .task-list-toolbar ::v-deep .el-form-item {
+    width: 100%;
+  }
+
+  .task-list-filter-actions ::v-deep .el-button {
+    flex: 1;
+    margin-left: 0;
+  }
+
+  .task-list-pagination {
+    text-align: left;
+  }
+}
 </style>
