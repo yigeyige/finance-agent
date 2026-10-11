@@ -141,12 +141,13 @@ source: development-workplan
 | 113 | P0 自定义需求 | [20261010-add-password-login](../03.achieved/20261010-增加账号密码登录.md) | 增加账号密码登录与管理员初始化 | [20261010-增加账号密码登录.md](../03.achieved/20261010-增加账号密码登录.md) | 已完成 | 无 |
 | 114 | P0 自定义需求 | [20261010-fix-local-login-migration](../03.achieved/20261010-修复本地登录迁移.md) | 修复本地登录未执行数据库迁移 | [20261010-修复本地登录迁移.md](../03.achieved/20261010-修复本地登录迁移.md) | 已完成 | `20261010-add-local-startup-script`、`20261010-add-password-login` |
 | 115 | P0 自定义需求 | [20261011-refine-sidebar-and-remove-overviews](../03.achieved/20261011-优化侧栏与移除总览.md) | 优化侧栏高度与移除管理页总览 | [20261011-优化侧栏与移除总览.md](../03.achieved/20261011-优化侧栏与移除总览.md) | 已完成 | `20261010-unify-entry-page-style` |
+| 116 | P0 自定义需求 | [20261011-reset-draft-and-refine-dialogs](../03.achieved/20261011-重置业务草稿与优化新增弹窗.md) | 重置业务草稿与优化新增弹窗 | [20261011-重置业务草稿与优化新增弹窗.md](../03.achieved/20261011-重置业务草稿与优化新增弹窗.md) | 已完成 | `20261011-refine-sidebar-and-remove-overviews` |
 
 ## 阶段统计
 
 | 阶段 | 数量 |
 |---|---:|
-| P0 | 92 |
+| P0 | 93 |
 | P1 | 9 |
 | P2 | 10 |
-| 合计 | 111 |
+| 合计 | 112 |

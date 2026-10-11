@@ -242,6 +242,62 @@ body,
   border-bottom: 1px solid #e8e1d8;
 }
 
+/* 管理页新增与编辑弹窗复用工作台卡片边界，避免影响其他 Element UI 弹窗。 */
+.workbench-dialog {
+  max-width: calc(100% - 32px);
+  overflow: hidden;
+  background: #fffdf9;
+  border: 1px solid #e7dfd4;
+  border-radius: 14px;
+  box-shadow: 0 16px 36px rgba(83, 70, 48, 0.14);
+}
+
+.workbench-dialog .el-dialog__header {
+  padding: 19px 22px;
+  border-bottom: 1px solid #e8e1d8;
+}
+
+.workbench-dialog .el-dialog__title {
+  color: #2e2c29;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.workbench-dialog .el-dialog__headerbtn {
+  top: 20px;
+  right: 22px;
+}
+
+.workbench-dialog .el-dialog__body {
+  padding: 20px 22px 8px;
+}
+
+.workbench-dialog .el-dialog__footer {
+  padding: 14px 22px;
+  background: #fffaf3;
+  border-top: 1px solid #e8e1d8;
+}
+
+.workbench-dialog-form .el-form-item {
+  margin-bottom: 18px;
+}
+
+.workbench-dialog-form .el-form-item__label {
+  padding-bottom: 7px;
+  color: #4a4640;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.workbench-dialog__actions {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.workbench-dialog__actions .el-button + .el-button {
+  margin-left: 0;
+}
+
 .page-heading h2,
 .result-heading h3,
 .card-heading h3,
@@ -776,6 +832,25 @@ body,
   .event-timeline li {
     grid-template-columns: 1fr;
     gap: 6px;
+  }
+
+  .workbench-dialog .el-dialog__header,
+  .workbench-dialog .el-dialog__body {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .workbench-dialog .el-dialog__footer {
+    padding: 12px 18px;
+  }
+
+  .workbench-dialog__actions {
+    display: flex;
+    width: 100%;
+  }
+
+  .workbench-dialog__actions .el-button {
+    flex: 1;
   }
 }
 

@@ -17,7 +17,7 @@
           <div class="task-list-filter-actions" aria-label="任务操作">
             <el-button type="primary" @click="searchTasks">查询</el-button>
             <el-button @click="resetFilters">重置</el-button>
-            <el-button type="primary" plain @click="$router.push('/')">新建业务处理</el-button>
+            <el-button type="primary" plain @click="startNewHandling">新建业务处理</el-button>
           </div>
         </el-form>
       </section>
@@ -124,6 +124,8 @@ export default Vue.extend({
     changePage(page: number) { this.currentPage = page; void this.loadTasks() },
     /** 调整每页条数并回到第一页。 */
     changePageSize(pageSize: number) { this.pageSize = pageSize; this.currentPage = 1; void this.loadTasks() },
+    /** 进入全新的业务处理草稿，不复用缓存向导中的上一份任务内容。 */
+    startNewHandling() { void this.$router.push({ path: '/', query: { draft: String(Date.now()) } }) },
     /** 将服务端任务状态转为业务可读中文文案。 */
     statusLabel(status: string) {
       return statusLabels[status] || '状态待确认'

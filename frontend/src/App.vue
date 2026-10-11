@@ -8,10 +8,10 @@
       </div>
       <el-menu
         :default-active="$route.path"
-        router
         background-color="#172033"
         text-color="#b8c4d9"
         active-text-color="#ffffff"
+        @select="handleNavigationSelect"
       >
         <el-menu-item v-if="canReadTasks" index="/">
           <span slot="title">新建业务处理</span>
@@ -97,6 +97,16 @@ export default Vue.extend({
     },
   },
   methods: {
+    /** 根据菜单入口执行导航；新建入口额外写入草稿标识。 */
+    handleNavigationSelect(index: string): void {
+      if (index === '/') {
+        const route = { path: '/', query: { draft: String(Date.now()) } }
+        if (this.$route.path === '/') void this.$router.replace(route)
+        else void this.$router.push(route)
+        return
+      }
+      if (this.$route.path !== index) void this.$router.push(index)
+    },
     /** 加载服务端身份并驱动权限导航。 */
     async loadIdentity(): Promise<void> {
       try {

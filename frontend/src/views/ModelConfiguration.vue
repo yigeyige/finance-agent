@@ -21,12 +21,12 @@
         </div>
       </section>
     </template>
-    <el-dialog :title="editing ? '编辑大模型' : '新增大模型'" :visible.sync="dialogVisible" width="600px" :close-on-click-modal="false"><el-form :model="form" label-width="100px">
+    <el-dialog custom-class="workbench-dialog" :title="editing ? '编辑大模型' : '新增大模型'" :visible.sync="dialogVisible" width="600px" :close-on-click-modal="false"><el-form :model="form" label-position="top" class="workbench-dialog-form">
       <el-form-item label="配置名称" required><el-input v-model.trim="form.name" maxlength="100" /></el-form-item><el-form-item label="提供方"><el-select v-model="form.provider" disabled><el-option label="DeepSeek" value="DEEPSEEK" /></el-select></el-form-item>
       <el-form-item label="API 地址" required><el-input v-model.trim="form.apiUrl" placeholder="例如：https://api.deepseek.com" /></el-form-item><el-form-item label="模型名称" required><el-input v-model.trim="form.modelName" placeholder="例如：deepseek-chat" /></el-form-item>
       <el-form-item label="推理强度"><el-select v-model="form.reasoningEffort" clearable><el-option label="低" value="low"/><el-option label="中" value="medium"/><el-option label="高" value="high"/></el-select></el-form-item>
       <el-form-item :label="editing ? '更新密钥' : 'API Key'" required><el-input v-model.trim="form.apiKey" type="password" show-password autocomplete="new-password" :placeholder="editing ? '留空则保留原密钥' : '仅保存，后续不再展示'" /></el-form-item>
-    </el-form><span slot="footer"><el-button @click="dialogVisible=false">取消</el-button><el-button type="primary" :loading="saving" @click="save">保存</el-button></span></el-dialog>
+    </el-form><span slot="footer" class="workbench-dialog__actions"><el-button @click="dialogVisible=false">取消</el-button><el-button type="primary" :loading="saving" @click="save">保存</el-button></span></el-dialog>
   </section>
 </template>
 <script lang="ts">

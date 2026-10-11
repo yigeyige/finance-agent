@@ -40,9 +40,9 @@
       </section>
     </template>
 
-    <el-dialog :title="editingId ? '编辑业务场景' : '新增业务场景'" :visible.sync="dialogVisible" width="560px"
+    <el-dialog custom-class="workbench-dialog" :title="editingId ? '编辑业务场景' : '新增业务场景'" :visible.sync="dialogVisible" width="560px"
       :close-on-click-modal="false" @closed="resetForm">
-      <el-form :model="form" label-width="92px">
+      <el-form :model="form" label-position="top" class="workbench-dialog-form">
         <el-form-item label="业务名称" required>
           <el-input v-model.trim="form.name" maxlength="100" show-word-limit placeholder="例如：人员变更处理" />
         </el-form-item>
@@ -60,7 +60,7 @@
             placeholder="说明该场景需要处理的业务内容" />
         </el-form-item>
       </el-form>
-      <span slot="footer">
+      <span slot="footer" class="workbench-dialog__actions">
         <el-button :disabled="saving" @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="saving" @click="save">保存</el-button>
       </span>
@@ -131,7 +131,7 @@ export default Vue.extend({
     },
     /** 从当前 Skill 发起业务处理，保留其标识供任务创建持久化。 */
     startHandling(skill: BusinessSceneSkill) {
-      void this.$router.push({ path: '/', query: { skillId: skill.skillId } })
+      void this.$router.push({ path: '/', query: { skillId: skill.skillId, draft: String(Date.now()) } })
     },
     openEditDialog(skill: BusinessSceneSkill) {
       this.editingId = skill.skillId
