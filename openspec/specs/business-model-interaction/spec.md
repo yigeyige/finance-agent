@@ -41,6 +41,13 @@
 - **WHEN** 前端收到成功的模型方案或证据分析
 - **THEN** 页面能够明确区分真实模型与本地模拟模型，并展示模型产出需要人工确认
 
+### Requirement: Model interaction controller is bootstrappable
+系统 MUST 在本地应用上下文启动时完成业务模型交互控制器的 Bean 装配，并保持既有初稿、方案和证据分析接口映射可用。
+
+#### Scenario: Local application context starts
+- **WHEN** 应用以 `local` profile 启动且模型交互服务依赖可用
+- **THEN** 系统成功创建业务模型交互控制器，健康与就绪端点可用，且不因控制器构造器歧义而终止启动
+
 ### Requirement: Model guidance is visible and editable
 前端 SHALL 在业务处理向导中展示模型的初稿、模式、显示名称、简短理由和会话回复。管理员 MUST 能编辑所有业务字段，并能通过自然语言修改意见请求新的结构化初稿。初稿请求 SHALL 在有受支持附件时通过受控 multipart 接口提交，后端 MUST 只将经校验的临时附件文本投影加入模型上下文；未上传附件时 SHALL 保持既有 JSON 初稿请求。
 
