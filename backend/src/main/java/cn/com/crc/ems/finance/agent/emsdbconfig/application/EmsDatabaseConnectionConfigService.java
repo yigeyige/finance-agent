@@ -12,7 +12,14 @@ import cn.com.crc.ems.finance.agent.modelconfig.application.ModelApiKeyCipher;
 import cn.com.crc.ems.finance.agent.shared.domain.UtcTime;
 import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
 
-/** 平台管理员维护唯一启用的 EMS MySQL 只读连接。 */
+/**
+ *
+ * @Description: 平台管理员维护唯一启用的 EMS MySQL 只读连接。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class EmsDatabaseConnectionConfigService {
     private final EmsDatabaseConnectionConfigRepository repository;

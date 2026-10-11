@@ -3,7 +3,14 @@ package cn.com.crc.ems.finance.agent.packet.domain;
 import java.time.Instant;
 import java.util.UUID;
 
-/** 已发布决策包向责任方或外部流程的交接记录。 */
+/**
+ *
+ * @Description: 已发布决策包向责任方或外部流程的交接记录。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record Handoff(UUID handoffId, UUID packetRevisionId, String ownerReference,
         String externalProcessReference, String downstreamStatus, UUID handedOffBy, Instant handedOffAt,
         UUID createdBy, Instant createdAt, UUID updatedBy, Instant updatedAt) {

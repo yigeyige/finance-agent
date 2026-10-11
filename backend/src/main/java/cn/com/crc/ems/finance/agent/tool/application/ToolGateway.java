@@ -5,7 +5,14 @@ import org.springframework.stereotype.Service;
 import cn.com.crc.ems.finance.agent.task.application.ToolInvocationService;
 import cn.com.crc.ems.finance.agent.task.application.ToolInvocationStartResult;
 
-/** 双层守卫后的工具调用管线；只在守卫通过后记录幂等调用意图。 */
+/**
+ *
+ * @Description: 双层守卫后的工具调用管线；只在守卫通过后记录幂等调用意图。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class ToolGateway {
 

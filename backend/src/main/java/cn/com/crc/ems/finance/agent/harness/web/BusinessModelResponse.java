@@ -8,7 +8,14 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggesti
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanSuggestion;
 
-/** 模型业务建议及安全调用元数据的 REST 响应。 */
+/**
+ *
+ * @Description: 模型业务建议及安全调用元数据的 REST 响应。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class BusinessModelResponse {
 
     private BusinessModelResponse() {

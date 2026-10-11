@@ -10,7 +10,14 @@ import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 import cn.com.crc.ems.finance.agent.task.domain.VersionedJson;
 
-/** 审计 payload 的规范化与摘要计算规则。 */
+/**
+ *
+ * @Description: 审计 payload 的规范化与摘要计算规则。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class AuditDigest {
 
     /** 当前审计规范化规则版本。 */

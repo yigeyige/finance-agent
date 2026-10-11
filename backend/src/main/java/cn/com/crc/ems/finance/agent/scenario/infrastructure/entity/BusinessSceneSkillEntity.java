@@ -7,7 +7,14 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
-/** 业务场景 Skill 的 MyBatis-Plus 持久化实体。 */
+/**
+ *
+ * @Description: 业务场景 Skill 的 MyBatis-Plus 持久化实体。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @TableName("task.business_scene_skill")
 public class BusinessSceneSkillEntity {
     @TableId(value = "skill_id", type = IdType.ASSIGN_UUID)

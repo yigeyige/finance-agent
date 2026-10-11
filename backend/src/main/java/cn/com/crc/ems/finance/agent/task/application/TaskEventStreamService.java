@@ -7,7 +7,14 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-/** 统一发布、权限过滤和游标重放的任务事件服务。 */
+/**
+ *
+ * @Description: 统一发布、权限过滤和游标重放的任务事件服务。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class TaskEventStreamService {
 

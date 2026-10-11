@@ -6,7 +6,14 @@ import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.task.domain.StepApproval;
 
-/** 步骤审批持久化端口。 */
+/**
+ *
+ * @Description: 步骤审批持久化端口。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public interface StepApprovalRepository {
 
     /** 查询步骤的审批历史。 */

@@ -10,7 +10,14 @@ import com.baomidou.mybatisplus.annotation.TableName;
 
 import cn.com.crc.ems.finance.agent.task.infrastructure.JsonbTypeHandler;
 
-/** 覆盖记录表的 MyBatis-Plus 持久化实体。 */
+/**
+ *
+ * @Description: 覆盖记录表的 MyBatis-Plus 持久化实体。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @TableName("evidence.coverage_record")
 public class CoverageRecordEntity {
     @TableId(value = "coverage_id", type = IdType.ASSIGN_UUID)

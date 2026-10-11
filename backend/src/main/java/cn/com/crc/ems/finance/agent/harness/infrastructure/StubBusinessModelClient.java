@@ -19,7 +19,14 @@ import cn.com.crc.ems.finance.agent.harness.application.ModelPlanSuggestion;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 
-/** 本地流程验证使用的确定性业务模型，响应始终显式标识为 Stub。 */
+/**
+ *
+ * @Description: 本地流程验证使用的确定性业务模型，响应始终显式标识为 Stub。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class StubBusinessModelClient implements BusinessModelClient {
 
     private static final String MODEL_NAME = "本地模拟模型";

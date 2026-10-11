@@ -6,7 +6,14 @@ import java.util.UUID;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
-/** 大模型连接配置的持久化实体，密钥只保存密文。 */
+/**
+ *
+ * @Description: 大模型连接配置的持久化实体，密钥只保存密文。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @TableName("governance.model_connection_config")
 public class ModelConnectionConfigEntity {
     @TableId("config_id")

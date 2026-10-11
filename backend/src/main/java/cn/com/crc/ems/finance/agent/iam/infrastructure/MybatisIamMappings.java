@@ -8,7 +8,14 @@ import cn.com.crc.ems.finance.agent.iam.infrastructure.entity.AgentUserEntity;
 import cn.com.crc.ems.finance.agent.iam.infrastructure.entity.RoleBindingEntity;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid;
 
-/** IAM 持久化实体与领域快照之间的显式映射。 */
+/**
+ *
+ * @Description: IAM 持久化实体与领域快照之间的显式映射。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 final class MybatisIamMappings {
 
     private MybatisIamMappings() {

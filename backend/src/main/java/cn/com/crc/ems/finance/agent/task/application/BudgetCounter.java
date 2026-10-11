@@ -4,7 +4,14 @@ import java.math.BigDecimal;
 
 import org.springframework.stereotype.Component;
 
-/** 无副作用计算一次预算消费是否仍在任务上限内。 */
+/**
+ *
+ * @Description: 无副作用计算一次预算消费是否仍在任务上限内。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 public class BudgetCounter {
 

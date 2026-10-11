@@ -1,6 +1,13 @@
 package cn.com.crc.ems.finance.agent.harness.application;
 
-/** 模型网关稳定错误，错误消息不包含 prompt、response 或敏感值。 */
+/**
+ *
+ * @Description: 模型网关稳定错误，错误消息不包含 prompt、response 或敏感值。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public class ModelGatewayException extends RuntimeException {
 
     private final String code;

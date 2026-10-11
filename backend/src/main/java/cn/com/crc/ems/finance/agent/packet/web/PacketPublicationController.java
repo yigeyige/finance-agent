@@ -21,7 +21,14 @@ import cn.com.crc.ems.finance.agent.packet.application.ScopeSnapshot;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 import jakarta.validation.Valid;
 
-/** 发布前全量重查与原子发布 REST 入口。 */
+/**
+ *
+ * @Description: 发布前全量重查与原子发布 REST 入口。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @RestController
 @RequestMapping("/api/v1/tasks")
 public final class PacketPublicationController {

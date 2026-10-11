@@ -10,7 +10,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import cn.com.crc.ems.finance.agent.evidence.domain.CoverageCompleteness;
 
-/** 在决策包结构校验之后约束覆盖度、事实来源和业务影响的表述边界。 */
+/**
+ *
+ * @Description: 在决策包结构校验之后约束覆盖度、事实来源和业务影响的表述边界。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 public final class PacketWordingValidator {
 

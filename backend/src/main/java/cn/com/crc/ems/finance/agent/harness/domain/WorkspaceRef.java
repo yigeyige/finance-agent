@@ -3,7 +3,14 @@ package cn.com.crc.ems.finance.agent.harness.domain;
 import java.time.Instant;
 import java.util.UUID;
 
-/** 受控 workspace 制品的引用，不保存文件原文。 */
+/**
+ *
+ * @Description: 受控 workspace 制品的引用，不保存文件原文。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record WorkspaceRef(UUID workspaceRefId, UUID sessionId, UUID taskId, UUID userId,
         String relativePath, String objectRef, String contentDigest, String mediaType, UUID createdBy,
         Instant createdAt, UUID updatedBy, Instant updatedAt) {

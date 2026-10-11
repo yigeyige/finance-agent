@@ -3,7 +3,14 @@ package cn.com.crc.ems.finance.agent.packet.application;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.stereotype.Component;
 
-/** 校验决策包结构和发布前必要依据，避免不完整草稿进入复核。 */
+/**
+ *
+ * @Description: 校验决策包结构和发布前必要依据，避免不完整草稿进入复核。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 public final class PacketDocumentValidator {
 

@@ -13,7 +13,14 @@ import cn.com.crc.ems.finance.agent.harness.domain.Checkpoint;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.entity.CheckpointEntity;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.mapper.CheckpointMapper;
 
-/** 使用 MyBatis-Plus 追加并按完整业务边界查询 checkpoint。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus 追加并按完整业务边界查询 checkpoint。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisCheckpointRepository implements CheckpointRepository {
 

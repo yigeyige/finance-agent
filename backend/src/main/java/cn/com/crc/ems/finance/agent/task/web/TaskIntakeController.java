@@ -21,7 +21,14 @@ import cn.com.crc.ems.finance.agent.task.application.CreateTaskDraftCommand;
 import cn.com.crc.ems.finance.agent.task.application.ScopeConfirmationResult;
 import cn.com.crc.ems.finance.agent.task.application.TaskIntakeApplicationService;
 
-/** 任务草稿、运维前提和范围确认 REST 入口。 */
+/**
+ *
+ * @Description: 任务草稿、运维前提和范围确认 REST 入口。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @RestController
 @RequestMapping("/api/v1/tasks")
 public final class TaskIntakeController {

@@ -16,7 +16,14 @@ import cn.com.crc.ems.finance.agent.governance.infrastructure.entity.OutboxEvent
 import cn.com.crc.ems.finance.agent.governance.infrastructure.mapper.OutboxEventMapper;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid;
 
-/** 使用 MyBatis-Plus 访问本地 outbox 并提供幂等和投递状态更新。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus 访问本地 outbox 并提供幂等和投递状态更新。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisOutboxEventRepository implements OutboxEventRepository {
 

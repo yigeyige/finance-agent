@@ -17,7 +17,14 @@ import cn.com.crc.ems.finance.agent.source.application.SourceQuery;
 import cn.com.crc.ems.finance.agent.source.application.ScopePage;
 import cn.com.crc.ems.finance.agent.source.application.SyntheticScenario;
 
-/** 固定模板、固定 seed、完全离线的合成财务配置源。 */
+/**
+ *
+ * @Description: 固定模板、固定 seed、完全离线的合成财务配置源。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class SyntheticConfigSourceAdapter implements ConfigSourceAdapter {
 

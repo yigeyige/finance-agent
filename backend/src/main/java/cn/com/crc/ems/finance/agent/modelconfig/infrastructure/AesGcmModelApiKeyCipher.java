@@ -16,7 +16,14 @@ import cn.com.crc.ems.finance.agent.modelconfig.application.ModelApiKeyCipher;
 import cn.com.crc.ems.finance.agent.shared.application.DomainErrorCode;
 import cn.com.crc.ems.finance.agent.shared.application.DomainException;
 
-/** 使用部署级主密钥完成 AES-GCM API Key 加密，密文不进入日志或 API。 */
+/**
+ *
+ * @Description: 使用部署级主密钥完成 AES-GCM API Key 加密，密文不进入日志或 API。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 public final class AesGcmModelApiKeyCipher implements ModelApiKeyCipher {
     private static final SecureRandom RANDOM = new SecureRandom();

@@ -6,7 +6,14 @@ import org.springframework.stereotype.Service;
 
 import cn.com.crc.ems.finance.agent.evidence.domain.EffectiveClass;
 
-/** 使用显式检查时钟判断事实生效状态。 */
+/**
+ *
+ * @Description: 使用显式检查时钟判断事实生效状态。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class EffectiveClassifier {
 

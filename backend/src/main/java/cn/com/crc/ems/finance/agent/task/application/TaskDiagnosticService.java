@@ -19,7 +19,14 @@ import cn.com.crc.ems.finance.agent.task.domain.TaskLease;
 import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
 import cn.com.crc.ems.finance.agent.task.domain.ToolInvocation;
 
-/** 在只读事务中汇总任务运行状态，并严格限制诊断输出字段。 */
+/**
+ *
+ * @Description: 在只读事务中汇总任务运行状态，并严格限制诊断输出字段。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class TaskDiagnosticService {
 

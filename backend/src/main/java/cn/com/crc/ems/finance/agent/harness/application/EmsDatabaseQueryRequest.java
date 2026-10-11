@@ -4,7 +4,14 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-/** 模型提出、但尚未通过 SQL 守卫的 EMS 数据库查询建议。 */
+/**
+ *
+ * @Description: 模型提出、但尚未通过 SQL 守卫的 EMS 数据库查询建议。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record EmsDatabaseQueryRequest(String purpose, String sql) {
     public EmsDatabaseQueryRequest {
         if (purpose == null || purpose.isBlank() || purpose.length() > 300 || sql == null || sql.isBlank()

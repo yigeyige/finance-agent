@@ -3,7 +3,14 @@ package cn.com.crc.ems.finance.agent.harness.domain;
 import java.time.Instant;
 import java.util.UUID;
 
-/** 绑定业务任务和用户的 Harness session 状态。 */
+/**
+ *
+ * @Description: 绑定业务任务和用户的 Harness session 状态。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record SessionState(UUID sessionId, UUID taskId, UUID userId, String harnessVersion,
         StateReference stateRef, UUID createdBy, Instant createdAt, UUID updatedBy, Instant updatedAt) {
 

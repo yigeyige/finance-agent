@@ -5,7 +5,14 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-/** 仅允许已登记版本进入确定性规则执行和复算。 */
+/**
+ *
+ * @Description: 仅允许已登记版本进入确定性规则执行和复算。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 public class DeterministicRuleCatalog {
 

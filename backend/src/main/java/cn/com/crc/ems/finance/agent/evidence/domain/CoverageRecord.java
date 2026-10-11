@@ -3,7 +3,14 @@ package cn.com.crc.ems.finance.agent.evidence.domain;
 import java.time.Instant;
 import java.util.UUID;
 
-/** 描述批准范围遍历结果及其覆盖度的证据记录。 */
+/**
+ *
+ * @Description: 描述批准范围遍历结果及其覆盖度的证据记录。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record CoverageRecord(UUID coverageId, UUID taskId, UUID stepId, UUID scopeRevisionId,
         String queryTemplateVersion, String queryConditionDigest, String enumerationMethod,
         Integer pageCount, Long expectedTotal, Long observedTotal, String traversedPaths,

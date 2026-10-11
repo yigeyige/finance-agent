@@ -8,7 +8,14 @@ import org.springframework.stereotype.Service;
 import cn.com.crc.ems.finance.agent.task.application.ExecutionPermit;
 import cn.com.crc.ems.finance.agent.task.application.StepExecutionGuard;
 
-/** 在工具目录校验之外复核当前业务审批并签发短期 permit。 */
+/**
+ *
+ * @Description: 在工具目录校验之外复核当前业务审批并签发短期 permit。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class BusinessToolGuard {
 

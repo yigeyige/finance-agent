@@ -10,7 +10,14 @@ import com.baomidou.mybatisplus.annotation.TableName;
 
 import cn.com.crc.ems.finance.agent.task.infrastructure.JsonbTypeHandler;
 
-/** 已发布决策包修订表的 MyBatis-Plus 持久化实体。 */
+/**
+ *
+ * @Description: 已发布决策包修订表的 MyBatis-Plus 持久化实体。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @TableName("packet.packet_revision")
 public class PacketRevisionEntity {
     @TableId(value = "packet_revision_id", type = IdType.ASSIGN_UUID)

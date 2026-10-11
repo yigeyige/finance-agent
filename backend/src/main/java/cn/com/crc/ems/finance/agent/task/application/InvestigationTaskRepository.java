@@ -6,7 +6,14 @@ import java.util.UUID;
 import cn.com.crc.ems.finance.agent.task.domain.InvestigationTask;
 import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
 
-/** 调查任务持久化端口。 */
+/**
+ *
+ * @Description: 调查任务持久化端口。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public interface InvestigationTaskRepository {
 
     /** 按任务 ID 查询任务。 */

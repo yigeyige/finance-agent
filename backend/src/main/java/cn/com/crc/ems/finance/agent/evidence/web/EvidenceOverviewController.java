@@ -17,7 +17,14 @@ import cn.com.crc.ems.finance.agent.evidence.application.ProfessionalConfirmatio
 import cn.com.crc.ems.finance.agent.iam.application.IdentityContext;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 
-/** 提供当前任务的证据、覆盖度和判断脱敏查询。 */
+/**
+ *
+ * @Description: 提供当前任务的证据、覆盖度和判断脱敏查询。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @RestController
 @RequestMapping("/api/v1/tasks/{taskId}/evidence")
 public final class EvidenceOverviewController {

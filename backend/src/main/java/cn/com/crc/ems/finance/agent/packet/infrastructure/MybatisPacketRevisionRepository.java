@@ -12,7 +12,14 @@ import cn.com.crc.ems.finance.agent.packet.domain.PacketRevision;
 import cn.com.crc.ems.finance.agent.packet.infrastructure.entity.PacketRevisionEntity;
 import cn.com.crc.ems.finance.agent.packet.infrastructure.mapper.PacketRevisionMapper;
 
-/** 使用 MyBatis-Plus 只追加和只读查询已发布决策包修订。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus 只追加和只读查询已发布决策包修订。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisPacketRevisionRepository implements PacketRevisionRepository {
 

@@ -4,7 +4,14 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-/** 绑定草稿内容、范围和运行版本的决策包复核。 */
+/**
+ *
+ * @Description: 绑定草稿内容、范围和运行版本的决策包复核。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record PacketReview(UUID reviewId, UUID draftId, UUID reviewerUserId, String contentDigest,
         UUID scopeRevisionId, UUID runtimeBundleId, ReviewDecision decision, Instant reviewedAt, String comment,
         UUID createdBy, Instant createdAt, UUID updatedBy, Instant updatedAt) {

@@ -2,7 +2,14 @@ package cn.com.crc.ems.finance.agent.shared.domain;
 
 import java.util.UUID;
 
-/** 统一生成和解析应用领域 UUID。 */
+/**
+ *
+ * @Description: 统一生成和解析应用领域 UUID。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class UuidGenerator {
 
     private UuidGenerator() {

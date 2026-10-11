@@ -12,7 +12,14 @@ import io.agentscope.harness.agent.HarnessAgent;
 
 import cn.com.crc.ems.finance.agent.harness.application.HarnessIdentity;
 
-/** 创建本地 HarnessAgent 冒烟实例，显式隔离用户、session、workspace 和状态存储。 */
+/**
+ *
+ * @Description: 创建本地 HarnessAgent 冒烟实例，显式隔离用户、session、workspace 和状态存储。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 public final class HarnessAgentFactory {
 

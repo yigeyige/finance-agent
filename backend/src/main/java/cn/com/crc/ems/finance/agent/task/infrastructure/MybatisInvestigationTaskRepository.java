@@ -16,7 +16,14 @@ import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
 import cn.com.crc.ems.finance.agent.task.infrastructure.entity.InvestigationTaskEntity;
 import cn.com.crc.ems.finance.agent.task.infrastructure.mapper.InvestigationTaskMapper;
 
-/** 使用 MyBatis-Plus Mapper 访问调查任务并执行乐观版本更新。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus Mapper 访问调查任务并执行乐观版本更新。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisInvestigationTaskRepository implements InvestigationTaskRepository {
 

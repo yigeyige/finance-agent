@@ -4,7 +4,14 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
-/** 为 harness 提供已经组合好的任务业务上下文，隔离任务域仓储依赖。 */
+/**
+ *
+ * @Description: 为 harness 提供已经组合好的任务业务上下文，隔离任务域仓储依赖。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public interface CheckpointBusinessContextRepository {
 
     /** 按 checkpoint 绑定查询当前任务、步骤、范围和审批上下文。 */

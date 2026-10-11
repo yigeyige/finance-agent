@@ -5,7 +5,14 @@ import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.task.domain.VersionedJson;
 
-/** 已按字段策略裁剪的来源事实快照。 */
+/**
+ *
+ * @Description: 已按字段策略裁剪的来源事实快照。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record FactSnapshot(UUID snapshotId, UUID taskId, UUID stepId, UUID sourceBindingId,
         String sourceObjectType, String sourceObjectKey, String allowedFields, Instant checkedAt,
         Instant effectiveFrom, Instant effectiveTo, EffectiveClass effectiveClass, String sourceVersion,

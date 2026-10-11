@@ -13,7 +13,14 @@ import cn.com.crc.ems.finance.agent.task.application.TaskBusinessSceneSkillRepos
 import cn.com.crc.ems.finance.agent.task.infrastructure.entity.TaskBusinessSceneSkillEntity;
 import cn.com.crc.ems.finance.agent.task.infrastructure.mapper.TaskBusinessSceneSkillMapper;
 
-/** 使用 MyBatis-Plus 维护任务创建时固化的业务场景选择。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus 维护任务创建时固化的业务场景选择。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisTaskBusinessSceneSkillRepository implements TaskBusinessSceneSkillRepository {
     private final TaskBusinessSceneSkillMapper mapper;

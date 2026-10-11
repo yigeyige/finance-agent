@@ -1,6 +1,13 @@
 package cn.com.crc.ems.finance.agent.evidence.application;
 
-/** 同一业务对象的来源候选摘要。 */
+/**
+ *
+ * @Description: 同一业务对象的来源候选摘要。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record SourceCandidate(String sourceId, String objectType, String objectKey, String resultDigest) {
 
     public SourceCandidate {

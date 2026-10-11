@@ -2,7 +2,14 @@ package cn.com.crc.ems.finance.agent.harness.application;
 
 import java.util.UUID;
 
-/** 将 Harness session 绑定到业务任务、用户、运行版本和已确认范围。 */
+/**
+ *
+ * @Description: 将 Harness session 绑定到业务任务、用户、运行版本和已确认范围。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record HarnessSessionBinding(UUID sessionId, UUID taskId, UUID userId,
         UUID runtimeBundleId, UUID scopeRevisionId) {
 

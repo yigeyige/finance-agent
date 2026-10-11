@@ -7,7 +7,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-/** 业务场景 Skill 新增和编辑的白名单请求。 */
+/**
+ *
+ * @Description: 业务场景 Skill 新增和编辑的白名单请求。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record BusinessSceneSkillRequest(@NotBlank @Size(max = 100) String name,
         @NotBlank @Size(max = 1000) String description,

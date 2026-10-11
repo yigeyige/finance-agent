@@ -16,7 +16,14 @@ import cn.com.crc.ems.finance.agent.emsdbconfig.infrastructure.entity.EmsDatabas
 import cn.com.crc.ems.finance.agent.emsdbconfig.infrastructure.mapper.EmsDatabaseConnectionConfigMapper;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid;
 
-/** 使用 MyBatis-Plus 保存 EMS 数据库连接配置。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus 保存 EMS 数据库连接配置。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisEmsDatabaseConnectionConfigRepository implements EmsDatabaseConnectionConfigRepository {
     private final EmsDatabaseConnectionConfigMapper mapper;

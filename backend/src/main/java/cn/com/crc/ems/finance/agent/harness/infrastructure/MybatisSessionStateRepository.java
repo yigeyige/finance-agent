@@ -14,7 +14,14 @@ import cn.com.crc.ems.finance.agent.harness.domain.StateReference;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.entity.SessionStateEntity;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.mapper.SessionStateMapper;
 
-/** 使用 MyBatis-Plus 隔离并更新 Harness session 状态。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus 隔离并更新 Harness session 状态。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisSessionStateRepository implements SessionStateRepository {
 

@@ -2,7 +2,14 @@ package cn.com.crc.ems.finance.agent.task.application;
 
 import cn.com.crc.ems.finance.agent.task.domain.ToolInvocation;
 
-/** 幂等开始请求的确定分类，调用方据此决定是否真正执行工具。 */
+/**
+ *
+ * @Description: 幂等开始请求的确定分类，调用方据此决定是否真正执行工具。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record ToolInvocationStartResult(Action action, ToolInvocation invocation) {
 
     public enum Action {

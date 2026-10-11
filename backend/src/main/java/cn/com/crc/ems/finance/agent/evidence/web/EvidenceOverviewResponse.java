@@ -10,7 +10,14 @@ import cn.com.crc.ems.finance.agent.evidence.domain.FactSnapshot;
 import cn.com.crc.ems.finance.agent.evidence.domain.Finding;
 import cn.com.crc.ems.finance.agent.evidence.domain.ProfessionalConfirmation;
 
-/** 证据、覆盖度和判断页面的脱敏查询响应。 */
+/**
+ *
+ * @Description: 证据、覆盖度和判断页面的脱敏查询响应。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record EvidenceOverviewResponse(UUID taskId, List<SnapshotView> snapshots, List<CoverageView> coverages,
         List<FindingView> findings) {
 

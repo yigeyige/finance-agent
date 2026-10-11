@@ -10,7 +10,14 @@ import tools.jackson.databind.JsonNode;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-/** 决策包草稿的结构化章节请求。 */
+/**
+ *
+ * @Description: 决策包草稿的结构化章节请求。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record PacketDraftRequest(@NotNull UUID scopeRevisionId, @NotNull UUID runtimeBundleId,
         @NotBlank String problem, @NotNull JsonNode premises, @NotNull JsonNode scope,

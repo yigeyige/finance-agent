@@ -4,7 +4,14 @@ import java.time.Instant;
 import java.util.Locale;
 import java.util.UUID;
 
-/** 平台管理员维护的 EMS MySQL 连接配置，密码仅保存密文。 */
+/**
+ *
+ * @Description: 平台管理员维护的 EMS MySQL 连接配置，密码仅保存密文。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record EmsDatabaseConnectionConfig(UUID configId, String name, String jdbcUrl, String username,
         String passwordCiphertext, int connectTimeoutSeconds, int queryTimeoutSeconds, int maxRows, boolean enabled,
         UUID createdBy, Instant createdAt, UUID updatedBy, Instant updatedAt) {

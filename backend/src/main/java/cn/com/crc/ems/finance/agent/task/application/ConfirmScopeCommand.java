@@ -3,7 +3,14 @@ package cn.com.crc.ems.finance.agent.task.application;
 import java.time.Instant;
 import java.util.UUID;
 
-/** 追加并确认不可变范围修订的应用命令。 */
+/**
+ *
+ * @Description: 追加并确认不可变范围修订的应用命令。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record ConfirmScopeCommand(UUID taskId, String systemCode, String objectSelector,
         String effectiveTimeRange, String includedPaths, String excludedPaths, String allowedReadFields,
         String allowedRetainFields, String allowedModelFields, String schemaVersion, UUID confirmedBy,

@@ -9,7 +9,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import tools.jackson.databind.JsonNode;
 
-/** 发布请求，携带批准基线和发布前全量重查结果。 */
+/**
+ *
+ * @Description: 发布请求，携带批准基线和发布前全量重查结果。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record PacketPublicationRequest(@NotNull UUID draftId, @NotNull UUID publicationId,
         @NotBlank String contentDigest, @NotNull UUID scopeRevisionId, @NotNull UUID runtimeBundleId,

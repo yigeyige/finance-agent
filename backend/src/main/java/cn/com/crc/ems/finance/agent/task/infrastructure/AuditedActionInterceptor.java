@@ -11,7 +11,14 @@ import cn.com.crc.ems.finance.agent.shared.application.DomainErrorCode;
 import cn.com.crc.ems.finance.agent.shared.application.DomainException;
 import cn.com.crc.ems.finance.agent.task.application.AuditedActionCommand;
 
-/** 关键动作的失败审计拦截器；审计写失败时 fail closed。 */
+/**
+ *
+ * @Description: 关键动作的失败审计拦截器；审计写失败时 fail closed。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 public class AuditedActionInterceptor {
 

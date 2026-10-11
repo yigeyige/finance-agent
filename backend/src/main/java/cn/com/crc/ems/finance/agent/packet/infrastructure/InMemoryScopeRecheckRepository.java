@@ -10,7 +10,14 @@ import java.util.concurrent.ConcurrentMap;
 import cn.com.crc.ems.finance.agent.packet.application.ScopeRecheckRepository;
 import cn.com.crc.ems.finance.agent.packet.domain.ScopeRecheckRecord;
 
-/** 本地开发阶段使用的进程内重查记录仓储。 */
+/**
+ *
+ * @Description: 本地开发阶段使用的进程内重查记录仓储。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public class InMemoryScopeRecheckRepository implements ScopeRecheckRepository {
 
     private final ConcurrentMap<UUID, List<ScopeRecheckRecord>> records = new ConcurrentHashMap<>();

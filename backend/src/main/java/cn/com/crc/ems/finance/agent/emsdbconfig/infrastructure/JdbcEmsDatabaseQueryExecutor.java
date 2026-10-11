@@ -18,7 +18,14 @@ import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsReadOnlySqlGuard;
 import cn.com.crc.ems.finance.agent.emsdbconfig.domain.EmsDatabaseConnectionConfig;
 import cn.com.crc.ems.finance.agent.modelconfig.application.ModelApiKeyCipher;
 
-/** 使用短生命周期 JDBC 连接执行已通过守卫的 EMS 只读查询。 */
+/**
+ *
+ * @Description: 使用短生命周期 JDBC 连接执行已通过守卫的 EMS 只读查询。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 public final class JdbcEmsDatabaseQueryExecutor implements EmsDatabaseQueryExecutor {
     private static final int MAX_COLUMNS = 20;

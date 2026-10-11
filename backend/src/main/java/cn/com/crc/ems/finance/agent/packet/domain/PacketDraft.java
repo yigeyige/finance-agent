@@ -5,7 +5,14 @@ import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.task.domain.VersionedJson;
 
-/** 决策包草稿，规范 JSON 是权威内容。 */
+/**
+ *
+ * @Description: 决策包草稿，规范 JSON 是权威内容。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record PacketDraft(UUID draftId, UUID taskId, int draftNo, UUID scopeRevisionId, UUID runtimeBundleId,
         VersionedJson canonicalContent, String contentDigest, PacketDraftStatus status, UUID createdBy,
         Instant createdAt, UUID updatedBy, Instant updatedAt) {

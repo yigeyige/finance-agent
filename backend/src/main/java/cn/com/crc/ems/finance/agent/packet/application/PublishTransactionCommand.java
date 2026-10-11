@@ -8,7 +8,14 @@ import cn.com.crc.ems.finance.agent.governance.domain.OutboxEvent;
 import cn.com.crc.ems.finance.agent.packet.domain.PacketRevision;
 import cn.com.crc.ems.finance.agent.task.domain.InvestigationTask;
 
-/** 已完成发布前校验、等待单事务落库的发布命令。 */
+/**
+ *
+ * @Description: 已完成发布前校验、等待单事务落库的发布命令。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record PublishTransactionCommand(UUID taskId, InvestigationTask publishedTask,
         PacketRevision revision, AuditEvent auditEvent, OutboxEvent outboxEvent) {
 

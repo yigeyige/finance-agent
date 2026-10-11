@@ -5,7 +5,14 @@ import java.util.UUID;
 import cn.com.crc.ems.finance.agent.task.application.StepExecutionRequest;
 import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
 
-/** 双层工具守卫的最小请求。 */
+/**
+ *
+ * @Description: 双层工具守卫的最小请求。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record ToolGuardRequest(UUID runtimeBundleId, String toolCode, String toolVersion,
         TaskStatus taskStatus, String environment, StepExecutionRequest execution) {
 

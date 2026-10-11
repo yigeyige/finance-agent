@@ -15,7 +15,14 @@ import cn.com.crc.ems.finance.agent.task.domain.InvestigationTask;
 import cn.com.crc.ems.finance.agent.task.domain.ScopeRevision;
 import cn.com.crc.ems.finance.agent.task.domain.StepApproval;
 
-/** 在任务基础设施边界组合 checkpoint 所需的当前业务上下文。 */
+/**
+ *
+ * @Description: 在任务基础设施边界组合 checkpoint 所需的当前业务上下文。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisCheckpointBusinessContextRepository implements CheckpointBusinessContextRepository {
 

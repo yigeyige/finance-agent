@@ -12,7 +12,14 @@ import cn.com.crc.ems.finance.agent.iam.domain.AgentUser;
 import cn.com.crc.ems.finance.agent.iam.infrastructure.entity.AgentUserEntity;
 import cn.com.crc.ems.finance.agent.iam.infrastructure.mapper.AgentUserMapper;
 
-/** 使用 MyBatis-Plus Mapper 访问 IAM 身份账户。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus Mapper 访问 IAM 身份账户。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisAgentUserRepository implements AgentUserRepository {
 

@@ -13,7 +13,14 @@ import cn.com.crc.ems.finance.agent.harness.domain.WorkspaceRef;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.entity.WorkspaceRefEntity;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.mapper.WorkspaceRefMapper;
 
-/** 使用 MyBatis-Plus 追加并隔离 workspace 引用。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus 追加并隔离 workspace 引用。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisWorkspaceRefRepository implements WorkspaceRefRepository {
 

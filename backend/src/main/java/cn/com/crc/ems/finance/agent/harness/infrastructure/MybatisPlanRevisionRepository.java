@@ -12,7 +12,14 @@ import cn.com.crc.ems.finance.agent.harness.domain.PlanRevision;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.entity.PlanRevisionEntity;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.mapper.PlanRevisionMapper;
 
-/** 使用 MyBatis-Plus 追加并隔离 Harness 计划修订。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus 追加并隔离 Harness 计划修订。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisPlanRevisionRepository implements PlanRevisionRepository {
 

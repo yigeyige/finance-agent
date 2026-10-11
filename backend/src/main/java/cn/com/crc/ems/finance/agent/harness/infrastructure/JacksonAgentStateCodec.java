@@ -11,7 +11,14 @@ import cn.com.crc.ems.finance.agent.harness.domain.StateReference;
 import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 import io.agentscope.core.state.State;
 
-/** 复用 Jackson 序列化 AgentScope 状态，并在写入前执行敏感字段和摘要校验。 */
+/**
+ *
+ * @Description: 复用 Jackson 序列化 AgentScope 状态，并在写入前执行敏感字段和摘要校验。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 public final class JacksonAgentStateCodec implements AgentStateCodec {
 

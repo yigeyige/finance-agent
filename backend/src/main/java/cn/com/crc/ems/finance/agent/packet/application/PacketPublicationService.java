@@ -27,7 +27,14 @@ import cn.com.crc.ems.finance.agent.task.domain.InvestigationTask;
 import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
 import cn.com.crc.ems.finance.agent.task.domain.VersionedJson;
 
-/** 编排发布前全量重查，并在同一事务中写 revision、审计、outbox 和任务状态。 */
+/**
+ *
+ * @Description: 编排发布前全量重查，并在同一事务中写 revision、审计、outbox 和任务状态。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class PacketPublicationService {
 

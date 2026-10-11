@@ -14,7 +14,14 @@ import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/** 按稳定角色矩阵执行服务端权限守卫，前端导航不参与授权决策。 */
+/**
+ *
+ * @Description: 按稳定角色矩阵执行服务端权限守卫，前端导航不参与授权决策。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 public final class PermissionGuardInterceptor implements HandlerInterceptor, WebMvcConfigurer {
 

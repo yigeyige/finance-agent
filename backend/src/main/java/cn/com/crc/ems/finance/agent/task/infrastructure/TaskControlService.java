@@ -15,7 +15,14 @@ import cn.com.crc.ems.finance.agent.task.application.TaskStateTransitionCommand;
 import cn.com.crc.ems.finance.agent.task.application.TaskStateTransitionResult;
 import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
 
-/** 统一处理暂停和取消，确保取消释放租约但不删除任务历史。 */
+/**
+ *
+ * @Description: 统一处理暂停和取消，确保取消释放租约但不删除任务历史。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class TaskControlService {
 

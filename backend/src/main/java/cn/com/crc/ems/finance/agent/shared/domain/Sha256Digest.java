@@ -4,7 +4,14 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-/** 基于 JDK 的 UTF-8 SHA-256 摘要工具。 */
+/**
+ *
+ * @Description: 基于 JDK 的 UTF-8 SHA-256 摘要工具。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class Sha256Digest {
 
     private Sha256Digest() {

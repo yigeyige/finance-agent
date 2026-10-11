@@ -29,7 +29,14 @@ import cn.com.crc.ems.finance.agent.packet.application.PacketDraftRepository;
 import cn.com.crc.ems.finance.agent.task.application.StepApprovalRepository;
 import cn.com.crc.ems.finance.agent.scenario.application.BusinessSceneSkillRepository;
 
-/** 任务发起、运维前提和范围确认的事务应用边界。 */
+/**
+ *
+ * @Description: 任务发起、运维前提和范围确认的事务应用边界。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class TaskIntakeApplicationService {
 

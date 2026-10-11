@@ -15,7 +15,14 @@ import cn.com.crc.ems.finance.agent.governance.application.AuditEventRepository;
 import cn.com.crc.ems.finance.agent.governance.domain.AuditEvent;
 import cn.com.crc.ems.finance.agent.task.domain.VersionedJson;
 
-/** 复用治理审计摘要链追加任务动作，payload 只允许最小结构化元数据。 */
+/**
+ *
+ * @Description: 复用治理审计摘要链追加任务动作，payload 只允许最小结构化元数据。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 public final class TaskAuditEventAppender {
 

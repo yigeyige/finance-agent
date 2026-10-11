@@ -15,7 +15,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 
 /**
- * 仅从离线 fixture 返回确定性结构化结果的模型 Stub，绝不访问网络或生成自然语言。
+ *
+ * @Description: 仅从离线 fixture 返回确定性结构化结果的模型 Stub，绝不访问网络或生成自然语言。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
  */
 @Component
 public final class DeterministicModelStub implements ModelGateway {

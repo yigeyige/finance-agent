@@ -13,7 +13,14 @@ import cn.com.crc.ems.finance.agent.task.domain.StepApproval;
 import cn.com.crc.ems.finance.agent.task.infrastructure.entity.StepApprovalEntity;
 import cn.com.crc.ems.finance.agent.task.infrastructure.mapper.StepApprovalMapper;
 
-/** 使用 MyBatis-Plus Mapper 访问步骤审批历史。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus Mapper 访问步骤审批历史。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisStepApprovalRepository implements StepApprovalRepository {
 

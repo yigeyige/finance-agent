@@ -4,7 +4,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-/** 仅组装和校验结构化压缩摘要，不生成事实或复制原始快照。 */
+/**
+ *
+ * @Description: 仅组装和校验结构化压缩摘要，不生成事实或复制原始快照。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class ContextCompressionService {
 
     private final CompressionConfiguration configuration;

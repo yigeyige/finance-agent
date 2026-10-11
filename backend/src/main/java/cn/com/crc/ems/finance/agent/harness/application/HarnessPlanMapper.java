@@ -13,7 +13,14 @@ import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 import cn.com.crc.ems.finance.agent.task.application.ProposeStepsCommand;
 import cn.com.crc.ems.finance.agent.task.application.StepProposalItem;
 
-/** 将 Harness 计划修订映射为业务步骤提议，不执行步骤也不预取数据。 */
+/**
+ *
+ * @Description: 将 Harness 计划修订映射为业务步骤提议，不执行步骤也不预取数据。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class HarnessPlanMapper {
 
     private static final String STEPS = "steps";

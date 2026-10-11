@@ -11,7 +11,14 @@ import cn.com.crc.ems.finance.agent.harness.infrastructure.entity.SessionStateEn
 import cn.com.crc.ems.finance.agent.harness.infrastructure.entity.WorkspaceRefEntity;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid;
 
-/** Harness 领域对象与 MyBatis-Plus Entity 的显式映射。 */
+/**
+ *
+ * @Description: Harness 领域对象与 MyBatis-Plus Entity 的显式映射。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class MybatisHarnessMappings {
 
     private MybatisHarnessMappings() {

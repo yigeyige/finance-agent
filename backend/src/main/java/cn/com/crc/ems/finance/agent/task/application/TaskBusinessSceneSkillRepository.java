@@ -4,7 +4,14 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
-/** 任务与业务场景 Skill 的稳定关联端口。 */
+/**
+ *
+ * @Description: 任务与业务场景 Skill 的稳定关联端口。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public interface TaskBusinessSceneSkillRepository {
 
     /** 读取任务当前关联的 Skill 标识。 */

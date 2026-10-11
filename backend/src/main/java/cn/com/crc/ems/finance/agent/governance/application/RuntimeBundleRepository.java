@@ -5,7 +5,14 @@ import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.governance.domain.RuntimeBundle;
 
-/** 运行版本包持久化端口。 */
+/**
+ *
+ * @Description: 运行版本包持久化端口。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public interface RuntimeBundleRepository {
 
     /** 按主键查询运行版本包。 */

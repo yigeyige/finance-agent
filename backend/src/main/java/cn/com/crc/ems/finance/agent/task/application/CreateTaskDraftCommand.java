@@ -3,7 +3,14 @@ package cn.com.crc.ems.finance.agent.task.application;
 import java.time.Instant;
 import java.util.UUID;
 
-/** 创建调查任务草稿的应用命令。 */
+/**
+ *
+ * @Description: 创建调查任务草稿的应用命令。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record CreateTaskDraftCommand(String title, String originalQuestion, UUID initiatorUserId,
         UUID runtimeBundleId, UUID actorUserId, Instant occurredAt, UUID businessSceneSkillId) {
 

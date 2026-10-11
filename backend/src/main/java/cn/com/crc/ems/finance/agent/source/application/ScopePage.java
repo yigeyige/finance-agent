@@ -2,7 +2,14 @@ package cn.com.crc.ems.finance.agent.source.application;
 
 import java.util.List;
 
-/** 统一来源 SPI 的分页结果契约。 */
+/**
+ *
+ * @Description: 统一来源 SPI 的分页结果契约。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record ScopePage<T>(List<T> records, int page, boolean hasNext, String nextToken,
         String sourceWatermark, String resultDigest) {
 

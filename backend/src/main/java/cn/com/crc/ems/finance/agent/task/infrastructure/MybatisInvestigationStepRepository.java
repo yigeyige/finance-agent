@@ -13,7 +13,14 @@ import cn.com.crc.ems.finance.agent.task.domain.InvestigationStep;
 import cn.com.crc.ems.finance.agent.task.infrastructure.entity.InvestigationStepEntity;
 import cn.com.crc.ems.finance.agent.task.infrastructure.mapper.InvestigationStepMapper;
 
-/** 使用 MyBatis-Plus Mapper 访问有序调查步骤。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus Mapper 访问有序调查步骤。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisInvestigationStepRepository implements InvestigationStepRepository {
 

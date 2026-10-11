@@ -11,7 +11,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** 将 Harness permission 暂停、人工决定和业务 ToolGateway 二次守卫串成单向桥。 */
+/**
+ *
+ * @Description: 将 Harness permission 暂停、人工决定和业务 ToolGateway 二次守卫串成单向桥。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class HitlToolBridge {
 

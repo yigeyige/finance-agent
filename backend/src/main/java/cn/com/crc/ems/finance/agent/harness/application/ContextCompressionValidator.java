@@ -4,7 +4,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/** 校验压缩引用存在性、digest、字段白名单和未知项完整性。 */
+/**
+ *
+ * @Description: 校验压缩引用存在性、digest、字段白名单和未知项完整性。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class ContextCompressionValidator {
 
     private ContextCompressionValidator() {

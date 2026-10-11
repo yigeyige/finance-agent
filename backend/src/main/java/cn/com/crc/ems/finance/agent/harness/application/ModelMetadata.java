@@ -2,7 +2,14 @@ package cn.com.crc.ems.finance.agent.harness.application;
 
 import java.util.Set;
 
-/** 不含模型原文的可审计调用元数据。 */
+/**
+ *
+ * @Description: 不含模型原文的可审计调用元数据。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record ModelMetadata(String modelBindingVersion, String templateVersion,
         Set<String> inputEvidenceIds, String inputFieldDigest, String inputDigest,
         String outputDigest, int tokens, long latencyMillis, String finishReason,

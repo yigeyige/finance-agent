@@ -13,7 +13,14 @@ import cn.com.crc.ems.finance.agent.task.domain.InvocationStatus;
 import cn.com.crc.ems.finance.agent.task.domain.TaskLease;
 import cn.com.crc.ems.finance.agent.task.domain.ToolInvocation;
 
-/** 重新验证业务上下文并给出无副作用的 checkpoint 恢复决策。 */
+/**
+ *
+ * @Description: 重新验证业务上下文并给出无副作用的 checkpoint 恢复决策。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class CheckpointRecoveryService {
 

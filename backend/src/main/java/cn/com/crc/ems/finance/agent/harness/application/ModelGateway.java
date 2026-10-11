@@ -4,7 +4,14 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-/** Harness 唯一的结构化模型调用入口。 */
+/**
+ *
+ * @Description: Harness 唯一的结构化模型调用入口。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public interface ModelGateway {
 
     <T> ModelResult<T> generateStructured(ModelPurpose purpose, PromptTemplateVersion template,

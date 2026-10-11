@@ -12,7 +12,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
-/** 统一执行严格 JSON 解析和确定性 canonical JSON 编码。 */
+/**
+ *
+ * @Description: 统一执行严格 JSON 解析和确定性 canonical JSON 编码。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class CanonicalJsonCodec {
 
     private static final JsonMapper JSON_MAPPER = JsonMapper.builder()

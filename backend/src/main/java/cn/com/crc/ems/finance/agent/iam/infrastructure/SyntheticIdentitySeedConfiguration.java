@@ -8,7 +8,14 @@ import org.springframework.context.annotation.Profile;
 
 import cn.com.crc.ems.finance.agent.iam.application.SyntheticIdentitySeeder;
 
-/** 仅在 local/test 且显式打开开关时注册合成数据启动器。 */
+/**
+ *
+ * @Description: 仅在 local/test 且显式打开开关时注册合成数据启动器。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Configuration
 @Profile({"local", "test"})
 @ConditionalOnProperty(prefix = "finance-agent.identity", name = "seed-enabled", havingValue = "true")

@@ -1,6 +1,13 @@
 package cn.com.crc.ems.finance.agent.shared.application;
 
-/** 稳定领域错误目录，禁止直接暴露底层异常文本。 */
+/**
+ *
+ * @Description: 稳定领域错误目录，禁止直接暴露底层异常文本。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public enum DomainErrorCode {
     CONTRACT_ERROR(400, RetryClass.NOT_RETRYABLE, "请求不满足业务契约"),
     STATE_CONFLICT(409, RetryClass.NEW_APPROVAL_REQUIRED, "当前业务状态已变化"),

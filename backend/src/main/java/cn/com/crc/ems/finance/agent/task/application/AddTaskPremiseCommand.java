@@ -3,7 +3,14 @@ package cn.com.crc.ems.finance.agent.task.application;
 import java.time.Instant;
 import java.util.UUID;
 
-/** 追加运维提供任务前提的应用命令。 */
+/**
+ *
+ * @Description: 追加运维提供任务前提的应用命令。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record AddTaskPremiseCommand(UUID taskId, String premiseType, String subjectKey, String statement,
         UUID providedBy, String sourceDescription, Instant occurredAt) {
 

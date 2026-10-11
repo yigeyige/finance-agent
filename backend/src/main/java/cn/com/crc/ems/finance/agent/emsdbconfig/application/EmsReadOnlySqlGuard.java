@@ -7,7 +7,14 @@ import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
-/** 在 JDBC 语句创建前强制 EMS Agent 查询为单条受控只读 SQL。 */
+/**
+ *
+ * @Description: 在 JDBC 语句创建前强制 EMS Agent 查询为单条受控只读 SQL。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 public final class EmsReadOnlySqlGuard {
     private static final Set<String> ALLOWED_SCHEMAS = Set.of("basedata", "activiti_ems", "account", "budget",

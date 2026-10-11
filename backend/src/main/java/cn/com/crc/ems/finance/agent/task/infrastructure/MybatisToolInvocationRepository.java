@@ -15,7 +15,14 @@ import cn.com.crc.ems.finance.agent.task.domain.ToolInvocation;
 import cn.com.crc.ems.finance.agent.task.infrastructure.entity.ToolInvocationEntity;
 import cn.com.crc.ems.finance.agent.task.infrastructure.mapper.ToolInvocationMapper;
 
-/** 使用 MyBatis-Plus Mapper 保存可恢复工具调用。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus Mapper 保存可恢复工具调用。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisToolInvocationRepository implements ToolInvocationRepository {
 

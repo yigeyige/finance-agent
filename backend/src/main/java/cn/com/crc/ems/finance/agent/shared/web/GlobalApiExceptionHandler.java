@@ -17,7 +17,14 @@ import cn.com.crc.ems.finance.agent.diagnostics.DiagnosticLogSanitizer;
 import cn.com.crc.ems.finance.agent.shared.application.DomainErrorCode;
 import cn.com.crc.ems.finance.agent.shared.application.DomainException;
 
-/** 统一将领域和未知异常映射为不泄漏内部细节的 HTTP 错误。 */
+/**
+ *
+ * @Description: 统一将领域和未知异常映射为不泄漏内部细节的 HTTP 错误。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Order
 @RestControllerAdvice
 public class GlobalApiExceptionHandler {

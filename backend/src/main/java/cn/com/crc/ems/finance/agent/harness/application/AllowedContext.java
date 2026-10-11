@@ -13,7 +13,12 @@ import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 import cn.com.crc.ems.finance.agent.tool.application.SensitiveFieldScanner;
 
 /**
- * 送入模型的最小字段投影上下文，只保留证据引用、获准字段和任务元数据。
+ *
+ * @Description: 送入模型的最小字段投影上下文，只保留证据引用、获准字段和任务元数据。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
  */
 public record AllowedContext(JsonNode projectedEvidence, Set<String> evidenceIds,
         Set<String> allowedFields, Map<String, String> taskMetadata) {

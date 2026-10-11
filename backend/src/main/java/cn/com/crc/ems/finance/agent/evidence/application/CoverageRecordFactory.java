@@ -13,7 +13,14 @@ import cn.com.crc.ems.finance.agent.evidence.domain.CoverageCompleteness;
 import cn.com.crc.ems.finance.agent.evidence.domain.CoverageRecord;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 
-/** 将覆盖度遍历结果组装为现有证据域记录。 */
+/**
+ *
+ * @Description: 将覆盖度遍历结果组装为现有证据域记录。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class CoverageRecordFactory {
 

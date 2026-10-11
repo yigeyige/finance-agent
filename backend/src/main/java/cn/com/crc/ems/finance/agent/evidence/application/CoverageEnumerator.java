@@ -10,7 +10,14 @@ import org.springframework.stereotype.Service;
 import cn.com.crc.ems.finance.agent.evidence.domain.CoverageCompleteness;
 import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 
-/** 在有界页数内遍历来源并收集覆盖度证据。 */
+/**
+ *
+ * @Description: 在有界页数内遍历来源并收集覆盖度证据。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class CoverageEnumerator {
 

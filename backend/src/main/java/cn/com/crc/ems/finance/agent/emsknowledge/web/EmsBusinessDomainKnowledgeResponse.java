@@ -4,7 +4,14 @@ import java.util.List;
 
 import cn.com.crc.ems.finance.agent.emsknowledge.domain.EmsBusinessDomainKnowledge;
 
-/** 业务域知识的安全只读响应。 */
+/**
+ *
+ * @Description: 业务域知识的安全只读响应。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record EmsBusinessDomainKnowledgeResponse(String code, String name, String summary, List<String> schemas,
         int tableCount, List<String> keyTables, String knowledgeBoundary, String verificationHint) {
 

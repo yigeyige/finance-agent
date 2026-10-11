@@ -3,7 +3,14 @@ package cn.com.crc.ems.finance.agent.harness.application;
 import java.util.List;
 import java.util.UUID;
 
-/** 步骤提议中的单个只读工具动作。 */
+/**
+ *
+ * @Description: 步骤提议中的单个只读工具动作。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record StepAction(String goal, String toolCode, UUID sourceBindingId, UUID scopeRevisionId,
         List<String> requestedLogicalFields, String queryTemplateVersion, int maxCalls) {
 

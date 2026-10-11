@@ -3,7 +3,14 @@ package cn.com.crc.ems.finance.agent.task.application;
 import java.util.List;
 import java.util.UUID;
 
-/** 公开任务事件的追加与游标查询端口。 */
+/**
+ *
+ * @Description: 公开任务事件的追加与游标查询端口。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public interface TaskEventRepository {
 
     /** 追加事件并分配任务内单调序号。 */

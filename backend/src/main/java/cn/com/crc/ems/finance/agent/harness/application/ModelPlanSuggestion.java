@@ -7,7 +7,14 @@ import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-/** 严格校验后的模型调查方案，限制为一个推荐和最多两个备选。 */
+/**
+ *
+ * @Description: 严格校验后的模型调查方案，限制为一个推荐和最多两个备选。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record ModelPlanSuggestion(String recommendedGoal, List<String> alternativeGoals, String reason) {
 
     private static final Set<String> FIELDS = Set.of("recommendedGoal", "alternativeGoals", "reason");

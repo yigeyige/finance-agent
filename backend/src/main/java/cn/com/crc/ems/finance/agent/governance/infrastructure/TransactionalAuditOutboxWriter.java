@@ -9,7 +9,14 @@ import cn.com.crc.ems.finance.agent.governance.application.OutboxEventRepository
 import cn.com.crc.ems.finance.agent.governance.domain.AuditEvent;
 import cn.com.crc.ems.finance.agent.governance.domain.OutboxEvent;
 
-/** 在同一 PostgreSQL 事务中追加审计和 outbox 事件。 */
+/**
+ *
+ * @Description: 在同一 PostgreSQL 事务中追加审计和 outbox 事件。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class TransactionalAuditOutboxWriter implements AuditOutboxTransaction {
 

@@ -1,6 +1,13 @@
 package cn.com.crc.ems.finance.agent.evidence.application;
 
-/** 分页来源的可替换读取端口。 */
+/**
+ *
+ * @Description: 分页来源的可替换读取端口。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @FunctionalInterface
 public interface PageFetcher<T> {
 

@@ -7,7 +7,14 @@ import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.scenario.domain.BusinessSceneSkill;
 
-/** 业务场景 Skill 的持久化端口，屏蔽软删除实现细节。 */
+/**
+ *
+ * @Description: 业务场景 Skill 的持久化端口，屏蔽软删除实现细节。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public interface BusinessSceneSkillRepository {
 
     /** 查询全部当前有效的业务场景 Skill。 */

@@ -14,7 +14,14 @@ import cn.com.crc.ems.finance.agent.harness.domain.SessionState;
 import cn.com.crc.ems.finance.agent.harness.domain.StateReference;
 import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
 
-/** 管理 Harness session 与计划修订的业务绑定，计划改写不自动推进任务状态。 */
+/**
+ *
+ * @Description: 管理 Harness session 与计划修订的业务绑定，计划改写不自动推进任务状态。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class HarnessSessionService {
 

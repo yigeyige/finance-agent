@@ -4,7 +4,14 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-/** 保存最小恢复引用并绑定当前任务批准上下文的 Harness checkpoint。 */
+/**
+ *
+ * @Description: 保存最小恢复引用并绑定当前任务批准上下文的 Harness checkpoint。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record Checkpoint(UUID checkpointId, UUID sessionId, UUID taskId, UUID userId, UUID stepId,
         UUID scopeRevisionId, UUID approvalId, UUID runtimeBundleId, String checkpointType, StateReference stateRef,
         UUID createdBy, Instant createdAt, UUID updatedBy, Instant updatedAt) {

@@ -14,7 +14,14 @@ import cn.com.crc.ems.finance.agent.harness.application.ModelPlanSuggestion;
 import cn.com.crc.ems.finance.agent.modelconfig.application.ModelApiKeyCipher;
 import cn.com.crc.ems.finance.agent.modelconfig.application.ModelConnectionConfigService;
 
-/** 每次模型调用读取当前启用的数据库配置，避免模型连接信息留在应用配置文件。 */
+/**
+ *
+ * @Description: 每次模型调用读取当前启用的数据库配置，避免模型连接信息留在应用配置文件。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class DatabaseConfiguredBusinessModelClient implements BusinessModelClient {
     private final ModelConnectionConfigService configService;
     private final ModelApiKeyCipher cipher;

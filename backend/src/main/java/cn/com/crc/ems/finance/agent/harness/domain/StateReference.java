@@ -7,7 +7,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
-/** Harness 状态的最小 JSON 引用，负责 schema、摘要和敏感字段边界。 */
+/**
+ *
+ * @Description: Harness 状态的最小 JSON 引用，负责 schema、摘要和敏感字段边界。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record StateReference(String schemaVersion, String json, String digest) {
 
     private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();

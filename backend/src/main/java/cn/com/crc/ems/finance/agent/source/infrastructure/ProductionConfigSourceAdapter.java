@@ -15,7 +15,14 @@ import cn.com.crc.ems.finance.agent.source.application.SourcePage;
 import cn.com.crc.ems.finance.agent.source.application.SourceQuery;
 import cn.com.crc.ems.finance.agent.source.application.SyntheticScenario;
 
-/** prod profile 下真实只读源的阻断占位，不返回合成或伪造成功数据。 */
+/**
+ *
+ * @Description: prod profile 下真实只读源的阻断占位，不返回合成或伪造成功数据。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 @Profile("prod")
 public class ProductionConfigSourceAdapter implements ConfigSourceAdapter {

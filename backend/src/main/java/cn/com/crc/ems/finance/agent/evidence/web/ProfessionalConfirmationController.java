@@ -17,7 +17,14 @@ import cn.com.crc.ems.finance.agent.iam.application.IdentityContext;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 import jakarta.validation.Valid;
 
-/** 逐条专业判断确认 REST 入口。 */
+/**
+ *
+ * @Description: 逐条专业判断确认 REST 入口。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @RestController
 @RequestMapping("/api/v1/tasks")
 public final class ProfessionalConfirmationController {

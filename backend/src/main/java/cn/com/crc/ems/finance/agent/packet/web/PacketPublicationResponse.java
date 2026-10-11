@@ -7,7 +7,14 @@ import java.util.UUID;
 import cn.com.crc.ems.finance.agent.packet.application.PacketPublicationResult;
 import cn.com.crc.ems.finance.agent.packet.application.ScopeRecheckDiff;
 
-/** 发布结果，重查发现变化时返回阻断状态而不返回 revision。 */
+/**
+ *
+ * @Description: 发布结果，重查发现变化时返回阻断状态而不返回 revision。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record PacketPublicationResponse(UUID taskId, boolean published, String taskStatus,
         UUID packetRevisionId, Integer revisionNo, String contentDigest, String recheckDecision,
         String recheckDigest, Instant checkedAt, List<ScopeRecheckDiff> diffs) {

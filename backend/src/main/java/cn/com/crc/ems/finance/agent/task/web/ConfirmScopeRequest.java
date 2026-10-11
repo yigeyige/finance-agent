@@ -9,7 +9,14 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-/** 确认不可变范围修订的 HTTP 请求，JSON 字段按文本接收后严格解析。 */
+/**
+ *
+ * @Description: 确认不可变范围修订的 HTTP 请求，JSON 字段按文本接收后严格解析。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record ConfirmScopeRequest(@NotBlank @Size(max = 100) String systemCode,
         @NotNull JsonNode objectSelector, @NotNull JsonNode effectiveTimeRange, @NotNull JsonNode includedPaths,

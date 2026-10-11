@@ -11,7 +11,14 @@ import cn.com.crc.ems.finance.agent.evidence.domain.EffectiveClass;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 
-/** 使用项目统一 canonical JSON 和摘要工具规范化规则输入输出。 */
+/**
+ *
+ * @Description: 使用项目统一 canonical JSON 和摘要工具规范化规则输入输出。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public class RuleInputNormalizer {
 
     /**

@@ -16,7 +16,14 @@ import cn.com.crc.ems.finance.agent.scenario.infrastructure.entity.BusinessScene
 import cn.com.crc.ems.finance.agent.scenario.infrastructure.mapper.BusinessSceneSkillMapper;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid;
 
-/** 使用 MyBatis-Plus 持久化业务场景 Skill。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus 持久化业务场景 Skill。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisBusinessSceneSkillRepository implements BusinessSceneSkillRepository {
 

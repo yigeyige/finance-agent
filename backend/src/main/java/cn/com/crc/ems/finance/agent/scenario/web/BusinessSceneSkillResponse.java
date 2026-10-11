@@ -5,7 +5,14 @@ import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.scenario.domain.BusinessSceneSkill;
 
-/** 对外返回的业务场景 Skill 视图。 */
+/**
+ *
+ * @Description: 对外返回的业务场景 Skill 视图。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record BusinessSceneSkillResponse(UUID skillId, String name, String description, String handlingType,
         String premiseType, Instant updatedAt) {
 

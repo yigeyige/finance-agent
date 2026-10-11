@@ -13,7 +13,14 @@ import cn.com.crc.ems.finance.agent.governance.domain.AuditEvent;
 import cn.com.crc.ems.finance.agent.governance.infrastructure.entity.AuditEventEntity;
 import cn.com.crc.ems.finance.agent.governance.infrastructure.mapper.AuditEventMapper;
 
-/** 使用 MyBatis-Plus 追加和查询审计摘要链。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus 追加和查询审计摘要链。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisAuditEventRepository implements AuditEventRepository {
 

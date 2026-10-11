@@ -12,7 +12,14 @@ import cn.com.crc.ems.finance.agent.packet.domain.ScopeRecheckRecord;
 import cn.com.crc.ems.finance.agent.packet.infrastructure.entity.ScopeRecheckEntity;
 import cn.com.crc.ems.finance.agent.packet.infrastructure.mapper.ScopeRecheckMapper;
 
-/** 使用 MyBatis-Plus 持久化并查询发布前范围重查记录。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus 持久化并查询发布前范围重查记录。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisScopeRecheckRepository implements ScopeRecheckRepository {
 

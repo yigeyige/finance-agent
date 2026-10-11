@@ -1,6 +1,13 @@
 package cn.com.crc.ems.finance.agent.iam.application;
 
-/** 保存当前请求的可信身份，并保证请求结束后清理线程状态。 */
+/**
+ *
+ * @Description: 保存当前请求的可信身份，并保证请求结束后清理线程状态。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class IdentityContext {
 
     private static final ThreadLocal<CurrentIdentity> CURRENT = new ThreadLocal<>();

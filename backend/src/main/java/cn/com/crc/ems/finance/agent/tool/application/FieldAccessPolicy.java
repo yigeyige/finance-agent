@@ -2,7 +2,14 @@ package cn.com.crc.ems.finance.agent.tool.application;
 
 import java.util.Set;
 
-/** 三类字段权限策略；留存和送模字段必须从可读字段中选择。 */
+/**
+ *
+ * @Description: 三类字段权限策略；留存和送模字段必须从可读字段中选择。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record FieldAccessPolicy(Set<String> readFields, Set<String> retainFields, Set<String> modelFields) {
 
     public FieldAccessPolicy {

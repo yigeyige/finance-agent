@@ -12,7 +12,14 @@ import org.springframework.stereotype.Component;
 
 import cn.com.crc.ems.finance.agent.task.application.ExecutionPermit;
 
-/** 进程内 HMAC-SHA256 permit 签名器，密钥不出 JVM。 */
+/**
+ *
+ * @Description: 进程内 HMAC-SHA256 permit 签名器，密钥不出 JVM。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 public class PermitSigner {
 

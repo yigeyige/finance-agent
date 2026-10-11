@@ -8,7 +8,14 @@ import org.springframework.stereotype.Component;
 import cn.com.crc.ems.finance.agent.governance.domain.RuntimeBundle;
 import cn.com.crc.ems.finance.agent.governance.domain.RuntimeBundleStatus;
 
-/** 版本化提示模板目录，只允许 runtime bundle 引用已发布模板。 */
+/**
+ *
+ * @Description: 版本化提示模板目录，只允许 runtime bundle 引用已发布模板。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 public final class PromptTemplateCatalog {
 

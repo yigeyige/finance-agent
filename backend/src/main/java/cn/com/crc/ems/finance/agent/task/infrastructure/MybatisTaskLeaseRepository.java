@@ -15,7 +15,14 @@ import cn.com.crc.ems.finance.agent.task.domain.TaskLease;
 import cn.com.crc.ems.finance.agent.task.infrastructure.entity.TaskLeaseEntity;
 import cn.com.crc.ems.finance.agent.task.infrastructure.mapper.TaskLeaseMapper;
 
-/** 使用 MyBatis-Plus Mapper 管理数据库部分唯一索引保护的活动租约。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus Mapper 管理数据库部分唯一索引保护的活动租约。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisTaskLeaseRepository implements TaskLeaseRepository {
 

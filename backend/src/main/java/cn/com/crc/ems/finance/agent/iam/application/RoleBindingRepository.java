@@ -7,7 +7,14 @@ import java.util.UUID;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleBinding;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 
-/** 角色授权关系持久化端口。 */
+/**
+ *
+ * @Description: 角色授权关系持久化端口。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public interface RoleBindingRepository {
 
     /** 查询身份的全部授权历史。 */

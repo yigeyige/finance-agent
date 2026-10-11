@@ -16,7 +16,14 @@ import cn.com.crc.ems.finance.agent.packet.domain.PacketDraftStatus;
 import cn.com.crc.ems.finance.agent.packet.domain.ScopeRecheckRecord;
 import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 
-/** 在发布前对批准范围执行全量重查并记录草稿影响。 */
+/**
+ *
+ * @Description: 在发布前对批准范围执行全量重查并记录草稿影响。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class ScopeRecheckService {
 

@@ -8,7 +8,14 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-/** 按方案附件 B 校验下一步提议，拒绝额外字段和非法结构。 */
+/**
+ *
+ * @Description: 按方案附件 B 校验下一步提议，拒绝额外字段和非法结构。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class StepProposalSchema implements JsonSchema<StepProposal> {
 
     private static final Set<String> ROOT_FIELDS = Set.of("recommended", "alternatives", "reason", "stopAssessment");

@@ -13,7 +13,14 @@ import cn.com.crc.ems.finance.agent.iam.application.IdentityContext;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 import cn.com.crc.ems.finance.agent.task.application.TaskDiagnosticService;
 
-/** 为 OPERATOR/VIEWER 提供只读任务诊断摘要。 */
+/**
+ *
+ * @Description: 为 OPERATOR/VIEWER 提供只读任务诊断摘要。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @RestController
 @RequestMapping("/api/v1/tasks/{taskId}/diagnostics")
 public final class TaskDiagnosticController {

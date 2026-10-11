@@ -11,7 +11,14 @@ import cn.com.crc.ems.finance.agent.shared.infrastructure.RepositoryEntityNotFou
 import cn.com.crc.ems.finance.agent.shared.infrastructure.RepositoryStateViolationException;
 import cn.com.crc.ems.finance.agent.task.domain.InvalidTaskTransitionException;
 
-/** 将发布生命周期契约、状态和对象不存在错误映射为稳定响应。 */
+/**
+ *
+ * @Description: 将发布生命周期契约、状态和对象不存在错误映射为稳定响应。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @RestControllerAdvice(assignableTypes = PacketLifecycleController.class)
 public final class PacketLifecycleExceptionHandler {
 

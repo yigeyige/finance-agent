@@ -4,7 +4,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/** 合成源的固定目录和模板参数白名单。 */
+/**
+ *
+ * @Description: 合成源的固定目录和模板参数白名单。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record SourceCatalog(String version, Map<String, Map<String, String>> templates,
         Map<String, List<String>> authorityOrder) {
 

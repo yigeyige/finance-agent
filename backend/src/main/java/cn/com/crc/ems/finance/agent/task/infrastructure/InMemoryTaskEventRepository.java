@@ -14,7 +14,14 @@ import org.springframework.stereotype.Repository;
 import cn.com.crc.ems.finance.agent.task.application.PublicTaskEvent;
 import cn.com.crc.ems.finance.agent.task.application.TaskEventRepository;
 
-/** 可替换的进程内事件仓储，供本地契约和后续持久化事件表适配。 */
+/**
+ *
+ * @Description: 可替换的进程内事件仓储，供本地契约和后续持久化事件表适配。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class InMemoryTaskEventRepository implements TaskEventRepository {
 

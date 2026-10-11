@@ -10,7 +10,14 @@ import com.baomidou.mybatisplus.annotation.TableName;
 
 import cn.com.crc.ems.finance.agent.task.infrastructure.JsonbTypeHandler;
 
-/** Harness session 状态表的 MyBatis-Plus 持久化实体。 */
+/**
+ *
+ * @Description: Harness session 状态表的 MyBatis-Plus 持久化实体。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @TableName("harness.session_state")
 public class SessionStateEntity {
     @TableId(value = "session_id", type = IdType.ASSIGN_UUID)

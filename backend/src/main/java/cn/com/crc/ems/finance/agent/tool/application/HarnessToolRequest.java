@@ -2,7 +2,14 @@ package cn.com.crc.ems.finance.agent.tool.application;
 
 import java.util.UUID;
 
-/** Harness 请求转入业务工具网关前的最小、不可变请求。 */
+/**
+ *
+ * @Description: Harness 请求转入业务工具网关前的最小、不可变请求。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record HarnessToolRequest(UUID requestId, String toolCode, ToolGuardRequest guardRequest) {
 
     public HarnessToolRequest {

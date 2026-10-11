@@ -2,7 +2,14 @@ package cn.com.crc.ems.finance.agent.packet.application;
 
 import java.util.UUID;
 
-/** 已发布决策包交接命令。 */
+/**
+ *
+ * @Description: 已发布决策包交接命令。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record PacketHandoffCommand(UUID taskId, UUID packetRevisionId, String ownerReference,
         String externalProcessReference, String downstreamStatus, UUID actorUserId) {
 

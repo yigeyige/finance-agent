@@ -6,7 +6,14 @@ import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-/** 严格校验后的模型证据分析，只保留业务摘要、风险与建议。 */
+/**
+ *
+ * @Description: 严格校验后的模型证据分析，只保留业务摘要、风险与建议。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record EvidenceAnalysisSuggestion(String summary, String riskLevel, String riskExplanation,
         List<String> recommendations) {
 

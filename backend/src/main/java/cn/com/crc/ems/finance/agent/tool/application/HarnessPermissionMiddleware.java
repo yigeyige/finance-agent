@@ -4,7 +4,14 @@ import java.util.Objects;
 
 import io.agentscope.core.permission.PermissionMode;
 
-/** 在工具请求处暂停 Harness，且明确禁止 Harness permission 绕过业务审批。 */
+/**
+ *
+ * @Description: 在工具请求处暂停 Harness，且明确禁止 Harness permission 绕过业务审批。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class HarnessPermissionMiddleware {
 
     private final PermissionMode mode;

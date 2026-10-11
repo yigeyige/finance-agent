@@ -10,7 +10,14 @@ import com.baomidou.mybatisplus.annotation.TableName;
 
 import cn.com.crc.ems.finance.agent.task.infrastructure.JsonbTypeHandler;
 
-/** 计算见证表的 MyBatis-Plus 持久化实体。 */
+/**
+ *
+ * @Description: 计算见证表的 MyBatis-Plus 持久化实体。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @TableName("evidence.computation_witness")
 public class ComputationWitnessEntity {
     @TableId(value = "witness_id", type = IdType.ASSIGN_UUID)

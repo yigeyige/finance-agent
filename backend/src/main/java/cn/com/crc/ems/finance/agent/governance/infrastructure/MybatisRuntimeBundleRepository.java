@@ -13,7 +13,14 @@ import cn.com.crc.ems.finance.agent.governance.infrastructure.entity.RuntimeBund
 import cn.com.crc.ems.finance.agent.governance.infrastructure.mapper.RuntimeBundleMapper;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid;
 
-/** 使用 MyBatis-Plus Mapper 访问受治理的运行版本包。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus Mapper 访问受治理的运行版本包。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisRuntimeBundleRepository implements RuntimeBundleRepository {
 

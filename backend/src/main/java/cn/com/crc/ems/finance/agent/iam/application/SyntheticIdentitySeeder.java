@@ -13,7 +13,14 @@ import cn.com.crc.ems.finance.agent.iam.domain.AgentUserStatus;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleBinding;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 
-/** 提供仅供 local/test 显式启用的确定性合成身份和运行版本。 */
+/**
+ *
+ * @Description: 提供仅供 local/test 显式启用的确定性合成身份和运行版本。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class SyntheticIdentitySeeder {
 

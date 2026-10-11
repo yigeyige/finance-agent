@@ -5,7 +5,14 @@ import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.task.domain.VersionedJson;
 
-/** 已发布的不可变决策包修订，HTML 仅作为 JSON 权威内容的快照。 */
+/**
+ *
+ * @Description: 已发布的不可变决策包修订，HTML 仅作为 JSON 权威内容的快照。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record PacketRevision(UUID packetRevisionId, UUID taskId, int revisionNo, UUID draftId,
         VersionedJson canonicalContent, String htmlSnapshot, String contentDigest, Instant checkedAt,
         VersionedJson sourceVersions, VersionedJson coverageSummary, UUID publishedBy, Instant publishedAt,

@@ -5,7 +5,14 @@ import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 
-/** 当前请求经过身份解析后的最小可信身份。 */
+/**
+ *
+ * @Description: 当前请求经过身份解析后的最小可信身份。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record CurrentIdentity(UUID userId, String authSubject, String displayName, Set<RoleCode> roles) {
 
     public CurrentIdentity {

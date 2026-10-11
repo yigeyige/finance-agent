@@ -7,7 +7,14 @@ import cn.com.crc.ems.finance.agent.governance.infrastructure.entity.OutboxEvent
 import cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid;
 import cn.com.crc.ems.finance.agent.task.domain.VersionedJson;
 
-/** 审计/outbox 领域对象与 MyBatis-Plus Entity 的显式映射。 */
+/**
+ *
+ * @Description: 审计/outbox 领域对象与 MyBatis-Plus Entity 的显式映射。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class MybatisAuditOutboxMappings {
 
     private MybatisAuditOutboxMappings() {

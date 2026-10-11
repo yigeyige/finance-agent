@@ -7,7 +7,14 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
-/** 发布前范围重查记录的 MyBatis-Plus 持久化实体。 */
+/**
+ *
+ * @Description: 发布前范围重查记录的 MyBatis-Plus 持久化实体。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @TableName("packet.scope_recheck")
 public class ScopeRecheckEntity {
     @TableId(value = "recheck_id", type = IdType.ASSIGN_UUID)

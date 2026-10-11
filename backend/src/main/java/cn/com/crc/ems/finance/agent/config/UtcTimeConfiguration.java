@@ -5,7 +5,14 @@ import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/** 为业务代码提供可替换的 UTC 系统时钟。 */
+/**
+ *
+ * @Description: 为业务代码提供可替换的 UTC 系统时钟。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Configuration
 public class UtcTimeConfiguration {
 

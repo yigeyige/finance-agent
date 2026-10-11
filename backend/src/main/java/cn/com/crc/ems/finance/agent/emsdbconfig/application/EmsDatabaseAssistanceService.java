@@ -10,7 +10,14 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
 
-/** 将模型的可选查询建议置于连接配置与只读 SQL 守卫之后执行。 */
+/**
+ *
+ * @Description: 将模型的可选查询建议置于连接配置与只读 SQL 守卫之后执行。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class EmsDatabaseAssistanceService {
     private final EmsDatabaseConnectionConfigService configService;

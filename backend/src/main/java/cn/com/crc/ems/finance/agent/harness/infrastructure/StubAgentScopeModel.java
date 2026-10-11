@@ -14,7 +14,14 @@ import io.agentscope.core.model.Model;
 import io.agentscope.core.model.ToolSchema;
 import io.agentscope.core.message.Msg;
 
-/** AgentScope Harness 冒烟使用的本地模型，不创建 HTTP 客户端或访问网络。 */
+/**
+ *
+ * @Description: AgentScope Harness 冒烟使用的本地模型，不创建 HTTP 客户端或访问网络。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class StubAgentScopeModel implements Model {
 
     private final String modelName;

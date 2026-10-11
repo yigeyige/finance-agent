@@ -9,7 +9,14 @@ import cn.com.crc.ems.finance.agent.packet.domain.ReviewDecision;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-/** 草稿复核请求，显式绑定摘要、范围和运行版本。 */
+/**
+ *
+ * @Description: 草稿复核请求，显式绑定摘要、范围和运行版本。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record PacketReviewRequest(@NotBlank String contentDigest, @NotNull UUID scopeRevisionId,
         @NotNull UUID runtimeBundleId, @NotNull ReviewDecision decision, String comment) {

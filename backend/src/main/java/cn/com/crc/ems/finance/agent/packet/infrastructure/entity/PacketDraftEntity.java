@@ -10,7 +10,14 @@ import com.baomidou.mybatisplus.annotation.TableName;
 
 import cn.com.crc.ems.finance.agent.task.infrastructure.JsonbTypeHandler;
 
-/** 决策包草稿表的 MyBatis-Plus 持久化实体。 */
+/**
+ *
+ * @Description: 决策包草稿表的 MyBatis-Plus 持久化实体。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @TableName("packet.packet_draft")
 public class PacketDraftEntity {
     @TableId(value = "draft_id", type = IdType.ASSIGN_UUID)

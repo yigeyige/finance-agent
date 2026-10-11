@@ -4,7 +4,14 @@ import org.springframework.stereotype.Repository;
 import cn.com.crc.ems.finance.agent.task.application.TaskStateEventRepository;
 import cn.com.crc.ems.finance.agent.task.domain.TaskStateEvent;
 
-/** 将任务状态事件转换为治理审计事件，复用既有摘要链和 MyBatis-Plus 仓储。 */
+/**
+ *
+ * @Description: 将任务状态事件转换为治理审计事件，复用既有摘要链和 MyBatis-Plus 仓储。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisTaskStateEventRepository implements TaskStateEventRepository {
 

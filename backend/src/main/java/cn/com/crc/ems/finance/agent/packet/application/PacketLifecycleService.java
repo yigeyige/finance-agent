@@ -23,7 +23,14 @@ import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
 import cn.com.crc.ems.finance.agent.task.infrastructure.TaskAuditEventAppender;
 import cn.com.crc.ems.finance.agent.task.infrastructure.TaskStateTransitionService;
 
-/** 编排发布决策包的只读查看、交接和调查关闭生命周期。 */
+/**
+ *
+ * @Description: 编排发布决策包的只读查看、交接和调查关闭生命周期。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class PacketLifecycleService {
 

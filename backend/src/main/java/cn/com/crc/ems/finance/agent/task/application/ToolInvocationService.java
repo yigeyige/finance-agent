@@ -15,7 +15,14 @@ import cn.com.crc.ems.finance.agent.task.domain.InvocationStatus;
 import cn.com.crc.ems.finance.agent.task.domain.ToolInvocation;
 import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
 
-/** 管理工具调用的幂等意图、条件状态转换和结果分类。 */
+/**
+ *
+ * @Description: 管理工具调用的幂等意图、条件状态转换和结果分类。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class ToolInvocationService {
 

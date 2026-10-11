@@ -7,7 +7,14 @@ import cn.com.crc.ems.finance.agent.harness.domain.Checkpoint;
 import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.RepositoryEntityNotFoundException;
 
-/** 追加业务安全 checkpoint，并在写入前校验当前任务批准上下文。 */
+/**
+ *
+ * @Description: 追加业务安全 checkpoint，并在写入前校验当前任务批准上下文。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class CheckpointService {
 

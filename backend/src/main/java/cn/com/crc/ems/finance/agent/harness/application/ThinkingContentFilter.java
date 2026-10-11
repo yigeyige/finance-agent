@@ -17,7 +17,12 @@ import io.agentscope.core.message.ToolUseBlock;
 import io.agentscope.core.model.ChatResponse;
 
 /**
- * reasoning 禁止字段过滤器，统一用于模型响应、事件、异常和持久化边界。
+ *
+ * @Description: reasoning 禁止字段过滤器，统一用于模型响应、事件、异常和持久化边界。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
  */
 public final class ThinkingContentFilter {
 

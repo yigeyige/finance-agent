@@ -4,7 +4,14 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
-/** 对工作台公开的脱敏任务事件，不承载 prompt、推理链或源系统原文。 */
+/**
+ *
+ * @Description: 对工作台公开的脱敏任务事件，不承载 prompt、推理链或源系统原文。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record PublicTaskEvent(UUID taskId, UUID userId, long sequence, String eventType,
         String status, String publicReason, String resultReference, Instant occurredAt) {
 

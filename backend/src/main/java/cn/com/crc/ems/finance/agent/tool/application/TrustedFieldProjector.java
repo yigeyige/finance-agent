@@ -8,7 +8,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
-/** 在易失内存中完成全量可读校验和 retain/model 可信投影。 */
+/**
+ *
+ * @Description: 在易失内存中完成全量可读校验和 retain/model 可信投影。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 public class TrustedFieldProjector {
 

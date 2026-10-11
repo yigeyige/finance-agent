@@ -12,7 +12,14 @@ import cn.com.crc.ems.finance.agent.task.domain.TaskPremise;
 import cn.com.crc.ems.finance.agent.task.infrastructure.entity.TaskPremiseEntity;
 import cn.com.crc.ems.finance.agent.task.infrastructure.mapper.TaskPremiseMapper;
 
-/** 使用 MyBatis-Plus Mapper 访问任务前提。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus Mapper 访问任务前提。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisTaskPremiseRepository implements TaskPremiseRepository {
 

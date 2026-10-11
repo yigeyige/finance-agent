@@ -12,7 +12,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-/** 只从当前任务的裁剪证据和白名单元数据构造 AllowedContext。 */
+/**
+ *
+ * @Description: 只从当前任务的裁剪证据和白名单元数据构造 AllowedContext。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class AllowedContextFactory {
 
     private AllowedContextFactory() {

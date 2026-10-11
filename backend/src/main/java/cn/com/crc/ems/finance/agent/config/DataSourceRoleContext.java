@@ -2,7 +2,14 @@ package cn.com.crc.ems.finance.agent.config;
 
 import java.util.function.Supplier;
 
-/** API 与 Worker 数据源路由的线程上下文，默认使用 API 连接池。 */
+/**
+ *
+ * @Description: API 与 Worker 数据源路由的线程上下文，默认使用 API 连接池。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class DataSourceRoleContext {
 
     private static final ThreadLocal<Role> CURRENT = new ThreadLocal<>();

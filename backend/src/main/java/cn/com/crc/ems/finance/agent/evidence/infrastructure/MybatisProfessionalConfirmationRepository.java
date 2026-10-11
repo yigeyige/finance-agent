@@ -12,7 +12,14 @@ import cn.com.crc.ems.finance.agent.evidence.domain.ProfessionalConfirmation;
 import cn.com.crc.ems.finance.agent.evidence.infrastructure.entity.ProfessionalConfirmationEntity;
 import cn.com.crc.ems.finance.agent.evidence.infrastructure.mapper.ProfessionalConfirmationMapper;
 
-/** 使用 MyBatis-Plus Mapper 访问专业确认记录。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus Mapper 访问专业确认记录。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisProfessionalConfirmationRepository implements ProfessionalConfirmationRepository {
 

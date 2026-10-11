@@ -7,7 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/** 任务发起契约错误的最小 HTTP 映射，不回显异常原文或请求内容。 */
+/**
+ *
+ * @Description: 任务发起契约错误的最小 HTTP 映射，不回显异常原文或请求内容。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @RestControllerAdvice(assignableTypes = TaskIntakeController.class)
 public final class TaskIntakeExceptionHandler {
 

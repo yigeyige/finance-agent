@@ -7,7 +7,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import cn.com.crc.ems.finance.agent.tool.application.SensitiveFieldScanner;
 
-/** 已按字段策略裁剪、并绑定当前业务任务的模型上下文证据。 */
+/**
+ *
+ * @Description: 已按字段策略裁剪、并绑定当前业务任务的模型上下文证据。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record ContextEvidence(String evidenceId, UUID taskId, JsonNode projectedPayload,
         Set<String> allowedFields) {
 

@@ -3,7 +3,14 @@ package cn.com.crc.ems.finance.agent.harness.application;
 import java.util.List;
 import java.util.UUID;
 
-/** 证据分析模型允许接收的脱敏统计、覆盖状态和判断陈述。 */
+/**
+ *
+ * @Description: 证据分析模型允许接收的脱敏统计、覆盖状态和判断陈述。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record EvidenceAnalysisContext(UUID taskId, String title, String question,
         int currentCount, int futureCount, int undeterminedCount,
         List<String> coverageStates, List<String> findingStatements) {

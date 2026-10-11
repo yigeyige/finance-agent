@@ -5,7 +5,14 @@ import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.task.domain.ToolInvocationKey;
 
-/** 请求在外部工具调用前记录幂等意图。 */
+/**
+ *
+ * @Description: 请求在外部工具调用前记录幂等意图。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record ToolInvocationStartCommand(ToolInvocationKey key, UUID approvalId, String toolCode,
         String requestDigest, UUID actorId, Instant requestedAt) {
 

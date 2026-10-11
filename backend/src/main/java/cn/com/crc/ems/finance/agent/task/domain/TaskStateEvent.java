@@ -3,7 +3,14 @@ package cn.com.crc.ems.finance.agent.task.domain;
 import java.time.Instant;
 import java.util.UUID;
 
-/** 任务状态改变的最小事件元数据，持久化时复用治理审计摘要链。 */
+/**
+ *
+ * @Description: 任务状态改变的最小事件元数据，持久化时复用治理审计摘要链。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record TaskStateEvent(UUID eventId, UUID taskId, TaskStatus fromStatus, TaskStatus toStatus,
         String reason, UUID actorUserId, Instant occurredAt, long rowVersion) {
 

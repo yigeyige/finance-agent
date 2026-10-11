@@ -25,8 +25,12 @@ import cn.com.crc.ems.finance.agent.config.FinanceAgentProperties;
 import cn.com.crc.ems.finance.agent.harness.application.ThinkingContentFilter;
 
 /**
- * DeepSeek OpenAI Chat Completions 适配器；复用 AgentScope 的 HTTP、工具和结构化输出实现。
- * 不负责模型切换，也不记录 API Key 或模型原文。
+ *
+ * @Description: DeepSeek OpenAI Chat Completions 适配器；复用 AgentScope 的 HTTP、工具和结构化输出实现。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
  */
 public final class DeepSeekOpenAiAdapter {
 

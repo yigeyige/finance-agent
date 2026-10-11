@@ -5,7 +5,14 @@ import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.task.domain.VersionedJson;
 
-/** 本地事务 outbox 事件，只保存安全 payload 和投递状态。 */
+/**
+ *
+ * @Description: 本地事务 outbox 事件，只保存安全 payload 和投递状态。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record OutboxEvent(UUID outboxId, String aggregateType, String aggregateId, String eventType,
         String idempotencyKey, VersionedJson payload, Instant createdAt, Instant deliveredAt,
         int deliveryAttempts, UUID createdBy, UUID updatedBy, Instant updatedAt) {

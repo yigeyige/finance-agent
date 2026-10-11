@@ -14,7 +14,14 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/** 在请求边界解析当前身份，并在请求结束时清理上下文。 */
+/**
+ *
+ * @Description: 在请求边界解析当前身份，并在请求结束时清理上下文。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 20)
 public final class IdentityContextFilter extends OncePerRequestFilter {

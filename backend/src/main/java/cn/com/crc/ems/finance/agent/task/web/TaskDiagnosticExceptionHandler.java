@@ -9,7 +9,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import cn.com.crc.ems.finance.agent.shared.infrastructure.RepositoryEntityNotFoundException;
 
-/** 将任务诊断查询错误映射为稳定的中文响应。 */
+/**
+ *
+ * @Description: 将任务诊断查询错误映射为稳定的中文响应。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @RestControllerAdvice(assignableTypes = TaskDiagnosticController.class)
 public final class TaskDiagnosticExceptionHandler {
 

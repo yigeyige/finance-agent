@@ -6,7 +6,14 @@ import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-/** 递归扫描禁止进入持久化、日志或模型边界的字段名。 */
+/**
+ *
+ * @Description: 递归扫描禁止进入持久化、日志或模型边界的字段名。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class SensitiveFieldScanner {
 
     private static final Set<String> FORBIDDEN = Set.of("raw_response", "source_raw", "password", "secret",

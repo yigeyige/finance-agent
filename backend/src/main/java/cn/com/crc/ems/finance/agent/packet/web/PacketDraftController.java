@@ -19,7 +19,14 @@ import cn.com.crc.ems.finance.agent.packet.application.PacketDraftAssembler;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 import jakarta.validation.Valid;
 
-/** 决策包草稿组装 REST 入口。 */
+/**
+ *
+ * @Description: 决策包草稿组装 REST 入口。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @RestController
 @RequestMapping("/api/v1/tasks")
 public final class PacketDraftController {

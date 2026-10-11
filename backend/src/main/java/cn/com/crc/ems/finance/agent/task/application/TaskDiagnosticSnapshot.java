@@ -6,7 +6,14 @@ import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
 
-/** 面向工作台的脱敏任务诊断快照。 */
+/**
+ *
+ * @Description: 面向工作台的脱敏任务诊断快照。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record TaskDiagnosticSnapshot(UUID taskId, TaskStatus taskStatus, CurrentStep currentStep,
         LeaseSummary lease, boolean approvalValid, String pauseReason, String lastErrorCode,
         boolean manualReconciliationRequired, List<String> recoveryActions) {

@@ -7,7 +7,14 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
-/** 决策包复核表的 MyBatis-Plus 持久化实体。 */
+/**
+ *
+ * @Description: 决策包复核表的 MyBatis-Plus 持久化实体。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @TableName("packet.packet_review")
 public class PacketReviewEntity {
     @TableId(value = "review_id", type = IdType.ASSIGN_UUID)

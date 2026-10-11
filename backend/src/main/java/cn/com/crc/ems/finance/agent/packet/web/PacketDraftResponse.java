@@ -5,7 +5,14 @@ import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.packet.application.PacketDraftAssemblyResult;
 
-/** 决策包草稿响应，JSON 为权威内容，HTML 仅为同摘要快照。 */
+/**
+ *
+ * @Description: 决策包草稿响应，JSON 为权威内容，HTML 仅为同摘要快照。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record PacketDraftResponse(UUID taskId, UUID draftId, int draftNo, UUID scopeRevisionId,
         UUID runtimeBundleId, String status, String canonicalJson, String contentDigest, String htmlSnapshot,
         Instant createdAt) {

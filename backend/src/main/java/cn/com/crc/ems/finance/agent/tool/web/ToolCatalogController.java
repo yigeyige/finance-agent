@@ -7,7 +7,14 @@ import org.springframework.web.bind.annotation.RestController;
 import cn.com.crc.ems.finance.agent.tool.application.ToolCatalog;
 import cn.com.crc.ems.finance.agent.tool.application.ToolCatalogService;
 
-/** 工具目录只读管理查询入口。 */
+/**
+ *
+ * @Description: 工具目录只读管理查询入口。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @RestController
 @RequestMapping("/api/v1/tool-catalog")
 public final class ToolCatalogController {

@@ -15,7 +15,14 @@ import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 import cn.com.crc.ems.finance.agent.iam.infrastructure.entity.RoleBindingEntity;
 import cn.com.crc.ems.finance.agent.iam.infrastructure.mapper.RoleBindingMapper;
 
-/** 使用 MyBatis-Plus Mapper 访问可撤销的角色授权关系。 */
+/**
+ *
+ * @Description: 使用 MyBatis-Plus Mapper 访问可撤销的角色授权关系。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Repository
 public class MybatisRoleBindingRepository implements RoleBindingRepository {
 

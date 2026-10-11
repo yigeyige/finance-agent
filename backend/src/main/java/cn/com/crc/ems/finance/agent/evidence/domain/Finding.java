@@ -3,7 +3,14 @@ package cn.com.crc.ems.finance.agent.evidence.domain;
 import java.time.Instant;
 import java.util.UUID;
 
-/** 可追溯的调查判断结果。 */
+/**
+ *
+ * @Description: 可追溯的调查判断结果。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public record Finding(UUID findingId, UUID taskId, String findingType, String statement,
         JudgmentMode judgmentMode, EffectiveClass effectiveClass, UUID scopeRevisionId,
         FindingStatus status, UUID createdBy, Instant createdAt, UUID updatedBy, Instant updatedAt) {

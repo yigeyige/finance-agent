@@ -20,7 +20,14 @@ import cn.com.crc.ems.finance.agent.evidence.infrastructure.entity.FindingEviden
 import cn.com.crc.ems.finance.agent.evidence.infrastructure.entity.ProfessionalConfirmationEntity;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.PersistenceUuid;
 
-/** evidence 持久化实体与领域对象之间的显式映射。 */
+/**
+ *
+ * @Description: evidence 持久化实体与领域对象之间的显式映射。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 final class MybatisEvidenceMappings {
 
     private MybatisEvidenceMappings() {

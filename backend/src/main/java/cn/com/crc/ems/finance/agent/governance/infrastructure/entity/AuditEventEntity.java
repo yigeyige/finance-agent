@@ -10,7 +10,14 @@ import com.baomidou.mybatisplus.annotation.TableName;
 
 import cn.com.crc.ems.finance.agent.task.infrastructure.JsonbTypeHandler;
 
-/** 审计事件表的 MyBatis-Plus 持久化实体。 */
+/**
+ *
+ * @Description: 审计事件表的 MyBatis-Plus 持久化实体。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @TableName("governance.audit_event")
 public class AuditEventEntity {
     @TableId(value = "audit_event_id", type = IdType.ASSIGN_UUID)

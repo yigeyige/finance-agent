@@ -13,7 +13,14 @@ import cn.com.crc.ems.finance.agent.governance.domain.RuntimeBundleStatus;
 import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
 
-/** 管理首期固定工具目录并校验 runtime bundle 版本绑定。 */
+/**
+ *
+ * @Description: 管理首期固定工具目录并校验 runtime bundle 版本绑定。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class ToolCatalogService {
 

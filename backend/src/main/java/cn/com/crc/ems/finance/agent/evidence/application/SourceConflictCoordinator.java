@@ -7,7 +7,14 @@ import org.springframework.stereotype.Service;
 
 import cn.com.crc.ems.finance.agent.source.application.SourceCatalog;
 
-/** 按来源目录登记的对象级权威顺序协调来源冲突。 */
+/**
+ *
+ * @Description: 按来源目录登记的对象级权威顺序协调来源冲突。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class SourceConflictCoordinator {
 

@@ -29,7 +29,14 @@ import cn.com.crc.ems.finance.agent.harness.application.ModelPlanSuggestion;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 
-/** 复用 AgentScope DeepSeek 适配器完成两个严格 JSON 业务模型用例。 */
+/**
+ *
+ * @Description: 复用 AgentScope DeepSeek 适配器完成两个严格 JSON 业务模型用例。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 public final class DeepSeekBusinessModelClient implements BusinessModelClient {
 
     private static final Duration TIMEOUT = Duration.ofSeconds(20);

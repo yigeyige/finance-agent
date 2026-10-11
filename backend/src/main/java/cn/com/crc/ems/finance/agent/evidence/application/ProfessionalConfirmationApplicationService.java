@@ -19,7 +19,14 @@ import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.RepositoryEntityNotFoundException;
 import cn.com.crc.ems.finance.agent.task.infrastructure.TaskAuditEventAppender;
 
-/** 逐条处理专业判断确认，并保留理由、证据引用和审计摘要。 */
+/**
+ *
+ * @Description: 逐条处理专业判断确认，并保留理由、证据引用和审计摘要。
+ *
+ * @Version: 0.1.0
+ * @Author: yigeyige99
+ * @Date: 2026-10-11 21:28:41
+ */
 @Service
 public class ProfessionalConfirmationApplicationService {
 
