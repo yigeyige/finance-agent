@@ -88,6 +88,14 @@ export default Vue.extend({
   async created() {
     await this.loadIdentity()
   },
+  watch: {
+    /** 登录页切回工作台时同步服务层的最新身份缓存，避免菜单等待页面刷新。 */
+    '$route.name'(): void {
+      if (!this.isLoginRoute && !this.identity) {
+        void this.loadIdentity()
+      }
+    },
+  },
   methods: {
     /** 加载服务端身份并驱动权限导航。 */
     async loadIdentity(): Promise<void> {

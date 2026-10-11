@@ -4,7 +4,7 @@
 TBD - created by archiving change test-identity-permission-navigation. Update Purpose after archive.
 ## Requirements
 ### Requirement: Permission-driven navigation
-前端 SHALL 根据当前身份接口返回的权限显示导航，不得把导航可见性当作服务端授权；首次打开受保护深链时，路由守卫 MUST 等待当前身份加载完成后再判断权限。缺少登录态时，前端 MUST 导航至登录页，并在登录成功后返回原受保护路径。
+前端 SHALL 根据当前身份接口返回的权限显示导航，不得把导航可见性当作服务端授权；首次打开受保护深链时，路由守卫 MUST 等待当前身份加载完成后再判断权限。缺少登录态时，前端 MUST 导航至登录页，并在登录成功后返回原受保护路径。登录成功后从登录页切换到工作台时，根组件 MUST 同步最新身份状态，使权限菜单无需页面刷新即可显示。
 
 #### Scenario: Viewer navigation
 - **WHEN** 当前身份为 VIEWER
@@ -25,6 +25,10 @@ TBD - created by archiving change test-identity-permission-navigation. Update Pu
 #### Scenario: Logged-in user opens user menu
 - **WHEN** 已登录用户点击页面右上角的当前用户显示
 - **THEN** 前端展示包含退出登录操作的下拉菜单，且退出后清除本地身份缓存并跳转登录页
+
+#### Scenario: First login loads navigation without refresh
+- **WHEN** 用户在登录页完成验证并跳转工作台
+- **THEN** 根组件同步最新身份，左侧立即显示该身份拥有权限的功能菜单，无需刷新页面
 
 ### Requirement: Platform configuration navigation exposes model configuration
 前端 SHALL 仅向具有 `CONFIG_MANAGE` 权限的身份显示“大模型配置”菜单，并将其路由到受权限守卫保护的模型配置页面。

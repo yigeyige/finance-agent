@@ -15,6 +15,7 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $dotenvPath = Join-Path $repoRoot ".env"
 $backendDirectory = Join-Path $repoRoot "backend"
 $frontendDirectory = Join-Path $repoRoot "frontend"
+$migrationScript = Join-Path $PSScriptRoot "flyway-migrate.ps1"
 $logDirectory = Join-Path $repoRoot ".runtime\local-logs"
 
 function Test-ListeningPort {
@@ -102,6 +103,16 @@ if (Test-ListeningPort -Port $BackendPort) {
     Write-Output "后端已监听端口 $BackendPort，保持复用。"
 }
 else {
+    if (-not (Test-Path -LiteralPath $migrationScript -PathType Leaf)) {
+        throw "未找到数据库迁移脚本: $migrationScript"
+    }
+    Write-Output "正在执行本地数据库迁移。"
+    & $migrationScript -MavenCommand $MavenCommand *> $null
+    $migrationExitCode = $LASTEXITCODE
+    if ($migrationExitCode -ne 0) {
+        throw "本地数据库迁移失败，未启动后端和前端。"
+    }
+    Write-Output "本地数据库迁移完成。"
     $mavenExecutable = Resolve-Executable -CommandName $MavenCommand
     $createdLogPaths += Start-LocalProcess -Name "后端" -WorkingDirectory $backendDirectory `
         -Executable $mavenExecutable -Arguments @("spring-boot:run") -LogPrefix "backend-$timestamp"
