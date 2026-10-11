@@ -7,15 +7,6 @@
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
 
     <template v-else>
-      <section class="entry-overview" aria-label="业务场景概览">
-        <div class="entry-overview__main">
-          <span class="entry-overview__marker" aria-hidden="true"></span>
-          <div><span>当前维护</span><strong>业务场景 Skill</strong></div>
-        </div>
-        <div class="entry-overview__item"><span>场景总数</span><strong>{{ skills.length }}<small>项</small></strong></div>
-        <div class="entry-overview__item"><span>管理范围</span><strong>集中维护</strong></div>
-      </section>
-
       <section class="entry-content-card">
         <div class="entry-content-toolbar">
           <span class="entry-content-toolbar__meta">共 {{ skills.length }} 项</span>

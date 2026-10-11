@@ -8,28 +8,6 @@
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
 
     <template v-else>
-      <section class="task-list-overview" aria-label="任务概览">
-        <div class="task-list-overview-main">
-          <span class="task-list-overview-dot" aria-hidden="true"></span>
-          <div>
-            <span>当前查看</span>
-            <strong>业务处理任务</strong>
-          </div>
-        </div>
-        <div class="task-list-overview-item">
-          <span>任务总数</span>
-          <strong>{{ total }}<small>项</small></strong>
-        </div>
-        <div class="task-list-overview-item">
-          <span>当前显示</span>
-          <strong>{{ tasks.length }}<small>项</small></strong>
-        </div>
-        <div class="task-list-overview-item">
-          <span>当前页</span>
-          <strong>{{ currentPage }}<small>/ {{ pageCount }}</small></strong>
-        </div>
-      </section>
-
       <section class="task-list-section">
         <el-form :inline="true" class="task-list-toolbar" @submit.native.prevent="searchTasks">
           <div class="task-list-filter-fields">
@@ -122,8 +100,6 @@ export default Vue.extend({
   computed: {
     /** 提供可筛选的任务状态集合。 */
     statuses(): string[] { return Object.keys(statusLabels) },
-    /** 计算筛选结果的页数，用于顶部概览展示。 */
-    pageCount(): number { return Math.max(1, Math.ceil(this.total / this.pageSize)) },
   },
   methods: {
     /** 加载当前身份范围内的任务页，并在失败时保留页面错误反馈。 */
@@ -182,67 +158,9 @@ export default Vue.extend({
   margin-bottom: 18px;
 }
 
-.task-list-overview {
-  display: grid;
-  grid-template-columns: minmax(280px, 1.7fr) repeat(3, minmax(140px, 1fr));
-  align-items: stretch;
-  margin-bottom: 22px;
-  overflow: hidden;
-  background: #fffdf9;
-  border: 1px solid #e7dfd4;
-  border-radius: 16px;
-  box-shadow: 0 12px 30px rgba(83, 70, 48, 0.08);
-}
-
-.task-list-overview-main,
-.task-list-overview-item {
-  display: flex;
-  align-items: center;
-  min-height: 88px;
-  padding: 16px 24px;
-}
-
-.task-list-overview-main {
-  gap: 16px;
-}
-
-.task-list-overview-main > div,
-.task-list-overview-item {
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-}
-
-.task-list-overview-dot {
-  width: 12px;
-  height: 12px;
-  background: #dd7a13;
-  border-radius: 50%;
-  box-shadow: 0 0 0 7px #fff0dc;
-}
-
-.task-list-overview span,
 .task-list-record-heading > span {
   color: #817b73;
   font-size: 14px;
-}
-
-.task-list-overview strong {
-  margin-top: 6px;
-  color: #2e2c29;
-  font-size: 20px;
-  line-height: 1.2;
-}
-
-.task-list-overview small {
-  margin-left: 4px;
-  color: #817b73;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.task-list-overview-item {
-  border-left: 1px solid #e8e1d8;
 }
 
 .task-list-section + .task-list-section {
@@ -323,18 +241,6 @@ export default Vue.extend({
 }
 
 @media (max-width: 980px) {
-  .task-list-overview {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .task-list-overview-main {
-    grid-column: 1 / -1;
-  }
-
-  .task-list-overview-item:nth-child(2) {
-    border-left: 0;
-  }
-
   .task-list-toolbar {
     align-items: flex-start;
     flex-direction: column;
@@ -344,21 +250,6 @@ export default Vue.extend({
 @media (max-width: 640px) {
   .task-list-page {
     padding-top: 0;
-  }
-
-  .task-list-overview {
-    grid-template-columns: 1fr;
-  }
-
-  .task-list-overview-main,
-  .task-list-overview-item {
-    min-height: auto;
-    padding: 18px 20px;
-  }
-
-  .task-list-overview-item {
-    border-top: 1px solid #e8e1d8;
-    border-left: 0;
   }
 
   .task-list-toolbar ::v-deep .el-input,

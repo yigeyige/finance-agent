@@ -2,7 +2,7 @@
 
 ## Purpose
 
-规定平台管理员维护大模型连接及其写入型 API Key 的安全边界。
+规定平台管理员维护大模型连接及其写入型 API Key 的安全边界，并保证配置管理页面仅呈现非敏感运行信息和必要操作。
 
 ## Requirements
 
@@ -56,7 +56,7 @@
 - **THEN** 系统以不含主密钥、明文或密文的安全错误失败
 
 ### Requirement: Unified model configuration entry layout
-系统 SHALL 在大模型配置管理页面使用与其他管理入口一致的紧凑概览卡片、操作区和圆角记录卡片，并展示模型配置数量及启用状态等非敏感信息。
+系统 SHALL 在大模型配置管理页面使用与其他管理入口一致的标题、操作区和圆角记录卡片。页面 MUST 在标题后直接展示配置操作和记录内容，不得展示重复的配置数量或启用状态总览卡片；非敏感记录信息仍在表格中展示。
 
 #### Scenario: Administrator manages model configurations
 - **WHEN** PLATFORM_ADMIN 进入大模型配置页面

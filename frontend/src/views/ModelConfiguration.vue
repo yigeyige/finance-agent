@@ -3,15 +3,6 @@
     <div class="page-heading entry-page-heading"><h2>大模型配置</h2></div>
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
     <template v-else>
-      <section class="entry-overview" aria-label="大模型配置概览">
-        <div class="entry-overview__main">
-          <span class="entry-overview__marker" aria-hidden="true"></span>
-          <div><span>当前维护</span><strong>大模型配置</strong></div>
-        </div>
-        <div class="entry-overview__item"><span>配置总数</span><strong>{{ items.length }}<small>项</small></strong></div>
-        <div class="entry-overview__item"><span>已启用</span><strong>{{ enabledCount }}<small>项</small></strong></div>
-      </section>
-
       <section class="entry-content-card">
         <div class="entry-content-toolbar">
           <span class="entry-content-toolbar__meta">共 {{ items.length }} 项</span>
@@ -44,9 +35,7 @@ import { ModelConnectionConfig, ModelConnectionConfigPayload, createModelConfigu
 interface Form extends ModelConnectionConfigPayload { apiKey: string }
 const blank = (): Form => ({ name: '', provider: 'DEEPSEEK', apiUrl: 'https://api.deepseek.com', modelName: '', reasoningEffort: '', apiKey: '' })
 /** 平台管理员维护数据库中的大模型连接信息，密钥只可写入不可回显。 */
-export default Vue.extend({ name: 'ModelConfiguration', data: () => ({ items: [] as ModelConnectionConfig[], loading: false, saving: false, errorMessage: '', dialogVisible: false, editing: '' as string, form: blank() }), created() { void this.load() }, computed: {
-  /** 汇总当前已启用的模型连接数量，仅用于概览展示。 */ enabledCount(): number { return this.items.filter(item => item.enabled).length },
-}, methods: {
+export default Vue.extend({ name: 'ModelConfiguration', data: () => ({ items: [] as ModelConnectionConfig[], loading: false, saving: false, errorMessage: '', dialogVisible: false, editing: '' as string, form: blank() }), created() { void this.load() }, methods: {
   /** 加载可维护的模型连接。 */ async load(): Promise<void> { this.loading = true; try { this.items = await listModelConfigurations() } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '大模型配置暂时无法读取' } finally { this.loading = false } },
   /** 打开新增表单。 */ openCreate(): void { this.editing = ''; this.form = blank(); this.dialogVisible = true },
   /** 打开编辑表单并确保密钥不回显。 */ openEdit(item: ModelConnectionConfig): void { this.editing = item.configId; this.form = { name: item.name, provider: item.provider, apiUrl: item.apiUrl, modelName: item.modelName, reasoningEffort: item.reasoningEffort || '', apiKey: '' }; this.dialogVisible = true },
