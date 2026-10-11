@@ -36,6 +36,7 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
                 && !path.startsWith("/api/v1/business-scene-skills")
                 && !path.startsWith("/api/v1/ems-business-knowledge")
                 && !path.startsWith("/api/v1/model-configurations")
+                && !path.startsWith("/api/v1/ems-database-configurations")
                 && !path.startsWith("/api/tasks/")) {
             return true;
         }
@@ -57,6 +58,9 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
         }
         if (path.startsWith("/api/v1/model-configurations") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权维护大模型配置");
+        }
+        if (path.startsWith("/api/v1/ems-database-configurations") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
+            return reject(response, HttpStatus.FORBIDDEN, "当前身份无权维护 EMS 数据库配置");
         }
         if (path.startsWith("/api/tasks/") && !identity.hasRole(RoleCode.OPERATOR)
                 && !identity.hasRole(RoleCode.VIEWER)) {

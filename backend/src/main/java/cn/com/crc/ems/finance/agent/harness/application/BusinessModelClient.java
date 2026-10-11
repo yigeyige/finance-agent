@@ -1,7 +1,14 @@
 package cn.com.crc.ems.finance.agent.harness.application;
 
+import java.util.Optional;
+
 /** 业务模型交互端口，隔离供应商 SDK 与任务、证据应用服务。 */
 public interface BusinessModelClient {
+
+    /** 仅生成可选查询建议；真正执行前仍由 EMS SQL 守卫与只读执行器控制。 */
+    default Optional<EmsDatabaseQueryRequest> planEmsDatabaseQuery(BusinessGuidanceContext context) {
+        return Optional.empty();
+    }
 
     /**
      *

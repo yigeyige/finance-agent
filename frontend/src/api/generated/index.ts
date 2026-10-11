@@ -92,6 +92,10 @@ export interface EmsBusinessDomainKnowledge {
 export interface ModelConnectionConfig { configId: string; name: string; provider: string; apiUrl: string; modelName: string; reasoningEffort: string | null; enabled: boolean; apiKeyConfigured: boolean; updatedAt: string }
 export interface ModelConnectionConfigPayload { name: string; provider: string; apiUrl: string; modelName: string; reasoningEffort: string; apiKey?: string }
 
+/** EMS MySQL 连接安全视图；密码仅允许通过写入载荷传入。 */
+export interface EmsDatabaseConnectionConfig { configId: string; name: string; jdbcUrl: string; username: string; connectTimeoutSeconds: number; queryTimeoutSeconds: number; maxRows: number; enabled: boolean; passwordConfigured: boolean; updatedAt: string }
+export interface EmsDatabaseConnectionConfigPayload { name: string; jdbcUrl: string; username: string; password?: string; connectTimeoutSeconds: number; queryTimeoutSeconds: number; maxRows: number }
+
 /** 任务列表与只读详情的契约模型。 */
 export interface TaskListItem { taskId: string; title: string; status: string; initiatorUserId: string; createdAt: string }
 export interface TaskListPage { items: TaskListItem[]; total: number; page: number; pageSize: number }
@@ -116,6 +120,7 @@ const IDENTITY_FIELDS = ['userId', 'authSubject', 'displayName', 'roles', 'permi
 const BUSINESS_SCENE_SKILL_FIELDS = ['skillId', 'name', 'description', 'handlingType', 'premiseType', 'updatedAt']
 const EMS_BUSINESS_DOMAIN_KNOWLEDGE_FIELDS = ['code', 'name', 'summary', 'schemas', 'tableCount', 'keyTables', 'knowledgeBoundary', 'verificationHint']
 const MODEL_CONFIGURATION_FIELDS = ['configId', 'name', 'provider', 'apiUrl', 'modelName', 'reasoningEffort', 'enabled', 'apiKeyConfigured', 'updatedAt']
+const EMS_DATABASE_CONFIGURATION_FIELDS = ['configId', 'name', 'jdbcUrl', 'username', 'connectTimeoutSeconds', 'queryTimeoutSeconds', 'maxRows', 'enabled', 'passwordConfigured', 'updatedAt']
 const TASK_LIST_ITEM_FIELDS = ['taskId', 'title', 'status', 'initiatorUserId', 'createdAt']
 const TASK_LIST_PAGE_FIELDS = ['items', 'total', 'page', 'pageSize']
 const TASK_DETAIL_FIELDS = ['taskId', 'title', 'description', 'status', 'initiatorUserId', 'createdAt', 'premises', 'scope', 'plans']
@@ -166,6 +171,17 @@ export function parseModelConnectionConfig(value: unknown): ModelConnectionConfi
 /** 校验大模型连接列表响应。 */
 export function parseModelConnectionConfigs(value: unknown): ModelConnectionConfig[] {
   return requireArray(value, '大模型连接列表').map(parseModelConnectionConfig)
+}
+
+/** 校验不含密码的 EMS 数据库连接响应。 */
+export function parseEmsDatabaseConnectionConfig(value: unknown): EmsDatabaseConnectionConfig {
+  const record = assertObjectFields(value, EMS_DATABASE_CONFIGURATION_FIELDS, 'EMS 数据库连接响应')
+  return { configId: requireString(record.configId, 'EMS 数据库连接标识'), name: requireString(record.name, '连接名称'), jdbcUrl: requireString(record.jdbcUrl, '数据库地址'), username: requireString(record.username, '数据库账号'), connectTimeoutSeconds: requirePositiveNumber(record.connectTimeoutSeconds, '连接超时'), queryTimeoutSeconds: requirePositiveNumber(record.queryTimeoutSeconds, '查询超时'), maxRows: requirePositiveNumber(record.maxRows, '最大返回行数'), enabled: requireBoolean(record.enabled, '启用状态'), passwordConfigured: requireBoolean(record.passwordConfigured, '密码状态'), updatedAt: requireString(record.updatedAt, '更新时间') }
+}
+
+/** 校验 EMS 数据库连接列表响应。 */
+export function parseEmsDatabaseConnectionConfigs(value: unknown): EmsDatabaseConnectionConfig[] {
+  return requireArray(value, 'EMS 数据库连接列表').map(parseEmsDatabaseConnectionConfig)
 }
 
 /** 校验任务列表项。 */

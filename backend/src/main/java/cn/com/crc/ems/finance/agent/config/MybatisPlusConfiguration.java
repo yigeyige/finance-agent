@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Configuration;
         "cn.com.crc.ems.finance.agent.task.infrastructure.mapper",
         "cn.com.crc.ems.finance.agent.scenario.infrastructure.mapper",
         "cn.com.crc.ems.finance.agent.modelconfig.infrastructure.mapper",
+        "cn.com.crc.ems.finance.agent.emsdbconfig.infrastructure.mapper",
         "cn.com.crc.ems.finance.agent.evidence.infrastructure.mapper",
         "cn.com.crc.ems.finance.agent.packet.infrastructure.mapper",
         "cn.com.crc.ems.finance.agent.harness.infrastructure.mapper"

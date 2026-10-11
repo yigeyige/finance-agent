@@ -25,6 +25,7 @@ import cn.com.crc.ems.finance.agent.task.application.ScopeRevisionRepository;
 import cn.com.crc.ems.finance.agent.task.application.TaskBusinessSceneSkillRepository;
 import cn.com.crc.ems.finance.agent.scenario.application.BusinessSceneSkillRepository;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessSceneSkillContext;
+import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseAssistanceService;
 
 /**
  *
@@ -45,13 +46,14 @@ public final class BusinessModelInteractionService {
     private final FindingRepository findingRepository;
     private final TaskBusinessSceneSkillRepository taskBusinessSceneSkillRepository;
     private final BusinessSceneSkillRepository businessSceneSkillRepository;
+    private final EmsDatabaseAssistanceService emsDatabaseAssistanceService;
 
     public BusinessModelInteractionService(BusinessModelClient modelClient,
             InvestigationTaskRepository taskRepository, ScopeRevisionRepository scopeRepository,
             FactSnapshotRepository snapshotRepository, CoverageRecordRepository coverageRepository,
             FindingRepository findingRepository) {
         this(modelClient, taskRepository, scopeRepository, snapshotRepository, coverageRepository, findingRepository,
-                null, null);
+                null, null, null);
     }
 
     @Autowired
@@ -59,7 +61,7 @@ public final class BusinessModelInteractionService {
             InvestigationTaskRepository taskRepository, ScopeRevisionRepository scopeRepository,
             FactSnapshotRepository snapshotRepository, CoverageRecordRepository coverageRepository,
             FindingRepository findingRepository, TaskBusinessSceneSkillRepository taskBusinessSceneSkillRepository,
-            BusinessSceneSkillRepository businessSceneSkillRepository) {
+            BusinessSceneSkillRepository businessSceneSkillRepository, EmsDatabaseAssistanceService emsDatabaseAssistanceService) {
         this.modelClient = modelClient;
         this.taskRepository = taskRepository;
         this.scopeRepository = scopeRepository;
@@ -68,6 +70,7 @@ public final class BusinessModelInteractionService {
         this.findingRepository = findingRepository;
         this.taskBusinessSceneSkillRepository = taskBusinessSceneSkillRepository;
         this.businessSceneSkillRepository = businessSceneSkillRepository;
+        this.emsDatabaseAssistanceService = emsDatabaseAssistanceService;
     }
 
     /**
@@ -102,8 +105,11 @@ public final class BusinessModelInteractionService {
             BusinessHandlingDraft currentDraft, List<BusinessGuidanceAttachment> attachments) {
         var task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalStateException("业务处理任务不存在或已失效"));
+        BusinessGuidanceContext base = new BusinessGuidanceContext(task.taskId(), task.title(), task.originalQuestion(),
+                feedback, currentDraft, findSceneSkill(taskId), attachments);
         return modelClient.guideBusinessHandling(new BusinessGuidanceContext(task.taskId(), task.title(),
-                task.originalQuestion(), feedback, currentDraft, findSceneSkill(taskId), attachments));
+                task.originalQuestion(), feedback, currentDraft, findSceneSkill(taskId), attachments,
+                emsDatabaseAssistanceService == null ? List.of() : emsDatabaseAssistanceService.collect(modelClient, base)));
     }
 
     /** 将任务已固化的有效业务场景投影为模型上下文，失效场景拒绝继续生成。 */

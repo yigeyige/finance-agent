@@ -13,16 +13,22 @@ import java.util.List;
  */
 public record BusinessGuidanceContext(UUID taskId, String title, String description, String feedback,
         BusinessHandlingDraft currentDraft, BusinessSceneSkillContext sceneSkill,
-        List<BusinessGuidanceAttachment> attachments) {
+        List<BusinessGuidanceAttachment> attachments, List<EmsDatabaseEvidence> databaseEvidence) {
 
     public BusinessGuidanceContext(UUID taskId, String title, String description, String feedback,
             BusinessHandlingDraft currentDraft) {
-        this(taskId, title, description, feedback, currentDraft, null, List.of());
+        this(taskId, title, description, feedback, currentDraft, null, List.of(), List.of());
     }
 
     public BusinessGuidanceContext(UUID taskId, String title, String description, String feedback,
             BusinessHandlingDraft currentDraft, BusinessSceneSkillContext sceneSkill) {
-        this(taskId, title, description, feedback, currentDraft, sceneSkill, List.of());
+        this(taskId, title, description, feedback, currentDraft, sceneSkill, List.of(), List.of());
+    }
+
+    public BusinessGuidanceContext(UUID taskId, String title, String description, String feedback,
+            BusinessHandlingDraft currentDraft, BusinessSceneSkillContext sceneSkill,
+            List<BusinessGuidanceAttachment> attachments) {
+        this(taskId, title, description, feedback, currentDraft, sceneSkill, attachments, List.of());
     }
 
     public BusinessGuidanceContext {
@@ -41,6 +47,8 @@ public record BusinessGuidanceContext(UUID taskId, String title, String descript
         if (attachments.size() > 3 || attachments.stream().mapToInt(item -> item.content().length()).sum() > 24_000) {
             throw new IllegalArgumentException("attachments are invalid");
         }
+        databaseEvidence = databaseEvidence == null ? List.of() : List.copyOf(databaseEvidence);
+        if (databaseEvidence.size() > 1) throw new IllegalArgumentException("databaseEvidence is invalid");
     }
 
     private static void requireText(String value, String field, int maxLength) {

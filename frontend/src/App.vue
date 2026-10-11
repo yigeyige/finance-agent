@@ -28,6 +28,9 @@
         <el-menu-item v-if="canManageConfig" index="/model-configurations">
           <span slot="title">大模型配置</span>
         </el-menu-item>
+        <el-menu-item v-if="canManageConfig" index="/ems-database-configurations">
+          <span slot="title">EMS数据库配置</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>

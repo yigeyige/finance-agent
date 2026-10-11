@@ -144,6 +144,7 @@ public final class StubBusinessModelClient implements BusinessModelClient {
                 item.put("truncated", attachment.truncated());
             });
         }
+        if (!context.databaseEvidence().isEmpty()) node.putPOJO("databaseEvidence", context.databaseEvidence());
         return node;
     }
 

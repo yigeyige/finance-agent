@@ -11,6 +11,7 @@ import TaskDetail from '../views/TaskDetail.vue'
 import BusinessSkillCatalog from '../views/BusinessSkillCatalog.vue'
 import EmsBusinessKnowledge from '../views/EmsBusinessKnowledge.vue'
 import ModelConfiguration from '../views/ModelConfiguration.vue'
+import EmsDatabaseConfiguration from '../views/EmsDatabaseConfiguration.vue'
 import Login from '../views/Login.vue'
 import { IdentityPermission } from '../api/generated'
 import { ensureCurrentIdentity, hasPermission } from '../services/identity'
@@ -36,6 +37,10 @@ const router = new Router({
     {
       path: '/model-configurations', name: 'model-configurations', component: ModelConfiguration,
       meta: { title: '大模型配置', permission: 'CONFIG_MANAGE' },
+    },
+    {
+      path: '/ems-database-configurations', name: 'ems-database-configurations', component: EmsDatabaseConfiguration,
+      meta: { title: 'EMS数据库配置', permission: 'CONFIG_MANAGE' },
     },
     {
       path: '/tasks/:taskId/evidence',
