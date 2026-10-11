@@ -8,7 +8,7 @@
       <el-form v-if="activeStep === 0" :model="form" label-position="top" class="task-form">
         <el-form-item label="业务标题"><el-input v-model.trim="form.title" /></el-form-item>
         <el-form-item label="业务说明"><el-input v-model.trim="form.question" type="textarea" :rows="6" /></el-form-item>
-        <el-form-item label="附件材料（可选）"><el-upload action="#" :auto-upload="false" :file-list="attachmentFiles" :on-change="selectAttachment" :on-remove="removeAttachment" accept=".txt,.md,.csv,.json" multiple><el-button type="primary" plain>选择附件</el-button></el-upload><p class="attachment-note">最多 3 个附件，单个不超过 1 MB，支持 txt、md、csv、json 格式。</p></el-form-item>
+        <el-form-item label="附件材料（可选）"><el-upload action="#" :auto-upload="false" :file-list="attachmentFiles" :on-change="selectAttachment" :on-remove="removeAttachment" accept=".txt,.md,.csv,.json,.xls,.xlsx" multiple><el-button type="primary" plain>选择附件</el-button></el-upload><p class="attachment-note">最多 3 个附件，单个不超过 1 MB，支持 txt、md、csv、json、xls、xlsx 格式。</p></el-form-item>
         <el-button type="primary" :loading="saving" @click="createTaskDraft">开始模型分析</el-button>
       </el-form>
       <template v-else><div class="handling-workspace"><section class="handling-form-panel">
@@ -36,7 +36,7 @@ interface Form { title: string; question: string; handlingType: 'INVESTIGATE' | 
 interface Chat { id: string; role: 'operator' | 'model'; content: string }
 interface AttachmentFile { name: string; size?: number; raw?: File }
 const AREAS: Record<string, string> = { APPROVAL: '审批流程', ROLE: '角色权限', ACCOUNTING: '会计配置', CONFIG: '系统配置引用' }
-const ATTACHMENT_EXTENSIONS = ['txt', 'md', 'csv', 'json']
+const ATTACHMENT_EXTENSIONS = ['txt', 'md', 'csv', 'json', 'xls', 'xlsx']
 /** 生成每次新建业务处理所需的独立默认表单，避免复用上一份草稿引用。 */
 const createInitialForm = (): Form => ({ title: '', question: '', handlingType: 'INVESTIGATE', premiseType: '人员变更', subjectKey: '', statement: '', sourceDescription: '', systemCode: 'FIN-SYN', startDate: '2026-01-01', endDate: '2026-12-31', investigationAreas: ['APPROVAL'], dataUse: 'MINIMUM' })
 /** 仅接受后端可受控分析的文本附件，避免浏览器选择无效格式。 */
@@ -46,7 +46,7 @@ export default Vue.extend({ name: 'WorkbenchHome', data() { return { activeStep:
   /** 将已选处理内容转换为概览中的中文标签。 */ areaLabels(): string { return this.form.investigationAreas.map(x => AREAS[x]).filter(Boolean).join('、') || '待模型分析' },
 }, watch: { /** 仅响应显式新建入口的草稿标识，普通导航继续保留当前向导状态。 */ '$route.query.draft'(): void { this.resetDraft() } }, methods: {
   /** 在无进行中写请求时清空本地草稿和待分析附件，不删除已创建的后端任务。 */ resetDraft(): void { if (this.saving || this.modelLoading || this.chatLoading) return; this.activeStep = 0; this.task = null; this.guidance = null; this.proposal = null; this.recommendedGoal = ''; this.planChanged = false; this.chatMessage = ''; this.chatMessages = []; this.attachmentFiles = []; this.errorMessage = ''; this.form = createInitialForm() },
-  /** 校验并保存当前选择的本地附件，不在浏览器读取附件正文。 */ selectAttachment(file: AttachmentFile, fileList: AttachmentFile[]): void { if (!isSupportedAttachment(file)) { this.errorMessage = '附件需为非空的 txt、md、csv、json 文件，且单个不超过 1 MB'; this.attachmentFiles = fileList.filter(item => item !== file); return } if (fileList.length > 3) { this.errorMessage = '最多可选择 3 个附件'; this.attachmentFiles = fileList.filter(item => item !== file); return } this.errorMessage = ''; this.attachmentFiles = fileList },
+  /** 校验并保存当前选择的本地附件，不在浏览器读取附件正文。 */ selectAttachment(file: AttachmentFile, fileList: AttachmentFile[]): void { if (!isSupportedAttachment(file)) { this.errorMessage = '附件需为非空的 txt、md、csv、json、xls、xlsx 文件，且单个不超过 1 MB'; this.attachmentFiles = fileList.filter(item => item !== file); return } if (fileList.length > 3) { this.errorMessage = '最多可选择 3 个附件'; this.attachmentFiles = fileList.filter(item => item !== file); return } this.errorMessage = ''; this.attachmentFiles = fileList },
   /** 同步移除待分析附件，已创建的任务和模型草稿不受影响。 */ removeAttachment(file: AttachmentFile, fileList: AttachmentFile[]): void { this.attachmentFiles = fileList },
   /** 创建任务后请求模型初稿；附件仅在本次初稿调用中提交。 */ async createTaskDraft(): Promise<void> { const identity = getCurrentIdentity(); if (!identity || !this.form.title || !this.form.question) { this.errorMessage = '请填写业务标题和业务说明'; return } await this.execute(async () => { this.task = await createTask({ title: this.form.title, originalQuestion: this.form.question, initiatorUserId: identity.userId, runtimeBundleId: DEFAULT_RUNTIME_BUNDLE_ID }); this.activeStep = 1 }); await this.requestGuidance() },
   /** 发送当前任务与受控本地附件以获取可编辑初稿，失败时保留附件供重试。 */ async requestGuidance(): Promise<void> { if (!this.task) return; this.modelLoading = true; try { const response = await generateBusinessGuidance(this.task.taskId, this.attachmentFiles.map(file => file.raw).filter((file): file is File => Boolean(file))); this.applyGuidance(response); this.chatMessages = [{ id: `m-${Date.now()}`, role: 'model', content: response.reply }] } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '模型暂时无法生成初稿' } finally { this.modelLoading = false } },

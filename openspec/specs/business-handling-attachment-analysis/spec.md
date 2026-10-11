@@ -2,19 +2,17 @@
 
 ## Purpose
 
-规定新建业务处理时受限文本附件的上传、临时模型分析和非权威边界。
-
+规定新建业务处理时受限附件的上传、解析、临时模型分析及非权威边界，确保附件内容不会被持久化或直接改变任务权威状态。
 ## Requirements
-
 ### Requirement: Restricted attachments support initial handling analysis
-系统 SHALL 在新建业务处理的初稿请求中允许 OPERATOR 附带最多 3 个 `.txt`、`.md`、`.csv` 或 `.json` 文件。每个文件 MUST 非空、最大 1 MB 并使用有效 UTF-8 文本；系统 MUST 在后端将文件转换为有文件名和受限正文长度的临时文本投影，总正文不得超过 24,000 个字符。
+系统 SHALL 在新建业务处理的初稿请求中允许 OPERATOR 附带最多 3 个 `.txt`、`.md`、`.csv`、`.json`、`.xls` 或 `.xlsx` 文件。每个文件 MUST 非空、最大 1 MB；文本文件 MUST 使用有效 UTF-8 文本，`.xls`、`.xlsx` MUST 由后端 FastExcel 流式解析为临时文本投影。每个 Excel 文件最多解析 5 个工作表、每表 200 行、每行 50 列、每个单元格 500 字符；系统 MUST 将文件转换为有文件名和受限正文长度的临时文本投影，总正文不得超过 24,000 个字符。
 
 #### Scenario: Operator submits supported attachments
-- **WHEN** OPERATOR 在创建任务后选择不超过限制的受支持文本附件并请求模型初稿
+- **WHEN** OPERATOR 在创建任务后选择不超过限制的受支持文本或 Excel 附件并请求模型初稿
 - **THEN** 系统将受限附件投影与任务权威信息共同送入模型，并返回既有结构化初稿和非敏感调用元数据
 
 #### Scenario: Attachment violates an input boundary
-- **WHEN** OPERATOR 提交空文件、超过数量或大小限制、非 UTF-8 内容或不受支持的扩展名
+- **WHEN** OPERATOR 提交空文件、超过数量或大小限制、非 UTF-8 文本、损坏或加密 Excel、超出 Excel 结构限制或不受支持的扩展名
 - **THEN** 系统以中文业务错误拒绝该请求，不调用模型且不保存附件内容
 
 ### Requirement: Attachment content remains transient and non-authoritative
