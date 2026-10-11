@@ -34,6 +34,7 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
         }
         if (!path.startsWith("/api/v1/tasks") && !path.startsWith("/api/v1/tool-catalog")
                 && !path.startsWith("/api/v1/business-scene-skills")
+                && !path.startsWith("/api/v1/ems-business-knowledge")
                 && !path.startsWith("/api/v1/model-configurations")
                 && !path.startsWith("/api/tasks/")) {
             return true;
@@ -50,6 +51,9 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
         }
         if (path.startsWith("/api/v1/business-scene-skills") && !identity.hasRole(RoleCode.OPERATOR)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权维护业务场景 Skill");
+        }
+        if (path.startsWith("/api/v1/ems-business-knowledge") && !identity.hasRole(RoleCode.OPERATOR)) {
+            return reject(response, HttpStatus.FORBIDDEN, "当前身份无权查看 EMS 业务知识域");
         }
         if (path.startsWith("/api/v1/model-configurations") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权维护大模型配置");

@@ -76,6 +76,18 @@ export type BusinessHandlingType = 'INVESTIGATE' | 'ADJUST'
 export interface BusinessSceneSkill { skillId: string; name: string; description: string; handlingType: BusinessHandlingType; premiseType: string; updatedAt: string }
 export interface BusinessSceneSkillPayload { name: string; description: string; handlingType: BusinessHandlingType; premiseType: string }
 
+/** EMS 结构快照形成的只读业务域目录，不包含实时业务数据。 */
+export interface EmsBusinessDomainKnowledge {
+  code: string
+  name: string
+  summary: string
+  schemas: string[]
+  tableCount: number
+  keyTables: string[]
+  knowledgeBoundary: string
+  verificationHint: string
+}
+
 /** 大模型连接安全视图；API Key 仅允许通过写入载荷传入。 */
 export interface ModelConnectionConfig { configId: string; name: string; provider: string; apiUrl: string; modelName: string; reasoningEffort: string | null; enabled: boolean; apiKeyConfigured: boolean; updatedAt: string }
 export interface ModelConnectionConfigPayload { name: string; provider: string; apiUrl: string; modelName: string; reasoningEffort: string; apiKey?: string }
@@ -102,6 +114,7 @@ const TASK_RESPONSE_FIELDS = ['taskId', 'title', 'status', 'rowVersion', 'curren
 const PUBLIC_EVENT_FIELDS = ['taskId', 'userId', 'sequence', 'eventType', 'status', 'publicReason', 'resultReference', 'occurredAt']
 const IDENTITY_FIELDS = ['userId', 'authSubject', 'displayName', 'roles', 'permissions', 'testIdentity']
 const BUSINESS_SCENE_SKILL_FIELDS = ['skillId', 'name', 'description', 'handlingType', 'premiseType', 'updatedAt']
+const EMS_BUSINESS_DOMAIN_KNOWLEDGE_FIELDS = ['code', 'name', 'summary', 'schemas', 'tableCount', 'keyTables', 'knowledgeBoundary', 'verificationHint']
 const MODEL_CONFIGURATION_FIELDS = ['configId', 'name', 'provider', 'apiUrl', 'modelName', 'reasoningEffort', 'enabled', 'apiKeyConfigured', 'updatedAt']
 const TASK_LIST_ITEM_FIELDS = ['taskId', 'title', 'status', 'initiatorUserId', 'createdAt']
 const TASK_LIST_PAGE_FIELDS = ['items', 'total', 'page', 'pageSize']
@@ -122,6 +135,26 @@ export function parseBusinessSceneSkill(value: unknown): BusinessSceneSkill {
 /** 校验业务场景 Skill 列表响应。 */
 export function parseBusinessSceneSkills(value: unknown): BusinessSceneSkill[] {
   return requireArray(value, '业务场景 Skill 列表').map(parseBusinessSceneSkill)
+}
+
+/** 校验 EMS 业务域知识响应。 */
+export function parseEmsBusinessDomainKnowledge(value: unknown): EmsBusinessDomainKnowledge {
+  const record = assertObjectFields(value, EMS_BUSINESS_DOMAIN_KNOWLEDGE_FIELDS, 'EMS业务知识域响应')
+  return {
+    code: requireString(record.code, '业务域编码'),
+    name: requireString(record.name, '业务域名称'),
+    summary: requireString(record.summary, '业务域说明'),
+    schemas: requireStringArray(record.schemas, '所属数据库'),
+    tableCount: requirePositiveNumber(record.tableCount, '结构快照表数量'),
+    keyTables: requireStringArray(record.keyTables, '关键表'),
+    knowledgeBoundary: requireString(record.knowledgeBoundary, '知识可信边界'),
+    verificationHint: requireString(record.verificationHint, '核验提示'),
+  }
+}
+
+/** 校验 EMS 业务域知识列表响应。 */
+export function parseEmsBusinessDomainKnowledgeList(value: unknown): EmsBusinessDomainKnowledge[] {
+  return requireArray(value, 'EMS业务知识域列表').map(parseEmsBusinessDomainKnowledge)
 }
 
 /** 校验不含密钥的大模型连接响应。 */

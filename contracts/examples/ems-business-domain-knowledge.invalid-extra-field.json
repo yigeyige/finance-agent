@@ -1,0 +1,11 @@
+{
+  "code": "APPROVAL_WORKFLOW",
+  "name": "审批流程",
+  "summary": "流程结构目录",
+  "schemas": ["activiti_ems"],
+  "tableCount": 84,
+  "keyTables": ["psc_act_config"],
+  "knowledgeBoundary": "结构快照",
+  "verificationHint": "待样本确认",
+  "connectionUrl": "jdbc:mysql://should-not-appear"
+}

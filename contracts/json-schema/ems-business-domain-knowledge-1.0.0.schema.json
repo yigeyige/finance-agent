@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://ems-business-domain-knowledge/1.0.0",
+  "title": "EMS business domain knowledge",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["code", "name", "summary", "schemas", "tableCount", "keyTables", "knowledgeBoundary", "verificationHint"],
+  "properties": {
+    "code": {"type": "string", "pattern": "^[A-Z_]{3,64}$"},
+    "name": {"type": "string", "minLength": 1, "maxLength": 100},
+    "summary": {"type": "string", "minLength": 1, "maxLength": 500},
+    "schemas": {"type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$"}},
+    "tableCount": {"type": "integer", "minimum": 1, "maximum": 1000},
+    "keyTables": {"type": "array", "minItems": 1, "maxItems": 20, "uniqueItems": true, "items": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]{0,127}$"}},
+    "knowledgeBoundary": {"type": "string", "minLength": 1, "maxLength": 500},
+    "verificationHint": {"type": "string", "minLength": 1, "maxLength": 500}
+  }
+}

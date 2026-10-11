@@ -22,6 +22,9 @@
         <el-menu-item v-if="canReadTasks" index="/business-skills">
           <span slot="title">业务场景 Skill</span>
         </el-menu-item>
+        <el-menu-item v-if="canReadTasks" index="/ems-business-knowledge">
+          <span slot="title">EMS业务知识域</span>
+        </el-menu-item>
         <el-menu-item v-if="canManageConfig" index="/model-configurations">
           <span slot="title">大模型配置</span>
         </el-menu-item>

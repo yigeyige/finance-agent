@@ -1,0 +1,10 @@
+{
+  "code": "APPROVAL_WORKFLOW",
+  "name": "审批流程",
+  "summary": "流程集、流程版本、节点、连线、处理人和表单绑定的结构目录。",
+  "schemas": ["activiti_ems", "activiti_admin"],
+  "tableCount": 131,
+  "keyTables": ["psc_act_prco_set", "psc_act_re_procdef", "psc_act_config", "psc_act_assignee"],
+  "knowledgeBoundary": "已核实库、表和部分字段注释的结构快照；跨表业务关系、状态枚举和权威来源仍待样本或代码确认。",
+  "verificationHint": "先从流程集、运行版本、节点配置和处理人配置定位；流程条件表达式、处理人类型与运行版本状态必须结合代码或样本确认。"
+}

@@ -9,6 +9,7 @@ import TaskDiagnostics from '../views/TaskDiagnostics.vue'
 import TaskList from '../views/TaskList.vue'
 import TaskDetail from '../views/TaskDetail.vue'
 import BusinessSkillCatalog from '../views/BusinessSkillCatalog.vue'
+import EmsBusinessKnowledge from '../views/EmsBusinessKnowledge.vue'
 import ModelConfiguration from '../views/ModelConfiguration.vue'
 import Login from '../views/Login.vue'
 import { IdentityPermission } from '../api/generated'
@@ -31,6 +32,7 @@ const router = new Router({
     { path: '/tasks', name: 'task-list', component: TaskList, meta: { title: '任务列表', permission: 'TASK_READ' } },
     { path: '/tasks/:taskId', name: 'task-detail', component: TaskDetail, meta: { title: '业务处理详情', permission: 'TASK_READ' } },
     { path: '/business-skills', name: 'business-skills', component: BusinessSkillCatalog, meta: { title: '业务场景 Skill', permission: 'TASK_READ' } },
+    { path: '/ems-business-knowledge', name: 'ems-business-knowledge', component: EmsBusinessKnowledge, meta: { title: 'EMS业务知识域', permission: 'TASK_READ' } },
     {
       path: '/model-configurations', name: 'model-configurations', component: ModelConfiguration,
       meta: { title: '大模型配置', permission: 'CONFIG_MANAGE' },

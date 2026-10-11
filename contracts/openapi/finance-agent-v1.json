@@ -347,6 +347,17 @@
         }
       }
     },
+    "/api/v1/ems-business-knowledge": {
+      "get": {
+        "operationId": "listEmsBusinessDomainKnowledge",
+        "security": [{"unifiedAuth": ["OPERATOR"]}],
+        "responses": {
+          "200": {"description": "Curated EMS business domain knowledge without runtime data", "content": {"application/json": {"schema": {"type": "array", "items": {"$ref": "../json-schema/ems-business-domain-knowledge-1.0.0.schema.json"}}}}},
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "403": {"$ref": "#/components/responses/Forbidden"}
+        }
+      }
+    },
     "/api/v1/business-scene-skills": {
       "get": {
         "operationId": "listBusinessSceneSkills",
