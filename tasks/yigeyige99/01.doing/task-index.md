@@ -147,12 +147,13 @@ source: development-workplan
 | 119 | P0 自定义需求 | [20261011-ems-business-domain-knowledge](../03.achieved/20261011-EMS业务知识域.md) | EMS 财务系统业务域知识与工作台展示 | [20261011-EMS业务知识域.md](../03.achieved/20261011-EMS业务知识域.md) | 已完成 | 无 |
 | 120 | P0 自定义需求 | [20261011-fix-business-model-controller-startup](../03.achieved/20261011-修复模型控制器启动.md) | 修复业务模型控制器本地启动失败 | [20261011-修复模型控制器启动.md](../03.achieved/20261011-修复模型控制器启动.md) | 已完成 | `20261011-business-handling-excel-attachment-analysis` |
 | 121 | P0 自定义需求 | [20261011-ems-database-connection-analysis](../03.achieved/20261011-EMS数据库连接配置.md) | EMS 数据库连接配置与业务处理模型分析 | [20261011-EMS数据库连接配置.md](../03.achieved/20261011-EMS数据库连接配置.md) | 已完成 | `20261011-ems-business-domain-knowledge` |
+| 122 | P0 自定义需求 | [20261011-fix-ems-database-secret-error](../03.achieved/20261011-修复EMS连接密钥提示.md) | 修复 EMS 数据库连接缺失主密钥提示 | [20261011-修复EMS连接密钥提示.md](../03.achieved/20261011-修复EMS连接密钥提示.md) | 已完成 | `20261011-ems-database-connection-analysis` |
 
 ## 阶段统计
 
 | 阶段 | 数量 |
 |---|---:|
-| P0 | 98 |
+| P0 | 99 |
 | P1 | 9 |
 | P2 | 10 |
-| 合计 | 117 |
+| 合计 | 118 |

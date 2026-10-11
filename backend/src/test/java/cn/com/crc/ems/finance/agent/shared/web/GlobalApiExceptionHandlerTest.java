@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 
 import cn.com.crc.ems.finance.agent.diagnostics.DiagnosticContext;
+import cn.com.crc.ems.finance.agent.shared.application.DomainErrorCode;
+import cn.com.crc.ems.finance.agent.shared.application.DomainException;
 
 /**
  *
@@ -33,5 +35,15 @@ class GlobalApiExceptionHandlerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().traceId()).isEqualTo("trace-local-001");
         assertThat(response.getBody().message()).isEqualTo("服务暂时不可用");
+    }
+
+    @Test
+    void configurationFailureIsNotMappedToStateConflict() {
+        var response = new GlobalApiExceptionHandler().domain(new DomainException(DomainErrorCode.CONFIGURATION_UNAVAILABLE));
+
+        assertThat(response.getStatusCode().value()).isEqualTo(503);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().code()).isEqualTo("CONFIGURATION_UNAVAILABLE");
+        assertThat(response.getBody().message()).doesNotContain("密码", "连接串", "密钥内容");
     }
 }

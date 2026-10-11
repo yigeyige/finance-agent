@@ -6,6 +6,7 @@ public enum DomainErrorCode {
     STATE_CONFLICT(409, RetryClass.NEW_APPROVAL_REQUIRED, "当前业务状态已变化"),
     NOT_FOUND(404, RetryClass.NOT_RETRYABLE, "业务对象不存在"),
     FORBIDDEN(403, RetryClass.NOT_RETRYABLE, "无权执行该业务动作"),
+    CONFIGURATION_UNAVAILABLE(503, RetryClass.NOT_RETRYABLE, "凭据加密主密钥未配置，请联系平台管理员"),
     AUDIT_WRITE_FAILED(503, RetryClass.MANUAL_RECONCILIATION, "审计不可用，动作未完成"),
     INTERNAL_ERROR(500, RetryClass.NOT_RETRYABLE, "服务暂时不可用");
 

@@ -8,7 +8,7 @@
 
 ### Requirement: Managed EMS database configuration
 
-系统 SHALL 允许具有 `PLATFORM_ADMIN` 角色的身份维护 EMS MySQL 数据库连接配置，并且最多启用一条配置。密码 MUST 使用应用密钥加密保存，任何响应、日志和模型上下文 MUST NOT 返回密码或密文。
+系统 SHALL 允许具有 `PLATFORM_ADMIN` 角色的身份维护 EMS MySQL 数据库连接配置，并且最多启用一条配置。密码 MUST 使用应用密钥加密保存，任何响应、日志和模型上下文 MUST NOT 返回密码或密文。未配置或长度不足的加密主密钥时，系统 MUST 拒绝保存并返回安全、可操作的配置不可用错误，MUST NOT 将其映射为业务状态冲突。
 
 #### Scenario: Administrator tests a connection
 
@@ -19,6 +19,11 @@
 
 - **WHEN** 不具备 `PLATFORM_ADMIN` 角色的身份请求 EMS 数据库配置接口
 - **THEN** 系统拒绝请求且不返回连接信息
+
+#### Scenario: Missing encryption master key
+
+- **WHEN** 管理员保存连接且部署未配置有效的加密主密钥
+- **THEN** 系统以安全的配置不可用错误拒绝请求，不返回密码、连接串或底层异常
 
 ### Requirement: Hard read-only SQL execution guard
 
