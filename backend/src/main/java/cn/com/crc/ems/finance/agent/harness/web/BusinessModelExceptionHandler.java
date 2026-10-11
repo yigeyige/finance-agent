@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelException;
 
@@ -36,6 +37,32 @@ public final class BusinessModelExceptionHandler {
     public ResponseEntity<Map<String, String>> badRequest(IllegalArgumentException exception) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("code", "MODEL_CONTEXT_INVALID",
                 "message", "当前任务信息无法用于模型分析，请检查调查范围"));
+    }
+
+    /**
+     *
+     * @description: 返回不含附件内容的受控上传失败信息。
+     *
+     * @param: exception 已经安全化的附件校验异常
+     * @return: 业务可理解的附件错误响应
+     * @author: yigeyige99
+     */
+    @ExceptionHandler(BusinessGuidanceAttachmentException.class)
+    public ResponseEntity<Map<String, String>> attachmentInvalid(BusinessGuidanceAttachmentException exception) {
+        return ResponseEntity.badRequest().body(Map.of("code", "ATTACHMENT_INVALID", "message", exception.getMessage()));
+    }
+
+    /**
+     *
+     * @description: 将框架在请求解析阶段发现的超大附件转换为业务错误。
+     *
+     * @param: exception 框架上传大小异常
+     * @return: 不包含附件内容的业务错误响应
+     * @author: yigeyige99
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> attachmentTooLarge(MaxUploadSizeExceededException exception) {
+        return ResponseEntity.badRequest().body(Map.of("code", "ATTACHMENT_INVALID", "message", "单个附件不能超过 1 MB"));
     }
 
     private static String safeStateMessage(String message) {

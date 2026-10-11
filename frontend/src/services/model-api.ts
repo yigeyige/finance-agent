@@ -1,6 +1,6 @@
 /** 调用后端受控模型交互接口，只接收结构化业务建议和非敏感元数据。 */
 import { BusinessGuidanceRequest, BusinessGuidanceResponse, BusinessHandlingDraft, ModelEvidenceAnalysisResponse, ModelPlanResponse, parseBusinessGuidance, parseModelEvidenceAnalysis, parseModelPlan } from '../api/generated'
-import { postJson } from './http'
+import { postForm, postJson } from './http'
 
 export type { BusinessGuidanceResponse, BusinessHandlingDraft, ModelEvidenceAnalysisResponse, ModelPlanResponse }
 
@@ -15,7 +15,12 @@ export async function analyzeEvidenceWithModel(taskId: string): Promise<ModelEvi
 }
 
 /** 请求模型根据已创建任务的业务说明生成可编辑初稿。 */
-export async function generateBusinessGuidance(taskId: string): Promise<BusinessGuidanceResponse> {
+export async function generateBusinessGuidance(taskId: string, attachments: File[] = []): Promise<BusinessGuidanceResponse> {
+  if (attachments.length > 0) {
+    const formData = new FormData()
+    attachments.forEach((attachment) => formData.append('files', attachment, attachment.name))
+    return parseBusinessGuidance(await postForm<unknown>(`/v1/tasks/${taskId}/model-interactions/guidance/attachments`, formData, undefined, { idempotencyKey: createKey('business-guidance-attachment') }))
+  }
   return parseBusinessGuidance(await postJson<unknown, Record<string, never>>(`/v1/tasks/${taskId}/model-interactions/guidance`, {}, undefined, { idempotencyKey: createKey('business-guidance') }))
 }
 

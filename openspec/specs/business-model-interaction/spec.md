@@ -42,7 +42,7 @@
 - **THEN** 页面能够明确区分真实模型与本地模拟模型，并展示模型产出需要人工确认
 
 ### Requirement: Model guidance is visible and editable
-前端 SHALL 在业务处理向导中展示模型的初稿、模式、显示名称、简短理由和会话回复。管理员 MUST 能编辑所有业务字段，并能通过自然语言修改意见请求新的结构化初稿。
+前端 SHALL 在业务处理向导中展示模型的初稿、模式、显示名称、简短理由和会话回复。管理员 MUST 能编辑所有业务字段，并能通过自然语言修改意见请求新的结构化初稿。初稿请求 SHALL 在有受支持附件时通过受控 multipart 接口提交，后端 MUST 只将经校验的临时附件文本投影加入模型上下文；未上传附件时 SHALL 保持既有 JSON 初稿请求。
 
 #### Scenario: Stub guidance is clearly identified
 - **WHEN** 当前环境启用模型 Stub 并返回业务处理初稿或会话修订
@@ -51,6 +51,10 @@
 #### Scenario: Model request fails
 - **WHEN** 初稿或会话修订请求失败、超时或响应不符合结构
 - **THEN** 页面保留管理员已填写内容，展示中文失败说明和重试入口，不提交前提、范围或业务方案
+
+#### Scenario: Initial guidance includes validated attachments
+- **WHEN** OPERATOR 通过附件初稿接口提交受支持附件
+- **THEN** 系统只把后端校验的临时附件投影加入模型输入，并继续返回严格校验的初稿和既有非敏感元数据
 
 ### Requirement: Safe model metadata appears in technical details
 前端 SHALL 在当前业务处理的技术明细中展示模型显示名称、运行模式、Token 数和调用耗时。前端 MUST 仅在受控响应提供非空推理强度时展示该项，且 MUST NOT 展示提示词、推理过程、输入摘要或输出摘要原文。

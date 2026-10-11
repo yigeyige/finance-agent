@@ -135,6 +135,15 @@ public final class StubBusinessModelClient implements BusinessModelClient {
             node.put("feedback", context.feedback());
             node.set("currentDraft", context.currentDraft().toJson());
         }
+        if (!context.attachments().isEmpty()) {
+            var attachments = node.putArray("attachments");
+            context.attachments().forEach(attachment -> {
+                ObjectNode item = attachments.addObject();
+                item.put("fileName", attachment.fileName());
+                item.put("content", attachment.content());
+                item.put("truncated", attachment.truncated());
+            });
+        }
         return node;
     }
 

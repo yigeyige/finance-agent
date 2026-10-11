@@ -19,6 +19,7 @@ import com.sun.net.httpserver.HttpServer;
 import cn.com.crc.ems.finance.agent.config.FinanceAgentProperties;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelException;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceAttachment;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
@@ -67,6 +68,20 @@ class BusinessModelClientTest {
         assertThat(initial.value().draft().investigationAreas()).containsExactly("APPROVAL", "ROLE");
         assertThat(revised.value().reply()).contains("更新");
         assertThat(revised.value().draft().recommendedGoal()).contains("管理员意见");
+    }
+
+    @Test
+    void stubIncludesRestrictedAttachmentProjectionInItsInputDigest() {
+        StubBusinessModelClient client = new StubBusinessModelClient();
+        UUID taskId = UUID.randomUUID();
+        var withoutAttachment = client.guideBusinessHandling(new BusinessGuidanceContext(taskId, "离职权限处置",
+                "需要调整离职人员仍生效的审批权限", null, null));
+        var withAttachment = client.guideBusinessHandling(new BusinessGuidanceContext(taskId, "离职权限处置",
+                "需要调整离职人员仍生效的审批权限", null, null, null,
+                List.of(new BusinessGuidanceAttachment("交接.md", "交接材料，待人工核验。", false))));
+
+        assertThat(withAttachment.metadata().inputDigest()).isNotEqualTo(withoutAttachment.metadata().inputDigest());
+        assertThat(withAttachment.value().draft().handlingType()).isEqualTo("ADJUST");
     }
 
     @Test

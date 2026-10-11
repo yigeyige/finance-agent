@@ -1,6 +1,7 @@
 package cn.com.crc.ems.finance.agent.harness.application;
 
 import java.util.UUID;
+import java.util.List;
 
 /**
  *
@@ -11,11 +12,17 @@ import java.util.UUID;
  * @Date: 2026-10-08 21:10:00
  */
 public record BusinessGuidanceContext(UUID taskId, String title, String description, String feedback,
-        BusinessHandlingDraft currentDraft, BusinessSceneSkillContext sceneSkill) {
+        BusinessHandlingDraft currentDraft, BusinessSceneSkillContext sceneSkill,
+        List<BusinessGuidanceAttachment> attachments) {
 
     public BusinessGuidanceContext(UUID taskId, String title, String description, String feedback,
             BusinessHandlingDraft currentDraft) {
-        this(taskId, title, description, feedback, currentDraft, null);
+        this(taskId, title, description, feedback, currentDraft, null, List.of());
+    }
+
+    public BusinessGuidanceContext(UUID taskId, String title, String description, String feedback,
+            BusinessHandlingDraft currentDraft, BusinessSceneSkillContext sceneSkill) {
+        this(taskId, title, description, feedback, currentDraft, sceneSkill, List.of());
     }
 
     public BusinessGuidanceContext {
@@ -29,6 +36,10 @@ public record BusinessGuidanceContext(UUID taskId, String title, String descript
         }
         if (feedback != null && currentDraft == null) {
             throw new IllegalArgumentException("currentDraft is required for feedback");
+        }
+        attachments = attachments == null ? List.of() : List.copyOf(attachments);
+        if (attachments.size() > 3 || attachments.stream().mapToInt(item -> item.content().length()).sum() > 24_000) {
+            throw new IllegalArgumentException("attachments are invalid");
         }
     }
 

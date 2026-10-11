@@ -1,5 +1,6 @@
 package cn.com.crc.ems.finance.agent.model.application;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import cn.com.crc.ems.finance.agent.evidence.domain.EffectiveClass;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelResult;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceAttachment;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessHandlingDraft;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
@@ -81,10 +83,27 @@ public final class BusinessModelInteractionService {
      */
     public BusinessModelResult<BusinessGuidanceSuggestion> guideBusinessHandling(UUID taskId, String feedback,
             BusinessHandlingDraft currentDraft) {
+        return guideBusinessHandling(taskId, feedback, currentDraft, List.of());
+    }
+
+    /**
+     *
+     * @description: 使用任务权威信息和受限附件投影生成初稿，不保存附件内容。
+     *
+     * @param: taskId 当前任务标识
+     * @param: feedback 管理员本次修改意见，可为空
+     * @param: currentDraft 当前页面中的受限草稿，可为空
+     * @param: attachments 已校验的临时附件文本投影
+     * @return: 严格结构化的模型业务处理建议
+     * @throws: IllegalStateException 任务不存在时抛出
+     * @author: yigeyige99
+     */
+    public BusinessModelResult<BusinessGuidanceSuggestion> guideBusinessHandling(UUID taskId, String feedback,
+            BusinessHandlingDraft currentDraft, List<BusinessGuidanceAttachment> attachments) {
         var task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalStateException("业务处理任务不存在或已失效"));
         return modelClient.guideBusinessHandling(new BusinessGuidanceContext(task.taskId(), task.title(),
-                task.originalQuestion(), feedback, currentDraft, findSceneSkill(taskId)));
+                task.originalQuestion(), feedback, currentDraft, findSceneSkill(taskId), attachments));
     }
 
     /** 将任务已固化的有效业务场景投影为模型上下文，失效场景拒绝继续生成。 */

@@ -52,6 +52,17 @@ export async function postJson<TResponse, TRequest>(
   return response.data
 }
 
+/** 使用统一请求标识提交 multipart 表单，交由浏览器补充安全的分隔边界。 */
+export async function postForm<TResponse>(
+  url: string,
+  payload: FormData,
+  config?: AxiosRequestConfig,
+  options?: ApiRequestOptions,
+): Promise<TResponse> {
+  const response = await httpClient.post<TResponse>(url, payload, withRequestHeaders(config, options))
+  return response.data
+}
+
 /** 发起带统一请求标识的 PUT 请求。 */
 export async function putJson<TResponse, TRequest>(
   url: string,
