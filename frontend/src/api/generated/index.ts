@@ -198,13 +198,13 @@ export function parseEmsDatabaseConnectionConfigs(value: unknown): EmsDatabaseCo
 /** 校验可展示的 EMS 表结构元数据。 */
 export function parseEmsDatabaseTableMetadata(value: unknown): EmsDatabaseTableMetadata {
   const record = assertObjectFields(value, EMS_DATABASE_TABLE_METADATA_FIELDS, 'EMS 表目录响应')
-  return { schema: requireString(record.schema, '数据库名称'), table: requireString(record.table, '表名'), comment: requireString(record.comment, '表注释') }
+  return { schema: requireString(record.schema, '数据库名称'), table: requireString(record.table, '表名'), comment: requireDisplayString(record.comment, '表注释') }
 }
 
 /** 校验可展示的 EMS 字段结构元数据。 */
 export function parseEmsDatabaseColumnMetadata(value: unknown): EmsDatabaseColumnMetadata {
   const record = assertObjectFields(value, EMS_DATABASE_COLUMN_METADATA_FIELDS, 'EMS 字段结构响应')
-  return { name: requireString(record.name, '字段名'), type: requireString(record.type, '字段类型'), comment: requireString(record.comment, '字段注释') }
+  return { name: requireString(record.name, '字段名'), type: requireString(record.type, '字段类型'), comment: requireDisplayString(record.comment, '字段注释') }
 }
 
 /** 校验数据探索目录响应。 */
@@ -348,6 +348,12 @@ export function parseCurrentIdentity(value: unknown): CurrentIdentityResponse {
 /** 要求非空字符串字段。 */
 function requireString(value: unknown, label: string): string {
   if (typeof value !== 'string' || value.length === 0) throw new Error(`${label}格式无法识别，请稍后重试`)
+  return value
+}
+
+/** 要求可展示文本为字符串；数据库元数据注释允许为空。 */
+function requireDisplayString(value: unknown, label: string): string {
+  if (typeof value !== 'string') throw new Error(`${label}格式无法识别，请稍后重试`)
   return value
 }
 
