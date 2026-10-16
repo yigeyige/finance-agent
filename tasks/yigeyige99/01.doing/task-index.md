@@ -149,12 +149,13 @@ source: development-workplan
 | 121 | P0 自定义需求 | [20261011-ems-database-connection-analysis](../03.achieved/20261011-EMS数据库连接配置.md) | EMS 数据库连接配置与业务处理模型分析 | [20261011-EMS数据库连接配置.md](../03.achieved/20261011-EMS数据库连接配置.md) | 已完成 | `20261011-ems-business-domain-knowledge` |
 | 122 | P0 自定义需求 | [20261011-fix-ems-database-secret-error](../03.achieved/20261011-修复EMS连接密钥提示.md) | 修复 EMS 数据库连接缺失主密钥提示 | [20261011-修复EMS连接密钥提示.md](../03.achieved/20261011-修复EMS连接密钥提示.md) | 已完成 | `20261011-ems-database-connection-analysis` |
 | 123 | P0 自定义需求 | [20261011-standardize-backend-type-javadocs](../03.achieved/20261011-规范后端类型注释.md) | 规范后端各代码类 Javadoc 注释 | [20261011-规范后端类型注释.md](../03.achieved/20261011-规范后端类型注释.md) | 已完成 | 无 |
+| 124 | P0 自定义需求 | [20261016-add-data-exploration](../03.achieved/20261016-数据探索.md) | 数据探索功能 | [20261016-数据探索.md](../03.achieved/20261016-数据探索.md) | 已完成 | 无 |
 
 ## 阶段统计
 
 | 阶段 | 数量 |
 |---|---:|
-| P0 | 99 |
+| P0 | 100 |
 | P1 | 9 |
 | P2 | 10 |
-| 合计 | 118 |
+| 合计 | 119 |

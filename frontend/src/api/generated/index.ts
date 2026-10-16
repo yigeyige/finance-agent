@@ -96,6 +96,13 @@ export interface ModelConnectionConfigPayload { name: string; provider: string; 
 export interface EmsDatabaseConnectionConfig { configId: string; name: string; jdbcUrl: string; username: string; connectTimeoutSeconds: number; queryTimeoutSeconds: number; maxRows: number; enabled: boolean; passwordConfigured: boolean; updatedAt: string }
 export interface EmsDatabaseConnectionConfigPayload { name: string; jdbcUrl: string; username: string; password?: string; connectTimeoutSeconds: number; queryTimeoutSeconds: number; maxRows: number }
 
+/** 数据探索仅返回已启用数据源的结构元数据与受限查询结果。 */
+export interface EmsDatabaseTableMetadata { schema: string; table: string; comment: string }
+export interface EmsDatabaseColumnMetadata { name: string; type: string; comment: string }
+export interface DataExplorationCatalog { dataSourceName: string; maxRows: number; tables: EmsDatabaseTableMetadata[] }
+export interface DataExplorationQueryRequest { sql: string }
+export interface DataExplorationQueryResult { columns: string[]; rows: Array<Array<string | null>>; rowCount: number; elapsedMillis: number }
+
 /** 任务列表与只读详情的契约模型。 */
 export interface TaskListItem { taskId: string; title: string; status: string; initiatorUserId: string; createdAt: string }
 export interface TaskListPage { items: TaskListItem[]; total: number; page: number; pageSize: number }
@@ -121,6 +128,10 @@ const BUSINESS_SCENE_SKILL_FIELDS = ['skillId', 'name', 'description', 'handling
 const EMS_BUSINESS_DOMAIN_KNOWLEDGE_FIELDS = ['code', 'name', 'summary', 'schemas', 'tableCount', 'keyTables', 'knowledgeBoundary', 'verificationHint']
 const MODEL_CONFIGURATION_FIELDS = ['configId', 'name', 'provider', 'apiUrl', 'modelName', 'reasoningEffort', 'enabled', 'apiKeyConfigured', 'updatedAt']
 const EMS_DATABASE_CONFIGURATION_FIELDS = ['configId', 'name', 'jdbcUrl', 'username', 'connectTimeoutSeconds', 'queryTimeoutSeconds', 'maxRows', 'enabled', 'passwordConfigured', 'updatedAt']
+const EMS_DATABASE_TABLE_METADATA_FIELDS = ['schema', 'table', 'comment']
+const EMS_DATABASE_COLUMN_METADATA_FIELDS = ['name', 'type', 'comment']
+const DATA_EXPLORATION_CATALOG_FIELDS = ['dataSourceName', 'maxRows', 'tables']
+const DATA_EXPLORATION_QUERY_RESULT_FIELDS = ['columns', 'rows', 'rowCount', 'elapsedMillis']
 const TASK_LIST_ITEM_FIELDS = ['taskId', 'title', 'status', 'initiatorUserId', 'createdAt']
 const TASK_LIST_PAGE_FIELDS = ['items', 'total', 'page', 'pageSize']
 const TASK_DETAIL_FIELDS = ['taskId', 'title', 'description', 'status', 'initiatorUserId', 'createdAt', 'premises', 'scope', 'plans']
@@ -182,6 +193,31 @@ export function parseEmsDatabaseConnectionConfig(value: unknown): EmsDatabaseCon
 /** 校验 EMS 数据库连接列表响应。 */
 export function parseEmsDatabaseConnectionConfigs(value: unknown): EmsDatabaseConnectionConfig[] {
   return requireArray(value, 'EMS 数据库连接列表').map(parseEmsDatabaseConnectionConfig)
+}
+
+/** 校验可展示的 EMS 表结构元数据。 */
+export function parseEmsDatabaseTableMetadata(value: unknown): EmsDatabaseTableMetadata {
+  const record = assertObjectFields(value, EMS_DATABASE_TABLE_METADATA_FIELDS, 'EMS 表目录响应')
+  return { schema: requireString(record.schema, '数据库名称'), table: requireString(record.table, '表名'), comment: requireString(record.comment, '表注释') }
+}
+
+/** 校验可展示的 EMS 字段结构元数据。 */
+export function parseEmsDatabaseColumnMetadata(value: unknown): EmsDatabaseColumnMetadata {
+  const record = assertObjectFields(value, EMS_DATABASE_COLUMN_METADATA_FIELDS, 'EMS 字段结构响应')
+  return { name: requireString(record.name, '字段名'), type: requireString(record.type, '字段类型'), comment: requireString(record.comment, '字段注释') }
+}
+
+/** 校验数据探索目录响应。 */
+export function parseDataExplorationCatalog(value: unknown): DataExplorationCatalog {
+  const record = assertObjectFields(value, DATA_EXPLORATION_CATALOG_FIELDS, '数据探索目录响应')
+  return { dataSourceName: requireString(record.dataSourceName, '数据源名称'), maxRows: requirePositiveNumber(record.maxRows, '最大返回行数'), tables: requireArray(record.tables, '表目录').map(parseEmsDatabaseTableMetadata) }
+}
+
+/** 校验受限数据探索查询结果。 */
+export function parseDataExplorationQueryResult(value: unknown): DataExplorationQueryResult {
+  const record = assertObjectFields(value, DATA_EXPLORATION_QUERY_RESULT_FIELDS, '数据探索查询结果')
+  const rows = requireArray(record.rows, '查询结果行').map((row) => requireArray(row, '查询结果单行').map((cell) => cell === null ? null : requireString(cell, '查询结果单元格')))
+  return { columns: requireStringArray(record.columns, '查询结果列'), rows, rowCount: requireNonNegativeNumber(record.rowCount, '返回行数'), elapsedMillis: requireNonNegativeNumber(record.elapsedMillis, '执行耗时') }
 }
 
 /** 校验任务列表项。 */

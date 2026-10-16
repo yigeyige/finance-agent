@@ -31,6 +31,9 @@
         <el-menu-item v-if="canManageConfig" index="/ems-database-configurations">
           <span slot="title">EMS数据库配置</span>
         </el-menu-item>
+        <el-menu-item v-if="canManageConfig" index="/data-exploration">
+          <span slot="title">数据探索</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>

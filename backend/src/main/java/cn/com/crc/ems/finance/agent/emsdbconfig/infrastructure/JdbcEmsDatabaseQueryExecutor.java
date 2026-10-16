@@ -6,14 +6,18 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseQueryExecutor;
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseQueryResult;
+import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseTableMetadata;
+import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseColumnMetadata;
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsReadOnlySqlGuard;
 import cn.com.crc.ems.finance.agent.emsdbconfig.domain.EmsDatabaseConnectionConfig;
 import cn.com.crc.ems.finance.agent.modelconfig.application.ModelApiKeyCipher;
@@ -30,6 +34,8 @@ import cn.com.crc.ems.finance.agent.modelconfig.application.ModelApiKeyCipher;
 public final class JdbcEmsDatabaseQueryExecutor implements EmsDatabaseQueryExecutor {
     private static final int MAX_COLUMNS = 20;
     private static final int MAX_CELL_LENGTH = 300;
+    private static final Set<String> ALLOWED_SCHEMAS = Set.of("basedata", "activiti_ems", "account", "budget",
+            "payment", "quality", "smart_audit", "mobile");
     private final ModelApiKeyCipher cipher;
     private final EmsReadOnlySqlGuard sqlGuard;
 
@@ -49,6 +55,58 @@ public final class JdbcEmsDatabaseQueryExecutor implements EmsDatabaseQueryExecu
             }
         } catch (SQLException exception) {
             throw new IllegalStateException("EMS 数据查询暂时不可用");
+        }
+    }
+
+    /**
+     *
+     * @description: 读取固定白名单内的表名称与注释，不接受用户提供的 SQL。
+     * @param: config 当前启用的 EMS 连接
+     * @return: 允许展示的表元数据
+     * @author: yigeyige99
+     */
+    @Override
+    public List<EmsDatabaseTableMetadata> listAllowedTables(EmsDatabaseConnectionConfig config) {
+        String sql = "SELECT table_schema, table_name, table_comment FROM information_schema.tables "
+                + "WHERE table_type = 'BASE TABLE' AND table_schema IN ('basedata','activiti_ems','account','budget','payment','quality','smart_audit','mobile') "
+                + "ORDER BY table_schema, table_name";
+        try (Connection connection = open(config); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setQueryTimeout(config.queryTimeoutSeconds());
+            try (ResultSet result = statement.executeQuery()) {
+                List<EmsDatabaseTableMetadata> values = new ArrayList<>();
+                while (result.next()) values.add(new EmsDatabaseTableMetadata(result.getString(1), result.getString(2), result.getString(3)));
+                return List.copyOf(values);
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("EMS 数据目录暂时不可用");
+        }
+    }
+
+    /**
+     *
+     * @description: 读取指定白名单表的字段元数据，不返回样本数据。
+     * @param: config 当前启用的 EMS 连接
+     * @param: schema 已校验的业务库名
+     * @param: table 已校验的表名
+     * @return: 表字段列表
+     * @author: yigeyige99
+     */
+    @Override
+    public List<EmsDatabaseColumnMetadata> listColumns(EmsDatabaseConnectionConfig config, String schema, String table) {
+        if (!ALLOWED_SCHEMAS.contains(schema)) throw new IllegalArgumentException("不允许读取该 EMS 业务库");
+        String sql = "SELECT column_name, column_type, column_comment FROM information_schema.columns "
+                + "WHERE table_schema = ? AND table_name = ? ORDER BY ordinal_position";
+        try (Connection connection = open(config); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, schema);
+            statement.setString(2, table);
+            statement.setQueryTimeout(config.queryTimeoutSeconds());
+            try (ResultSet result = statement.executeQuery()) {
+                List<EmsDatabaseColumnMetadata> values = new ArrayList<>();
+                while (result.next()) values.add(new EmsDatabaseColumnMetadata(result.getString(1), result.getString(2), result.getString(3)));
+                return List.copyOf(values);
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("EMS 表结构暂时不可用");
         }
     }
 

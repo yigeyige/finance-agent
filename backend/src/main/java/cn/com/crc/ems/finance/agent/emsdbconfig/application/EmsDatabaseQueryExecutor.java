@@ -1,5 +1,7 @@
 package cn.com.crc.ems.finance.agent.emsdbconfig.application;
 
+import java.util.List;
+
 import cn.com.crc.ems.finance.agent.emsdbconfig.domain.EmsDatabaseConnectionConfig;
 
 /**
@@ -12,5 +14,7 @@ import cn.com.crc.ems.finance.agent.emsdbconfig.domain.EmsDatabaseConnectionConf
  */
 public interface EmsDatabaseQueryExecutor {
     EmsDatabaseQueryResult execute(EmsDatabaseConnectionConfig config, String sql);
+    List<EmsDatabaseTableMetadata> listAllowedTables(EmsDatabaseConnectionConfig config);
+    List<EmsDatabaseColumnMetadata> listColumns(EmsDatabaseConnectionConfig config, String schema, String table);
     boolean probe(EmsDatabaseConnectionConfig config);
 }
