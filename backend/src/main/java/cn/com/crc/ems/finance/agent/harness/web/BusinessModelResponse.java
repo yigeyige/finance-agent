@@ -6,6 +6,7 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessModelCallMetadat
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelResult;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
+import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanSuggestion;
 
 /**
@@ -43,14 +44,14 @@ public final class BusinessModelResponse {
                     draft.premiseType(), draft.subjectKey(), draft.statement(), draft.sourceDescription(),
                     draft.systemCode(), draft.objectKey(), draft.startDate(), draft.endDate(),
                     draft.investigationAreas(), draft.dataUse(), draft.recommendedGoal(), draft.alternativeGoals(),
-                    draft.reason()), Metadata.from(result.metadata()));
+                    draft.reason(), draft.conclusion(), draft.evidence()), Metadata.from(result.metadata()));
         }
     }
 
     public record BusinessHandlingDraftResponse(String handlingType, String premiseType, String subjectKey,
             String statement, String sourceDescription, String systemCode, String objectKey, String startDate,
             String endDate, List<String> investigationAreas, String dataUse, String recommendedGoal,
-            List<String> alternativeGoals, String reason) {
+            List<String> alternativeGoals, String reason, String conclusion, List<EmsDatabaseEvidence> evidence) {
     }
 
     public record Analysis(String summary, String riskLevel, String riskExplanation,

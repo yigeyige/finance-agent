@@ -8,6 +8,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import cn.com.crc.ems.finance.agent.diagnostics.DiagnosticContext;
 import cn.com.crc.ems.finance.agent.diagnostics.DiagnosticLogSanitizer;
 import cn.com.crc.ems.finance.agent.shared.application.DomainErrorCode;
 import cn.com.crc.ems.finance.agent.shared.application.DomainException;
+import cn.com.crc.ems.finance.agent.shared.application.RetryClass;
 
 /**
  *
@@ -49,6 +51,33 @@ public class GlobalApiExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiErrorResponse> notFound(NoResourceFoundException exception) {
         return response(DomainErrorCode.NOT_FOUND);
+    }
+
+    /**
+     *
+     * @description: 将控制器抛出的 ResponseStatusException 映射为真实 HTTP 状态与安全提示，避免被兜底处理器统一转成 500。
+     *
+     * @param: exception 携带状态码与业务提示的拒绝异常
+     * @return: 与原始状态码一致的错误响应
+     * @author: yigeyige99
+     */
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ApiErrorResponse> responseStatus(ResponseStatusException exception) {
+        int status = exception.getStatusCode().value();
+        String message = exception.getReason() == null || exception.getReason().isBlank()
+                ? "请求未完成，请稍后重试" : exception.getReason();
+        return ResponseEntity.status(status)
+                .body(ApiErrorResponse.of(errorCodeFor(status), message, RetryClass.NOT_RETRYABLE.name(), traceId()));
+    }
+
+    private static String errorCodeFor(int status) {
+        return switch (status) {
+            case 400 -> DomainErrorCode.CONTRACT_ERROR.name();
+            case 403 -> DomainErrorCode.FORBIDDEN.name();
+            case 404 -> DomainErrorCode.NOT_FOUND.name();
+            case 409 -> DomainErrorCode.STATE_CONFLICT.name();
+            default -> "HTTP_" + status;
+        };
     }
 
     @ExceptionHandler(Exception.class)

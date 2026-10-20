@@ -2,7 +2,6 @@ package cn.com.crc.ems.finance.agent.harness.infrastructure;
 
 import java.time.Duration;
 import java.util.concurrent.CancellationException;
-import java.util.Map;
 import java.util.List;
 import java.util.Objects;
 
@@ -55,7 +54,7 @@ public final class DeepSeekOpenAiAdapter {
                 .stream(false)
                 .formatter(new DeepSeekFormatter())
                 .nativeStructuredOutput(true)
-                .nativeStructuredOutputWithTools(true)
+                .nativeStructuredOutputWithTools(false)
                 .build();
     }
 
@@ -66,7 +65,7 @@ public final class DeepSeekOpenAiAdapter {
         this.reasoningEffort = valueOrDefault(reasoningEffort, "high");
         this.model = OpenAIChatModel.builder().apiKey(requireSecret(apiKey)).baseUrl(this.baseUrl)
                 .endpointPath(CHAT_COMPLETIONS_PATH).modelName(this.modelName).stream(false)
-                .formatter(new DeepSeekFormatter()).nativeStructuredOutput(true).nativeStructuredOutputWithTools(true).build();
+                .formatter(new DeepSeekFormatter()).nativeStructuredOutput(true).nativeStructuredOutputWithTools(false).build();
     }
 
     /** 返回 AgentScope 模型，调用方通过 Flux 订阅取消请求。 */
@@ -98,9 +97,6 @@ public final class DeepSeekOpenAiAdapter {
                 .baseUrl(baseUrl)
                 .endpointPath(CHAT_COMPLETIONS_PATH)
                 .stream(false)
-                .reasoningEffort(reasoningEffort)
-                .additionalBodyParam("thinking", Map.of("type", "enabled"))
-                .additionalBodyParam("include_reasoning", true)
                 .executionConfig(ExecutionConfig.builder().timeout(timeout).maxAttempts(1).build());
         if (responseFormat != null) {
             builder.responseFormat(responseFormat);

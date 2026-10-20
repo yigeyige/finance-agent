@@ -22,11 +22,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public record BusinessHandlingDraft(String handlingType, String premiseType, String subjectKey, String statement,
         String sourceDescription, String systemCode, String objectKey, String startDate, String endDate,
         List<String> investigationAreas, String dataUse, String recommendedGoal, List<String> alternativeGoals,
-        String reason) {
+        String reason, String conclusion, List<EmsDatabaseEvidence> evidence) {
 
     private static final Set<String> FIELDS = Set.of("handlingType", "premiseType", "subjectKey", "statement",
             "sourceDescription", "systemCode", "objectKey", "startDate", "endDate", "investigationAreas",
-            "dataUse", "recommendedGoal", "alternativeGoals", "reason");
+            "dataUse", "recommendedGoal", "alternativeGoals", "reason", "conclusion", "evidence");
     private static final Set<String> HANDLING_TYPES = Set.of("INVESTIGATE", "ADJUST");
     private static final Set<String> AREAS = Set.of("APPROVAL", "ROLE", "ACCOUNTING", "CONFIG");
     private static final Set<String> DATA_USES = Set.of("MINIMUM", "ANALYSIS");
@@ -53,12 +53,20 @@ public record BusinessHandlingDraft(String handlingType, String premiseType, Str
         investigationAreas = List.copyOf(investigationAreas);
         requireEnum(dataUse, DATA_USES, "dataUse");
         requireText(recommendedGoal, "recommendedGoal", 2000);
-        if (alternativeGoals == null || alternativeGoals.size() > 2) {
+        if (alternativeGoals == null || alternativeGoals.size() > 3) {
             throw new IllegalArgumentException("alternativeGoals is invalid");
         }
         alternativeGoals = List.copyOf(alternativeGoals);
         alternativeGoals.forEach(value -> requireText(value, "alternativeGoal", 2000));
         requireText(reason, "reason", 2000);
+        conclusion = conclusion == null ? "" : conclusion;
+        if (conclusion.length() > 2000) {
+            throw new IllegalArgumentException("conclusion is invalid");
+        }
+        evidence = evidence == null ? List.of() : List.copyOf(evidence);
+        if (evidence.size() > 10) {
+            throw new IllegalArgumentException("evidence is invalid");
+        }
     }
 
     /**
@@ -73,17 +81,51 @@ public record BusinessHandlingDraft(String handlingType, String premiseType, Str
     public static BusinessHandlingDraft fromJson(JsonNode value) {
         requireExactObject(value);
         List<String> areas = textArray(value.get("investigationAreas"), "investigationAreas", 1, AREAS.size());
-        List<String> alternatives = textArray(value.get("alternativeGoals"), "alternativeGoals", 0, 2);
+        List<String> alternatives = textArray(value.get("alternativeGoals"), "alternativeGoals", 0, 3);
+        List<EmsDatabaseEvidence> evidence = evidenceArray(value.get("evidence"));
         try {
             return new BusinessHandlingDraft(text(value, "handlingType", 20), text(value, "premiseType", 100),
                     text(value, "subjectKey", 200), text(value, "statement", 2000),
                     text(value, "sourceDescription", 500), text(value, "systemCode", 100),
                     text(value, "objectKey", 200), text(value, "startDate", 10), text(value, "endDate", 10),
                     areas, text(value, "dataUse", 20), text(value, "recommendedGoal", 2000), alternatives,
-                    text(value, "reason", 2000));
+                    text(value, "reason", 2000), textValue(value.get("conclusion"), "conclusion", 2000), evidence);
         } catch (IllegalArgumentException exception) {
             throw new BusinessModelException("模型返回的业务处理初稿格式不正确", exception);
         }
+    }
+
+    /** 解析模型返回的关联证据数组，仅接受受限的行列结构。 */
+    private static List<EmsDatabaseEvidence> evidenceArray(JsonNode value) {
+        if (value == null || !value.isArray() || value.size() > 10) {
+            throw new BusinessModelException("模型返回字段格式不正确: evidence");
+        }
+        List<EmsDatabaseEvidence> result = new ArrayList<>();
+        value.forEach(item -> {
+            if (!item.isObject()) {
+                throw new BusinessModelException("模型返回字段格式不正确: evidence");
+            }
+            try {
+                String schema = textValue(item.get("schema"), "evidence.schema", 100);
+                String table = textValue(item.get("table"), "evidence.table", 100);
+                String purpose = textValue(item.get("purpose"), "evidence.purpose", 300);
+                List<String> columns = textArray(item.get("columns"), "evidence.columns", 1, 20);
+                List<List<String>> rows = new ArrayList<>();
+                if (item.has("rows") && item.get("rows").isArray()) {
+                    item.get("rows").forEach(row -> {
+                        List<String> cells = new ArrayList<>();
+                        if (row.isArray()) {
+                            row.forEach(cell -> cells.add(cell.isNull() ? "" : cell.asText()));
+                        }
+                        rows.add(List.copyOf(cells));
+                    });
+                }
+                result.add(new EmsDatabaseEvidence(schema, table, purpose, columns, rows));
+            } catch (IllegalArgumentException exception) {
+                throw new BusinessModelException("模型返回字段格式不正确: evidence", exception);
+            }
+        });
+        return List.copyOf(result);
     }
 
     /**
@@ -109,6 +151,8 @@ public record BusinessHandlingDraft(String handlingType, String premiseType, Str
         node.put("recommendedGoal", recommendedGoal);
         node.putPOJO("alternativeGoals", alternativeGoals);
         node.put("reason", reason);
+        node.put("conclusion", conclusion);
+        node.putPOJO("evidence", evidence);
         return node;
     }
 

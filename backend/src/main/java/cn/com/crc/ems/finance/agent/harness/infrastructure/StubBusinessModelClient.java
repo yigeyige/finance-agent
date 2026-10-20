@@ -111,7 +111,8 @@ public final class StubBusinessModelClient implements BusinessModelClient {
                 context.description(), "管理员填写的业务说明", "FIN-SYN", "待管理员确认的系统对象", "2026-01-01",
                 "2026-12-31", List.of("APPROVAL", "ROLE"), "MINIMUM", action,
                 List.of("复核对象关联关系和责任归属", "核对时间范围内的变更及待处理事项"),
-                "本地模拟模型已根据业务说明形成初稿，管理员确认后才会写入业务范围。");
+                "本地模拟模型已根据业务说明形成初稿，管理员确认后才会写入业务范围。",
+                "本地模拟模型未查询 EMS 数据库，暂无检查结论。", List.of());
     }
 
     private static BusinessHandlingDraft revisedDraft(BusinessGuidanceContext context) {
@@ -123,7 +124,8 @@ public final class StubBusinessModelClient implements BusinessModelClient {
                 current.subjectKey(), current.statement(), current.sourceDescription(), current.systemCode(),
                 current.objectKey(), current.startDate(), current.endDate(), current.investigationAreas(),
                 current.dataUse(), goal.length() > 2000 ? goal.substring(0, 2000) : goal,
-                current.alternativeGoals(), "本地模拟模型已根据管理员的本次意见更新初稿，请再次核对。");
+                current.alternativeGoals(), "本地模拟模型已根据管理员的本次意见更新初稿，请再次核对。",
+                current.conclusion(), current.evidence());
     }
 
     private static ObjectNode contextJson(BusinessGuidanceContext context) {

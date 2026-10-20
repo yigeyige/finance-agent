@@ -1,7 +1,6 @@
 package cn.com.crc.ems.finance.agent.emsdbconfig.infrastructure;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -9,9 +8,15 @@ import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseQueryExecutor;
@@ -32,6 +37,7 @@ import cn.com.crc.ems.finance.agent.modelconfig.application.ModelApiKeyCipher;
  */
 @Component
 public final class JdbcEmsDatabaseQueryExecutor implements EmsDatabaseQueryExecutor {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcEmsDatabaseQueryExecutor.class);
     private static final int MAX_COLUMNS = 20;
     private static final int MAX_CELL_LENGTH = 300;
     private static final Set<String> ALLOWED_SCHEMAS = Set.of("basedata", "activiti_ems", "account", "budget",
@@ -54,6 +60,7 @@ public final class JdbcEmsDatabaseQueryExecutor implements EmsDatabaseQueryExecu
                 return project(result, config.maxRows());
             }
         } catch (SQLException exception) {
+            LOGGER.warn("EMS 数据查询失败", exception);
             throw new IllegalStateException("EMS 数据查询暂时不可用");
         }
     }
@@ -78,6 +85,7 @@ public final class JdbcEmsDatabaseQueryExecutor implements EmsDatabaseQueryExecu
                 return List.copyOf(values);
             }
         } catch (SQLException exception) {
+            LOGGER.warn("EMS 数据目录查询失败", exception);
             throw new IllegalStateException("EMS 数据目录暂时不可用");
         }
     }
@@ -122,14 +130,49 @@ public final class JdbcEmsDatabaseQueryExecutor implements EmsDatabaseQueryExecu
         }
     }
 
+    /** 连接池缓存键为连接配置标识，配置变更时按指纹重建。 */
+    private final Map<String, PoolEntry> pools = new ConcurrentHashMap<>();
+
     private Connection open(EmsDatabaseConnectionConfig config) throws SQLException {
-        Properties properties = new Properties();
-        properties.setProperty("user", config.username());
-        properties.setProperty("password", cipher.decrypt(config.passwordCiphertext()));
-        properties.setProperty("connectTimeout", String.valueOf(config.connectTimeoutSeconds() * 1_000));
-        Connection connection = DriverManager.getConnection(config.jdbcUrl(), properties);
-        connection.setReadOnly(true);
-        return connection;
+        String key = config.configId().toString();
+        String fingerprint = fingerprint(config);
+        PoolEntry entry = pools.compute(key, (id, existing) -> {
+            if (existing != null && existing.fingerprint().equals(fingerprint)) {
+                return existing;
+            }
+            if (existing != null) {
+                existing.pool().close();
+            }
+            LOGGER.info("建立 EMS 连接池: {}", config.name());
+            return new PoolEntry(createPool(config), fingerprint);
+        });
+        return entry.pool().getConnection();
+    }
+
+    private HikariDataSource createPool(EmsDatabaseConnectionConfig config) {
+        HikariConfig hikari = new HikariConfig();
+        hikari.setJdbcUrl(config.jdbcUrl());
+        hikari.setUsername(config.username());
+        hikari.setPassword(cipher.decrypt(config.passwordCiphertext()));
+        hikari.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        hikari.setMaximumPoolSize(3);
+        hikari.setMinimumIdle(1);
+        hikari.setConnectionTimeout(config.connectTimeoutSeconds() * 1_000L);
+        hikari.setValidationTimeout(5_000L);
+        hikari.setIdleTimeout(300_000L);
+        hikari.setMaxLifetime(1_800_000L);
+        hikari.setReadOnly(true);
+        hikari.setInitializationFailTimeout(-1L);
+        hikari.setPoolName("ems-" + config.configId());
+        return new HikariDataSource(hikari);
+    }
+
+    private static String fingerprint(EmsDatabaseConnectionConfig config) {
+        return config.jdbcUrl() + '|' + config.username() + '|' + config.passwordCiphertext() + '|'
+                + config.connectTimeoutSeconds();
+    }
+
+    private record PoolEntry(HikariDataSource pool, String fingerprint) {
     }
 
     private static EmsDatabaseQueryResult project(ResultSet result, int maxRows) throws SQLException {
@@ -147,7 +190,7 @@ public final class JdbcEmsDatabaseQueryExecutor implements EmsDatabaseQueryExecu
     }
 
     private static String cell(Object value) {
-        if (value == null) return null;
+        if (value == null) return "";
         if (value instanceof byte[]) return "[二进制内容已省略]";
         String text = String.valueOf(value);
         return text.length() <= MAX_CELL_LENGTH ? text : text.substring(0, MAX_CELL_LENGTH) + "…";

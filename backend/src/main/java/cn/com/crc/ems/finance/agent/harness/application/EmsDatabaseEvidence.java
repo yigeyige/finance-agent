@@ -10,10 +10,12 @@ import java.util.List;
  * @Author: yigeyige99
  * @Date: 2026-10-11 21:28:41
  */
-public record EmsDatabaseEvidence(String purpose, List<String> columns, List<List<String>> rows) {
+public record EmsDatabaseEvidence(String schema, String table, String purpose, List<String> columns,
+        List<List<String>> rows) {
     public EmsDatabaseEvidence {
-        if (purpose == null || purpose.isBlank() || purpose.length() > 300 || columns == null || columns.size() > 20
-                || rows == null || rows.size() > 100) {
+        if (schema == null || schema.isBlank() || table == null || table.isBlank()
+                || purpose == null || purpose.isBlank() || purpose.length() > 300 || columns == null
+                || columns.size() > 20 || rows == null || rows.size() > 100) {
             throw new IllegalArgumentException("EMS 数据库辅助信息不合法");
         }
         columns = List.copyOf(columns);

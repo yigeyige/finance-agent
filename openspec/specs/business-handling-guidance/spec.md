@@ -6,11 +6,15 @@
 ## Requirements
 
 ### Requirement: Controlled handling draft and chat revision
-系统 SHALL 在业务标题和业务说明创建任务后，提供受控模型交互以生成或修订业务处理草稿。草稿 MUST 包含处理类型、对象前提、信息来源、系统、日期范围、处理内容、推荐方案和简短说明；模型输入 MUST 仅来自服务端任务投影、管理员明确提交的消息及白名单化草稿字段。初稿请求可以包含后端校验的受限文本附件投影；系统 MUST NOT 接受浏览器直接提交的任意附件正文、Skill 内容或其他模型上下文。
+系统 SHALL 在业务标题和业务说明创建任务后，提供受控模型交互以生成或修订业务处理草稿。草稿 MUST 包含处理类型、对象前提、信息来源、系统、日期范围、处理内容、推荐方案、简短说明、检查结论和关联证据；模型输入 MUST 仅来自服务端任务投影、管理员明确提交的消息及白名单化草稿字段。初稿请求可以包含后端校验的受限文本附件投影；系统 MUST NOT 接受浏览器直接提交的任意附件正文、Skill 内容或其他模型上下文。
 
 #### Scenario: Initial handling draft is generated
 - **WHEN** OPERATOR 已创建有效业务标题和业务说明的任务并请求处理初稿
 - **THEN** 系统返回严格校验的对象范围初稿、推荐业务方案、模型显示信息和非敏感调用元数据
+
+#### Scenario: Initial draft includes conclusion and evidence
+- **WHEN** 存在启用的 EMS 连接且模型在生成初稿前取得受控查询证据
+- **THEN** 系统返回的初稿包含检查结论与结构化关联证据，且证据不包含连接凭据或未脱敏的内部路径
 
 #### Scenario: Administrator revises the draft in chat
 - **WHEN** OPERATOR 提交不超过约定长度的中文修改意见和当前草稿

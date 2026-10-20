@@ -48,7 +48,7 @@ public record BusinessGuidanceContext(UUID taskId, String title, String descript
             throw new IllegalArgumentException("attachments are invalid");
         }
         databaseEvidence = databaseEvidence == null ? List.of() : List.copyOf(databaseEvidence);
-        if (databaseEvidence.size() > 1) throw new IllegalArgumentException("databaseEvidence is invalid");
+        if (databaseEvidence.size() > 10) throw new IllegalArgumentException("databaseEvidence is invalid");
     }
 
     private static void requireText(String value, String field, int maxLength) {

@@ -116,7 +116,8 @@ export interface StepProposalRevisionPayload { goal: string }
 export interface ModelCallMetadata { mode: 'LIVE' | 'STUB'; modelName: string; inputDigest: string; outputDigest: string; tokens: number; latencyMillis: number; reasoningEffort?: string }
 export interface ModelPlanResponse { recommendedGoal: string; alternativeGoals: string[]; reason: string; metadata: ModelCallMetadata }
 export interface ModelEvidenceAnalysisResponse { summary: string; riskLevel: 'LOW' | 'MEDIUM' | 'HIGH'; riskExplanation: string; recommendations: string[]; metadata: ModelCallMetadata }
-export interface BusinessHandlingDraft { handlingType: BusinessHandlingType; premiseType: string; subjectKey: string; statement: string; sourceDescription: string; systemCode: string; objectKey: string; startDate: string; endDate: string; investigationAreas: string[]; dataUse: string; recommendedGoal: string; alternativeGoals: string[]; reason: string }
+export interface DraftEvidence { schema: string; table: string; purpose: string; columns: string[]; rows: string[][] }
+export interface BusinessHandlingDraft { handlingType: BusinessHandlingType; premiseType: string; subjectKey: string; statement: string; sourceDescription: string; systemCode: string; objectKey: string; startDate: string; endDate: string; investigationAreas: string[]; dataUse: string; recommendedGoal: string; alternativeGoals: string[]; reason: string; conclusion: string; evidence: DraftEvidence[] }
 export interface BusinessGuidanceRequest { message?: string; currentDraft?: BusinessHandlingDraft }
 export interface BusinessGuidanceResponse { reply: string; draft: BusinessHandlingDraft; metadata: ModelCallMetadata }
 export interface TaskDraftRequest { title: string; originalQuestion: string; initiatorUserId: string; runtimeBundleId: string; businessSceneSkillId?: string }
@@ -140,7 +141,7 @@ const TASK_SCOPE_FIELDS = ['systemCode', 'objectSelector', 'effectiveTimeRange',
 const TASK_PLAN_FIELDS = ['sequenceNo', 'goal', 'recommended', 'status']
 const STEP_VIEW_FIELDS = ['stepId', 'sequenceNo', 'goal', 'recommended', 'status']
 const MODEL_METADATA_FIELDS = ['mode', 'modelName', 'inputDigest', 'outputDigest', 'tokens', 'latencyMillis', 'reasoningEffort']
-const BUSINESS_DRAFT_FIELDS = ['handlingType', 'premiseType', 'subjectKey', 'statement', 'sourceDescription', 'systemCode', 'objectKey', 'startDate', 'endDate', 'investigationAreas', 'dataUse', 'recommendedGoal', 'alternativeGoals', 'reason']
+const BUSINESS_DRAFT_FIELDS = ['handlingType', 'premiseType', 'subjectKey', 'statement', 'sourceDescription', 'systemCode', 'objectKey', 'startDate', 'endDate', 'investigationAreas', 'dataUse', 'recommendedGoal', 'alternativeGoals', 'reason', 'conclusion', 'evidence']
 
 /** 校验业务场景 Skill 响应。 */
 export function parseBusinessSceneSkill(value: unknown): BusinessSceneSkill {
@@ -433,5 +434,11 @@ function parseModelCallMetadata(value: unknown): ModelCallMetadata {
 /** 校验模型业务处理草稿。 */
 function parseBusinessHandlingDraft(value: unknown): BusinessHandlingDraft {
   const record = assertObjectFields(value, BUSINESS_DRAFT_FIELDS, '业务处理草稿')
-  return { handlingType: parseBusinessHandlingType(record.handlingType), premiseType: requireString(record.premiseType, '业务场景'), subjectKey: requireString(record.subjectKey, '处理对象'), statement: requireString(record.statement, '已知情况'), sourceDescription: requireString(record.sourceDescription, '信息来源'), systemCode: requireString(record.systemCode, '处理系统'), objectKey: requireString(record.objectKey, '对象标识'), startDate: requireString(record.startDate, '开始日期'), endDate: requireString(record.endDate, '结束日期'), investigationAreas: requireStringArray(record.investigationAreas, '处理内容'), dataUse: requireString(record.dataUse, '数据使用方式'), recommendedGoal: requireString(record.recommendedGoal, '推荐方案'), alternativeGoals: requireStringArray(record.alternativeGoals, '备选方案'), reason: requireString(record.reason, '推荐理由') }
+  return { handlingType: parseBusinessHandlingType(record.handlingType), premiseType: requireString(record.premiseType, '业务场景'), subjectKey: requireString(record.subjectKey, '处理对象'), statement: requireString(record.statement, '已知情况'), sourceDescription: requireString(record.sourceDescription, '信息来源'), systemCode: requireString(record.systemCode, '处理系统'), objectKey: requireString(record.objectKey, '对象标识'), startDate: requireString(record.startDate, '开始日期'), endDate: requireString(record.endDate, '结束日期'), investigationAreas: requireStringArray(record.investigationAreas, '处理内容'), dataUse: requireString(record.dataUse, '数据使用方式'), recommendedGoal: requireString(record.recommendedGoal, '推荐方案'), alternativeGoals: requireStringArray(record.alternativeGoals, '备选方案'), reason: requireString(record.reason, '推荐理由'), conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence) }
+}
+
+/** 校验单条关联证据。 */
+function parseDraftEvidence(value: unknown): DraftEvidence {
+  const record = assertObjectFields(value, ['schema', 'table', 'purpose', 'columns', 'rows'], '关联证据')
+  return { schema: requireString(record.schema, '证据库名'), table: requireString(record.table, '证据表名'), purpose: requireString(record.purpose, '证据用途'), columns: requireArray(record.columns, '证据列').map((column) => requireDisplayString(column, '证据列')), rows: requireArray(record.rows, '证据行').map((row) => requireArray(row, '证据行').map((cell) => requireDisplayString(cell, '证据行'))) }
 }

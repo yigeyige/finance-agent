@@ -1,5 +1,7 @@
 package cn.com.crc.ems.finance.agent.harness.infrastructure;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
@@ -8,9 +10,12 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelResult;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
+import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
 import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryRequest;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanContext;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanSuggestion;
+import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseColumnMetadata;
+import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseTableMetadata;
 import cn.com.crc.ems.finance.agent.modelconfig.application.ModelApiKeyCipher;
 import cn.com.crc.ems.finance.agent.modelconfig.application.ModelConnectionConfigService;
 
@@ -26,7 +31,12 @@ public final class DatabaseConfiguredBusinessModelClient implements BusinessMode
     private final ModelConnectionConfigService configService;
     private final ModelApiKeyCipher cipher;
     public DatabaseConfiguredBusinessModelClient(ModelConnectionConfigService configService, ModelApiKeyCipher cipher) { this.configService = configService; this.cipher = cipher; }
-    @Override public Optional<EmsDatabaseQueryRequest> planEmsDatabaseQuery(BusinessGuidanceContext context) { return live().planEmsDatabaseQuery(context); }
+    @Override public List<String> selectRelevantTables(BusinessGuidanceContext context,
+            List<EmsDatabaseTableMetadata> tableCatalog) { return live().selectRelevantTables(context, tableCatalog); }
+
+    @Override public Optional<EmsDatabaseQueryRequest> planEmsDatabaseQuery(BusinessGuidanceContext context,
+            List<EmsDatabaseTableMetadata> tableCatalog, List<EmsDatabaseEvidence> priorEvidence,
+            Map<String, List<EmsDatabaseColumnMetadata>> tableColumns) { return live().planEmsDatabaseQuery(context, tableCatalog, priorEvidence, tableColumns); }
     @Override public BusinessModelResult<BusinessGuidanceSuggestion> guideBusinessHandling(BusinessGuidanceContext context) { return live().guideBusinessHandling(context); }
     @Override public BusinessModelResult<ModelPlanSuggestion> generatePlan(ModelPlanContext context) { return live().generatePlan(context); }
     @Override public BusinessModelResult<EvidenceAnalysisSuggestion> analyzeEvidence(EvidenceAnalysisContext context) { return live().analyzeEvidence(context); }

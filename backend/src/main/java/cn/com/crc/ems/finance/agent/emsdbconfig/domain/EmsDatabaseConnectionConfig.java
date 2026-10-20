@@ -24,7 +24,7 @@ public record EmsDatabaseConnectionConfig(UUID configId, String name, String jdb
                 || jdbcUrl.matches("(?is).*([?&](user|password|allowLoadLocalInfile|allowUrlInLocalInfile|allowMultiQueries|autoDeserialize)=).*")) {
             throw new IllegalArgumentException("EMS 数据库地址不合法");
         }
-        if (connectTimeoutSeconds < 1 || connectTimeoutSeconds > 30 || queryTimeoutSeconds < 1
+        if (connectTimeoutSeconds < 1 || connectTimeoutSeconds > 60 || queryTimeoutSeconds < 1
                 || queryTimeoutSeconds > 60 || maxRows < 1 || maxRows > 100) {
             throw new IllegalArgumentException("EMS 查询限制不合法");
         }

@@ -1,6 +1,11 @@
 package cn.com.crc.ems.finance.agent.harness.application;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
+import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseColumnMetadata;
+import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseTableMetadata;
 
 /**
  *
@@ -12,8 +17,16 @@ import java.util.Optional;
  */
 public interface BusinessModelClient {
 
+    /** 从候选表目录中选择与业务最相关的表，供后端查询字段后再生成 SQL。 */
+    default List<String> selectRelevantTables(BusinessGuidanceContext context,
+            List<EmsDatabaseTableMetadata> tableCatalog) {
+        return List.of();
+    }
+
     /** 仅生成可选查询建议；真正执行前仍由 EMS SQL 守卫与只读执行器控制。 */
-    default Optional<EmsDatabaseQueryRequest> planEmsDatabaseQuery(BusinessGuidanceContext context) {
+    default Optional<EmsDatabaseQueryRequest> planEmsDatabaseQuery(BusinessGuidanceContext context,
+            List<EmsDatabaseTableMetadata> tableCatalog, List<EmsDatabaseEvidence> priorEvidence,
+            Map<String, List<EmsDatabaseColumnMetadata>> tableColumns) {
         return Optional.empty();
     }
 

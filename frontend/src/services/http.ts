@@ -99,7 +99,7 @@ function withRequestHeaders(config?: AxiosRequestConfig, options?: ApiRequestOpt
   return { ...config, headers }
 }
 
-/** 将 Axios 或网络异常收敛为可识别的中文 API 错误。 */
+/** 将 Axios 或网络异常收敛为可识别的中文 API 错误，优先透出后端返回的安全提示文案。 */
 function createApiError(error: unknown): ApiError {
   if (!axios.isAxiosError(error)) return new ApiError(toUserErrorMessage(error), undefined, undefined)
   const axiosError = error as AxiosError<unknown>
@@ -108,7 +108,8 @@ function createApiError(error: unknown): ApiError {
   const record = isRecord(body) ? body : undefined
   const code = typeof record?.code === 'string' ? record.code : undefined
   const traceId = typeof record?.traceId === 'string' ? record.traceId : undefined
-  return new ApiError(toUserErrorMessage(error), status, body, code, traceId)
+  const serverMessage = typeof record?.message === 'string' && record.message.trim() !== '' ? record.message : undefined
+  return new ApiError(serverMessage ?? toUserErrorMessage(error), status, body, code, traceId)
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
