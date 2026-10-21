@@ -336,8 +336,58 @@ body,
   padding-top: 6px;
 }
 
-.task-workbench > .page-heading {
-  margin-bottom: 18px;
+/* 顶部业务处理概览：仅平铺展示标题与内容，替代原"业务处理向导"标题。 */
+.task-overview-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 24px;
+  margin-bottom: 14px;
+  padding: 12px 18px;
+  border: 1px solid #e7dfd4;
+  border-top: 3px solid #dd7a13;
+  border-radius: 12px;
+  background: #fffdf9;
+  box-shadow: 0 6px 16px rgba(83, 70, 48, 0.05);
+}
+
+.task-overview-field {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.task-overview-label {
+  flex-shrink: 0;
+  color: #817b73;
+  font-size: 13px;
+}
+
+.task-overview-value {
+  min-width: 0;
+  color: #2e2c29;
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.task-overview-status {
+  margin-left: auto;
+}
+
+.task-overview-empty {
+  color: #817b73;
+  font-size: 14px;
+}
+
+/* 收紧业务处理表单与面板的纵向间距，降低整页高度。 */
+.task-workbench .task-form {
+  margin-top: 14px;
+}
+
+.task-workbench .task-form .el-form-item {
+  margin-bottom: 14px;
 }
 
 .task-workbench .guided-workflow,
@@ -349,7 +399,7 @@ body,
 }
 
 .guided-workflow .el-steps {
-  margin-bottom: 28px;
+  margin-bottom: 14px;
 }
 
 .step-intro {
@@ -585,13 +635,13 @@ body,
 .handling-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 20px;
-  margin-top: 22px;
+  gap: 14px;
+  margin-top: 14px;
 }
 
 .handling-form-panel,
-.model-conversation {
-  padding: 22px;
+.plan-editor {
+  padding: 16px;
   border: 1px solid #dce7e4;
   border-radius: 12px;
   background: #fff;
@@ -608,95 +658,96 @@ body,
   grid-column: 1 / -1;
 }
 
-.model-conversation {
+/* 推荐业务方案：单列卡片展示初稿理由、可编辑目标与生成决策包入口。 */
+.plan-editor {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   border-color: #c7d9d6;
   background: linear-gradient(145deg, #f7fbfa 0%, #eef7f4 100%);
 }
 
+.plan-editor h4 {
+  margin: 0;
+  color: #173d3a;
+  font-size: 17px;
+}
+
+/* 模型协助修改：右侧聊天面板，采用左右气泡式对话界面。 */
 .chat-history {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  gap: 10px;
-  min-height: 220px;
-  max-height: 360px;
-  padding: 6px 2px;
+  gap: 14px;
+  min-height: 320px;
+  max-height: 420px;
+  padding: 4px 2px 8px;
   overflow-y: auto;
 }
 
 .chat-message {
-  padding: 12px 14px;
-  border-radius: 10px;
-  line-height: 1.65;
-}
-
-.chat-message strong {
-  display: block;
-  margin-bottom: 4px;
-  color: #215852;
-}
-
-.chat-message p {
-  margin: 0;
-  color: #355b57;
-  white-space: pre-wrap;
+  display: flex;
+  flex-direction: column;
+  max-width: 88%;
 }
 
 .chat-message--model {
-  border: 1px solid #c8ded9;
-  background: #fff;
+  align-self: flex-start;
 }
 
 .chat-message--operator {
-  margin-left: 26px;
-  background: #dcefea;
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.chat-message__author {
+  margin: 0 4px 4px;
+  color: #817b73;
+  font-size: 12px;
+}
+
+.chat-message__bubble {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.chat-message--model .chat-message__bubble {
+  border: 1px solid #c8ded9;
+  border-top-left-radius: 4px;
+  background: #fff;
+  color: #355b57;
+}
+
+.chat-message--operator .chat-message__bubble {
+  border: 1px solid #ecd7b4;
+  border-top-right-radius: 4px;
+  background: #f7e7cf;
+  color: #4a3a22;
+}
+
+.chat-empty {
+  margin: 0;
+  padding: 28px 12px;
+  color: #817b73;
+  text-align: center;
+}
+
+.chat-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e8e1d8;
 }
 
 .chat-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-}
-
-.plan-editor {
-  margin: 22px 0;
-  padding-top: 18px;
-  border-top: 1px solid #e4ece9;
-}
-
-.model-conversation.plan-editor {
-  display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(320px, 1.05fr);
-  align-items: start;
-  column-gap: 22px;
-  row-gap: 14px;
-}
-
-.plan-editor > .card-heading,
-.plan-editor > .model-reason,
-.plan-editor > .el-textarea {
-  grid-column: 1;
-}
-
-.plan-editor > h4,
-.plan-editor > h4 ~ .chat-history,
-.plan-editor > h4 ~ .el-textarea,
-.plan-editor > h4 ~ .chat-actions,
-.plan-editor > h4 ~ .el-button {
-  grid-column: 2;
-}
-
-.plan-editor > h4 {
-  grid-row: 1;
-}
-
-.plan-editor h4 {
-  margin: 0 0 8px;
-  color: #173d3a;
-  font-size: 17px;
 }
 
 .business-plan-result {
@@ -801,16 +852,15 @@ body,
   }
 
   .handling-form-panel,
-  .model-conversation {
-    padding: 18px;
+  .plan-editor {
+    padding: 16px;
   }
 
   .standard-table-panel {
     border-radius: 8px;
   }
 
-  .handling-form-panel .task-form,
-  .model-conversation.plan-editor {
+  .handling-form-panel .task-form {
     display: block;
   }
 

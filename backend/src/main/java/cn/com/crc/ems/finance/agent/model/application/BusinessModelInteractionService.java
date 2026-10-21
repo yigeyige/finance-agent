@@ -21,6 +21,7 @@ import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggesti
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanContext;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanSuggestion;
 import cn.com.crc.ems.finance.agent.task.application.InvestigationTaskRepository;
+import cn.com.crc.ems.finance.agent.task.application.GuidanceDraftRepository;
 import cn.com.crc.ems.finance.agent.task.application.ScopeRevisionRepository;
 import cn.com.crc.ems.finance.agent.task.application.TaskBusinessSceneSkillRepository;
 import cn.com.crc.ems.finance.agent.scenario.application.BusinessSceneSkillRepository;
@@ -47,13 +48,14 @@ public final class BusinessModelInteractionService {
     private final TaskBusinessSceneSkillRepository taskBusinessSceneSkillRepository;
     private final BusinessSceneSkillRepository businessSceneSkillRepository;
     private final EmsDatabaseAssistanceService emsDatabaseAssistanceService;
+    private final GuidanceDraftRepository guidanceDraftRepository;
 
     public BusinessModelInteractionService(BusinessModelClient modelClient,
             InvestigationTaskRepository taskRepository, ScopeRevisionRepository scopeRepository,
             FactSnapshotRepository snapshotRepository, CoverageRecordRepository coverageRepository,
             FindingRepository findingRepository) {
         this(modelClient, taskRepository, scopeRepository, snapshotRepository, coverageRepository, findingRepository,
-                null, null, null);
+                null, null, null, null);
     }
 
     @Autowired
@@ -61,7 +63,8 @@ public final class BusinessModelInteractionService {
             InvestigationTaskRepository taskRepository, ScopeRevisionRepository scopeRepository,
             FactSnapshotRepository snapshotRepository, CoverageRecordRepository coverageRepository,
             FindingRepository findingRepository, TaskBusinessSceneSkillRepository taskBusinessSceneSkillRepository,
-            BusinessSceneSkillRepository businessSceneSkillRepository, EmsDatabaseAssistanceService emsDatabaseAssistanceService) {
+            BusinessSceneSkillRepository businessSceneSkillRepository, EmsDatabaseAssistanceService emsDatabaseAssistanceService,
+            GuidanceDraftRepository guidanceDraftRepository) {
         this.modelClient = modelClient;
         this.taskRepository = taskRepository;
         this.scopeRepository = scopeRepository;
@@ -71,6 +74,7 @@ public final class BusinessModelInteractionService {
         this.taskBusinessSceneSkillRepository = taskBusinessSceneSkillRepository;
         this.businessSceneSkillRepository = businessSceneSkillRepository;
         this.emsDatabaseAssistanceService = emsDatabaseAssistanceService;
+        this.guidanceDraftRepository = guidanceDraftRepository;
     }
 
     /**
@@ -107,9 +111,15 @@ public final class BusinessModelInteractionService {
                 .orElseThrow(() -> new IllegalStateException("业务处理任务不存在或已失效"));
         BusinessGuidanceContext base = new BusinessGuidanceContext(task.taskId(), task.title(), task.originalQuestion(),
                 feedback, currentDraft, findSceneSkill(taskId), attachments);
-        return modelClient.guideBusinessHandling(new BusinessGuidanceContext(task.taskId(), task.title(),
-                task.originalQuestion(), feedback, currentDraft, findSceneSkill(taskId), attachments,
-                emsDatabaseAssistanceService == null ? List.of() : emsDatabaseAssistanceService.collect(modelClient, base)));
+        BusinessModelResult<BusinessGuidanceSuggestion> result = modelClient.guideBusinessHandling(
+                new BusinessGuidanceContext(task.taskId(), task.title(), task.originalQuestion(), feedback, currentDraft,
+                        findSceneSkill(taskId), attachments,
+                        emsDatabaseAssistanceService == null ? List.of()
+                                : emsDatabaseAssistanceService.collect(modelClient, base)));
+        if (guidanceDraftRepository != null) {
+            guidanceDraftRepository.save(taskId, result.value().draft().toJson().toString(), task.initiatorUserId());
+        }
+        return result;
     }
 
     /** 将任务已固化的有效业务场景投影为模型上下文，失效场景拒绝继续生成。 */

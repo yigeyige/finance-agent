@@ -2,13 +2,19 @@ package cn.com.crc.ems.finance.agent.task.application;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+
 import cn.com.crc.ems.finance.agent.iam.application.CurrentIdentity;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
+import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.RepositoryEntityNotFoundException;
 import cn.com.crc.ems.finance.agent.task.domain.InvestigationStep;
 import cn.com.crc.ems.finance.agent.task.domain.InvestigationTask;
@@ -29,13 +35,16 @@ public class TaskDetailService {
     private final TaskPremiseRepository premiseRepository;
     private final ScopeRevisionRepository scopeRevisionRepository;
     private final InvestigationStepRepository stepRepository;
+    private final GuidanceDraftRepository guidanceDraftRepository;
 
     public TaskDetailService(InvestigationTaskRepository taskRepository, TaskPremiseRepository premiseRepository,
-            ScopeRevisionRepository scopeRevisionRepository, InvestigationStepRepository stepRepository) {
+            ScopeRevisionRepository scopeRevisionRepository, InvestigationStepRepository stepRepository,
+            GuidanceDraftRepository guidanceDraftRepository) {
         this.taskRepository = taskRepository;
         this.premiseRepository = premiseRepository;
         this.scopeRevisionRepository = scopeRevisionRepository;
         this.stepRepository = stepRepository;
+        this.guidanceDraftRepository = guidanceDraftRepository;
     }
 
     /**
@@ -57,13 +66,32 @@ public class TaskDetailService {
         }
         ScopeRevision scope = task.currentScopeRevisionId() == null ? null
                 : scopeRevisionRepository.findById(task.currentScopeRevisionId()).orElse(null);
+        GuidanceDraftProjection guidance = guidanceDraftRepository.findLatestDraftJsonByTaskId(task.taskId())
+                .map(TaskDetailService::projectGuidance).orElse(GuidanceDraftProjection.EMPTY);
         return new Detail(task.taskId(), task.title(), task.originalQuestion(), task.status().name(), task.initiatorUserId(), task.createdAt(),
                 premiseRepository.findByTaskId(task.taskId()).stream().map(Premise::from).toList(), Scope.from(scope),
-                stepRepository.findByTaskId(task.taskId()).stream().map(PlanStep::from).toList());
+                stepRepository.findByTaskId(task.taskId()).stream().map(PlanStep::from).toList(),
+                guidance.conclusion(), guidance.evidence());
+    }
+
+    private static GuidanceDraftProjection projectGuidance(String draftJson) {
+        try {
+            JsonNode draft = CanonicalJsonCodec.parse(draftJson);
+            JsonNode evidence = draft.path("evidence");
+            return new GuidanceDraftProjection(draft.path("conclusion").asText(""),
+                    evidence.isArray() ? evidence : JsonNodeFactory.instance.arrayNode());
+        } catch (RuntimeException ignored) {
+            return GuidanceDraftProjection.EMPTY;
+        }
+    }
+
+    public record GuidanceDraftProjection(String conclusion, JsonNode evidence) {
+        static final GuidanceDraftProjection EMPTY = new GuidanceDraftProjection("",
+                JsonNodeFactory.instance.arrayNode());
     }
 
     public record Detail(UUID taskId, String title, String description, String status, UUID initiatorUserId, Instant createdAt,
-            List<Premise> premises, Scope scope, List<PlanStep> plans) { }
+            List<Premise> premises, Scope scope, List<PlanStep> plans, String conclusion, @JsonRawValue JsonNode evidence) { }
     public record Premise(String premiseType, String subjectKey, String statement, String sourceDescription) {
         static Premise from(TaskPremise value) { return new Premise(value.premiseType(), value.subjectKey(), value.statement(), value.sourceDescription()); }
     }

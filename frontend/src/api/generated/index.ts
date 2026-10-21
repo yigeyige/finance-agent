@@ -109,7 +109,7 @@ export interface TaskListPage { items: TaskListItem[]; total: number; page: numb
 export interface TaskPremise { premiseType: string; subjectKey: string; statement: string; sourceDescription: string }
 export interface TaskScope { systemCode: string; objectSelector: string; effectiveTimeRange: string; revisionNo: number }
 export interface TaskPlan { sequenceNo: number; goal: string; recommended: boolean; status: string }
-export interface TaskDetail { taskId: string; title: string; description: string; status: string; initiatorUserId: string; createdAt: string; premises: TaskPremise[]; scope: TaskScope | null; plans: TaskPlan[] }
+export interface TaskDetail { taskId: string; title: string; description: string; status: string; initiatorUserId: string; createdAt: string; premises: TaskPremise[]; scope: TaskScope | null; plans: TaskPlan[]; conclusion: string; evidence: DraftEvidence[] }
 
 /** 业务方案修订与受控模型协作的契约模型。 */
 export interface StepProposalRevisionPayload { goal: string }
@@ -135,7 +135,7 @@ const DATA_EXPLORATION_CATALOG_FIELDS = ['dataSourceName', 'maxRows', 'tables']
 const DATA_EXPLORATION_QUERY_RESULT_FIELDS = ['columns', 'rows', 'rowCount', 'elapsedMillis']
 const TASK_LIST_ITEM_FIELDS = ['taskId', 'title', 'status', 'initiatorUserId', 'createdAt']
 const TASK_LIST_PAGE_FIELDS = ['items', 'total', 'page', 'pageSize']
-const TASK_DETAIL_FIELDS = ['taskId', 'title', 'description', 'status', 'initiatorUserId', 'createdAt', 'premises', 'scope', 'plans']
+const TASK_DETAIL_FIELDS = ['taskId', 'title', 'description', 'status', 'initiatorUserId', 'createdAt', 'premises', 'scope', 'plans', 'conclusion', 'evidence']
 const TASK_PREMISE_FIELDS = ['premiseType', 'subjectKey', 'statement', 'sourceDescription']
 const TASK_SCOPE_FIELDS = ['systemCode', 'objectSelector', 'effectiveTimeRange', 'revisionNo']
 const TASK_PLAN_FIELDS = ['sequenceNo', 'goal', 'recommended', 'status']
@@ -243,7 +243,7 @@ export function parseStepView(value: unknown): StepView {
 export function parseTaskDetail(value: unknown): TaskDetail {
   const record = assertObjectFields(value, TASK_DETAIL_FIELDS, '任务详情')
   const scope = record.scope === null ? null : parseTaskScope(record.scope)
-  return { taskId: requireString(record.taskId, '任务标识'), title: requireString(record.title, '任务标题'), description: requireString(record.description, '业务说明'), status: requireString(record.status, '任务状态'), initiatorUserId: requireString(record.initiatorUserId, '发起人标识'), createdAt: requireString(record.createdAt, '创建时间'), premises: requireArray(record.premises, '任务前提').map(parseTaskPremise), scope, plans: requireArray(record.plans, '推荐方案').map(parseTaskPlan) }
+  return { taskId: requireString(record.taskId, '任务标识'), title: requireString(record.title, '任务标题'), description: requireString(record.description, '业务说明'), status: requireString(record.status, '任务状态'), initiatorUserId: requireString(record.initiatorUserId, '发起人标识'), createdAt: requireString(record.createdAt, '创建时间'), premises: requireArray(record.premises, '任务前提').map(parseTaskPremise), scope, plans: requireArray(record.plans, '推荐方案').map(parseTaskPlan), conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence) }
 }
 
 /** 校验业务处理向导模型响应。 */
