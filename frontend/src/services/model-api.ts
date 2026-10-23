@@ -4,8 +4,8 @@ import { postForm, postJson } from './http'
 
 export type { BusinessGuidanceResponse, BusinessHandlingDraft, ModelEvidenceAnalysisResponse, ModelPlanResponse }
 
-/** 模型调用最长等待时间，覆盖后端最多两次模型调用与网络缓冲。 */
-const MODEL_TIMEOUT = 240_000
+/** 模型调用最长等待时间，覆盖后端选表、多轮只读查询与初稿生成的总耗时上限，避免链路被前端超时截断。 */
+const MODEL_TIMEOUT = 600_000
 
 /** 请求模型根据当前任务和已确认范围生成调查方案。 */
 export async function generateModelPlan(taskId: string): Promise<ModelPlanResponse> {

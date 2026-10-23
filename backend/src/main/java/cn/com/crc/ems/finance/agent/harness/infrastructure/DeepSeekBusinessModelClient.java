@@ -70,7 +70,7 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         input.set("tableCatalog", catalogJson(tableCatalog));
         String instruction = "你是财务共享只读数据库查询规划助手。从 tableCatalog 中选择与业务最相关的表，用于后续查询。"
                 + "人员登录账号（如 LILYCHANG 这种 USERCODE）在 basedata.sys_register_user 的 USERCODE 字段，员工基础信息在 activiti_ems.psc_employee；"
-                + "审批人配置在 basedata.t_audit_configuration（按 EMP_IDS 配置审批人），角色在 basedata.sys_role 与 basedata.sys_user_role，组织在 basedata.sys_user_org_rel。"
+                + "审批人配置在 basedata.t_audit_configuration（EMP_IDS 存人员登录账号 USERCODE、EMP_NAMES 存人员姓名，如 EMP_IDS='ZENGLINGRUI'、EMP_NAMES='曾令睿'），角色在 basedata.sys_role 与 basedata.sys_user_role，组织在 basedata.sys_user_org_rel。"
                 + "只返回 JSON 对象，字段必须且只能是 tables；tables 是字符串数组，每项为 库名.表名，最多 5 张。输入："
                 + CanonicalJsonCodec.canonicalize(input);
         try {
@@ -108,6 +108,7 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
                 + "只能访问 basedata、activiti_ems、account、budget、payment、quality、smart_audit、mobile；禁止查询 claim、xxljob、arch_db、系统库。"
                 + "tableColumns 是候选表的真实字段，生成 sql 的 SELECT、WHERE、JOIN ON 中 MUST 只使用其中列出的字段名，且字段必须使用所属表的别名前缀；禁止使用 employee_name、user_id、auditor_id 等未列出的臆造字段。"
                 + "人员登录账号（如 LILYCHANG 这种大写英文串）应直接查 basedata.sys_register_user 表的 USERCODE 字段（WHERE USERCODE='LILYCHANG'），不要查 activiti_ems.psc_employee；只有给出明确员工工号时才查 psc_employee.employee_emp_id。"
+                + "审批人配置在 basedata.t_audit_configuration：EMP_IDS 存的是人员登录账号 USERCODE（如 'ZENGLINGRUI'），EMP_NAMES 存的是人员姓名（如 '曾令睿'）；查某人审批配置时用其 USERCODE 或姓名匹配 EMP_IDS/EMP_NAMES，不要用数字 USERID（如 21615284）去匹配 EMP_IDS，也不要用系统角色编码去匹配 ROLE_CODE（ROLE_CODE 是审批环节角色编码如 ZCGLY）。"
                 + "每轮只查询 1~2 张表（简单 JOIN），避免复杂多表 JOIN 导致字段归属错误；需要更多信息时在后续轮次继续查询，把上一轮得到的关键标识用于下一轮 WHERE 条件。"
                 + "若出现人员姓名或账号（如 LILYCHANG），先查人员表定位该人员，再查审批、角色或配置表。priorEvidence 是前几轮已查到的受限结果，若已足够回答业务问题可返回 needQuery=false。"
                 + "只返回 JSON 对象，字段必须且只能是 needQuery、purpose、sql；needQuery=false 时 purpose、sql 为空字符串；needQuery=true 时 sql 必须是单条 MySQL SELECT（禁止 UNION、子查询、分号、注释和任何写入或文件语法，只能用 JOIN 关联多表），表必须使用库名限定。"
