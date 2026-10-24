@@ -14,6 +14,7 @@ import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
 import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryRequest;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanContext;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanSuggestion;
+import cn.com.crc.ems.finance.agent.harness.application.PromptTemplateRepository;
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseColumnMetadata;
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseTableMetadata;
 import cn.com.crc.ems.finance.agent.modelconfig.application.ModelApiKeyCipher;
@@ -30,7 +31,13 @@ import cn.com.crc.ems.finance.agent.modelconfig.application.ModelConnectionConfi
 public final class DatabaseConfiguredBusinessModelClient implements BusinessModelClient {
     private final ModelConnectionConfigService configService;
     private final ModelApiKeyCipher cipher;
-    public DatabaseConfiguredBusinessModelClient(ModelConnectionConfigService configService, ModelApiKeyCipher cipher) { this.configService = configService; this.cipher = cipher; }
+    private final PromptTemplateRepository promptTemplates;
+    public DatabaseConfiguredBusinessModelClient(ModelConnectionConfigService configService, ModelApiKeyCipher cipher,
+            PromptTemplateRepository promptTemplates) {
+        this.configService = configService;
+        this.cipher = cipher;
+        this.promptTemplates = promptTemplates;
+    }
     @Override public List<String> selectRelevantTables(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog) { return live().selectRelevantTables(context, tableCatalog); }
 
@@ -40,5 +47,5 @@ public final class DatabaseConfiguredBusinessModelClient implements BusinessMode
     @Override public BusinessModelResult<BusinessGuidanceSuggestion> guideBusinessHandling(BusinessGuidanceContext context) { return live().guideBusinessHandling(context); }
     @Override public BusinessModelResult<ModelPlanSuggestion> generatePlan(ModelPlanContext context) { return live().generatePlan(context); }
     @Override public BusinessModelResult<EvidenceAnalysisSuggestion> analyzeEvidence(EvidenceAnalysisContext context) { return live().analyzeEvidence(context); }
-    private DeepSeekBusinessModelClient live() { var config = configService.requireEnabled(); return new DeepSeekBusinessModelClient(new DeepSeekOpenAiAdapter(config.apiUrl(), config.modelName(), config.reasoningEffort(), cipher.decrypt(config.apiKeyCiphertext()))); }
+    private DeepSeekBusinessModelClient live() { var config = configService.requireEnabled(); return new DeepSeekBusinessModelClient(new DeepSeekOpenAiAdapter(config.apiUrl(), config.modelName(), config.reasoningEffort(), cipher.decrypt(config.apiKeyCiphertext())), promptTemplates); }
 }

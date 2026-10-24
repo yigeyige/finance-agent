@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
@@ -24,6 +25,8 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggesti
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanContext;
+import cn.com.crc.ems.finance.agent.harness.application.PromptTemplate;
+import cn.com.crc.ems.finance.agent.harness.application.PromptTemplateRepository;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.DeepSeekBusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.DeepSeekOpenAiAdapter;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.StubBusinessModelClient;
@@ -108,7 +111,9 @@ class BusinessModelClientTest {
         settings.setBaseUrl("http://localhost:" + server.getAddress().getPort());
         settings.setModel("deepseek-chat");
 
-        var result = new DeepSeekBusinessModelClient(new DeepSeekOpenAiAdapter(settings)).generatePlan(planContext());
+        PromptTemplateRepository templates = code -> Optional.of(new PromptTemplate(code,
+                "你是财务共享运维调查助手。仅依据输入 JSON 生成调查方案，不执行工具。只返回 JSON 对象，字段必须且只能是 recommendedGoal、alternativeGoals、reason；alternativeGoals 最多两个，所有内容使用简体中文。输入："));
+        var result = new DeepSeekBusinessModelClient(new DeepSeekOpenAiAdapter(settings), templates).generatePlan(planContext());
 
         assertThat(result.metadata().mode()).isEqualTo("LIVE");
         assertThat(result.metadata().modelName()).isEqualTo("deepseek-chat");
