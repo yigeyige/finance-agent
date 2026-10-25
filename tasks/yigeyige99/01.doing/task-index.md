@@ -10,7 +10,7 @@ source: development-workplan
 
 # 财务共享智能运维 Agent 开发顺序任务索引
 
-> 共 99 份独立 task：P0 80 项、P1 9 项、P2 10 项。本索引依据任务卡“前置条件”进行拓扑排序；同一依赖层级按照 BOOT、DATA、RUN、TOOL、HAR、UI、QA、P1、P2 排列。
+> 共 129 份独立 task：P0 109 项、P1 9 项、P2 11 项。本索引依据任务卡“前置条件”进行拓扑排序；同一依赖层级按照 BOOT、DATA、RUN、TOOL、HAR、UI、QA、P1、P2 排列。
 
 ## 使用说明
 
@@ -152,12 +152,15 @@ source: development-workplan
 | 124 | P0 自定义需求 | [20261016-add-data-exploration](../03.achieved/20261016-数据探索.md) | 数据探索功能 | [20261016-数据探索.md](../03.achieved/20261016-数据探索.md) | 已完成 | 无 |
 | 125 | P0 自定义需求 | [20261016-fix-data-exploration-empty-comments](../03.achieved/20261016-修复数据探索空注释.md) | 修复数据探索空表注释 | [20261016-修复数据探索空注释.md](../03.achieved/20261016-修复数据探索空注释.md) | 已完成 | `20261016-add-data-exploration` |
 | 126 | P0 自定义需求 | [20261024-business-decision-packet](../03.achieved/20261024-业务决策包.md) | 业务决策包：业务处理证据累积与一键生成决策包 | [20261024-业务决策包.md](../03.achieved/20261024-业务决策包.md) | 已完成 | 无 |
+| 127 | P0 自定义需求 | [20261025-require-versioned-business-scene-skill](20261025-强制场景Skill并冻结版本.md) | 强制选择业务场景 Skill 并冻结任务版本 | [20261025-强制场景Skill并冻结版本.md](20261025-强制场景Skill并冻结版本.md) | 进行中 | `20261024-business-decision-packet` |
+| 128 | P0 自定义需求 | [20261025-govern-model-attempt-evidence-context](20261025-治理模型调用与证据上下文.md) | 治理模型调用、证据状态与有界历史上下文 | [20261025-治理模型调用与证据上下文.md](20261025-治理模型调用与证据上下文.md) | 进行中 | `20261025-require-versioned-business-scene-skill` |
+| 129 | P0 自定义需求 | [20261025-analyze-evidence-businesspacket](20261025-基于全量证据生成业务决策包.md) | 基于全部有效证据分析并生成业务决策包 | [20261025-基于全量证据生成业务决策包.md](20261025-基于全量证据生成业务决策包.md) | 进行中 | `20261025-require-versioned-business-scene-skill`、`20261025-govern-model-attempt-evidence-context` |
 
 ## 阶段统计
 
 | 阶段 | 数量 |
 |---|---:|
-| P0 | 102 |
+| P0 | 109 |
 | P1 | 9 |
-| P2 | 10 |
-| 合计 | 121 |
+| P2 | 11 |
+| 合计 | 129 |
