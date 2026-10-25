@@ -5,7 +5,8 @@ import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+
+import cn.com.crc.ems.finance.agent.shared.domain.JsonCodec;
 
 /**
  *
@@ -17,7 +18,6 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
  */
 public record StateReference(String schemaVersion, String json, String digest) {
 
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
     private static final Set<String> FORBIDDEN_KEY_PARTS = Set.of(
             "sourcerawresponse", "rawresponse", "credential", "password", "secret", "token",
             "reasoningcontent", "reasoning");
@@ -33,7 +33,7 @@ public record StateReference(String schemaVersion, String json, String digest) {
     /** 递归校验状态 JSON，不允许原始响应、凭证、Token 或 reasoning 内容进入持久化引用。 */
     private static void rejectForbiddenFields(String json) {
         try {
-            JsonNode node = JSON_MAPPER.readTree(json);
+            JsonNode node = JsonCodec.mapper().readTree(json);
             rejectForbiddenFields(node);
         } catch (JsonProcessingException exception) {
             throw new IllegalArgumentException("state JSON must be valid JSON", exception);

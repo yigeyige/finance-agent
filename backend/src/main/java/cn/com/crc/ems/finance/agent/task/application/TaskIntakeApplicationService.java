@@ -10,9 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJson;
+import cn.com.crc.ems.finance.agent.shared.domain.JsonCodec;
 import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.RepositoryEntityNotFoundException;
@@ -40,7 +40,6 @@ import cn.com.crc.ems.finance.agent.scenario.application.BusinessSceneSkillRepos
 @Service
 public class TaskIntakeApplicationService {
 
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
     private static final Set<TaskStatus> SCOPE_CONFIRMABLE = Set.of(TaskStatus.DRAFT,
             TaskStatus.WAITING_SCOPE_CONFIRMATION, TaskStatus.READY);
 
@@ -220,7 +219,7 @@ public class TaskIntakeApplicationService {
     }
 
     private static String scopeDigest(ConfirmScopeCommand command, int revisionNo) {
-        ObjectNode payload = JSON_MAPPER.createObjectNode();
+        ObjectNode payload = JsonCodec.mapper().createObjectNode();
         payload.put("systemCode", command.systemCode());
         payload.put("revisionNo", revisionNo);
         payload.set("objectSelector", parse(command.objectSelector()));
@@ -235,7 +234,7 @@ public class TaskIntakeApplicationService {
 
     private static com.fasterxml.jackson.databind.JsonNode parse(String value) {
         try {
-            return JSON_MAPPER.readTree(value.trim());
+            return JsonCodec.mapper().readTree(value.trim());
         } catch (JsonProcessingException exception) {
             throw new IllegalArgumentException("scope JSON must be valid JSON", exception);
         }

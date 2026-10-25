@@ -9,12 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import cn.com.crc.ems.finance.agent.governance.application.RuntimeBundleRepository;
 import cn.com.crc.ems.finance.agent.packet.domain.PacketDraft;
 import cn.com.crc.ems.finance.agent.packet.domain.PacketDraftStatus;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJson;
+import cn.com.crc.ems.finance.agent.shared.domain.JsonCodec;
 import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.RepositoryEntityNotFoundException;
 import cn.com.crc.ems.finance.agent.task.application.InvestigationTaskRepository;
@@ -35,8 +35,6 @@ import cn.com.crc.ems.finance.agent.task.infrastructure.TaskStateTransitionServi
  */
 @Service
 public class PacketDraftAssembler {
-
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
 
     private final PacketDraftRepository draftRepository;
     private final InvestigationTaskRepository taskRepository;
@@ -88,7 +86,7 @@ public class PacketDraftAssembler {
         if (draftRepository.findCurrentByTaskId(command.taskId()).isPresent()) {
             throw new IllegalStateException("current packet draft already exists");
         }
-        ObjectNode document = JSON_MAPPER.createObjectNode();
+        ObjectNode document = JsonCodec.mapper().createObjectNode();
         document.put("problem", command.problem().trim());
         document.set("premises", command.premises());
         document.set("scope", command.scope());

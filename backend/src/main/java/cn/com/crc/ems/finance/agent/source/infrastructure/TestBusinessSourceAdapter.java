@@ -9,8 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
-
+import cn.com.crc.ems.finance.agent.shared.domain.JsonCodec;
 import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 import cn.com.crc.ems.finance.agent.source.application.ApprovedQuery;
 import cn.com.crc.ems.finance.agent.source.application.ConfigSourceAdapter;
@@ -46,7 +45,6 @@ public class TestBusinessSourceAdapter implements ConfigSourceAdapter {
     private static final SourceCatalog CATALOG = new SourceCatalog(CATALOG_VERSION,
             Map.of(TEMPLATE, Map.of("page", "integer", "size", "integer")),
             Map.of("test-personnel-assignment", List.of("test-business-primary", "test-business-verification")));
-    private static final JsonMapper JSON = JsonMapper.builder().build();
 
     private final TrustedFieldProjector fieldProjector;
     private final TestBusinessSourceFixture fixture;
@@ -156,7 +154,7 @@ public class TestBusinessSourceAdapter implements ConfigSourceAdapter {
      * @author: yigeyige99
      */
     private Map<String, Object> project(Map<String, String> record) {
-        var projection = fieldProjector.project(JSON.valueToTree(record), FIELD_POLICY).readPayload();
+        var projection = fieldProjector.project(JsonCodec.mapper().valueToTree(record), FIELD_POLICY).readPayload();
         Map<String, Object> projected = new LinkedHashMap<>();
         FIELDS.forEach(field -> projected.put(field, projection.get(field).asText()));
         return Map.copyOf(projected);

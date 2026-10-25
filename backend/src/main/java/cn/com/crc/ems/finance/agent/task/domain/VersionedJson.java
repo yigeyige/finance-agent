@@ -2,12 +2,10 @@ package cn.com.crc.ems.finance.agent.task.domain;
 
 import java.util.Objects;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJson;
+import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 
 /**
  *
@@ -18,10 +16,6 @@ import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJson;
  * @Date: 2026-09-26 23:45:00
  */
 public record VersionedJson(String schemaVersion, String json) {
-
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder()
-            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-            .build();
 
     public VersionedJson {
         if (schemaVersion == null || schemaVersion.isBlank()) {
@@ -60,10 +54,6 @@ public record VersionedJson(String schemaVersion, String json) {
      * @author: yigeyige99
      */
     private static JsonNode parse(String value) {
-        try {
-            return JSON_MAPPER.readTree(value);
-        } catch (JsonProcessingException exception) {
-            throw new IllegalArgumentException("json must be valid JSON", exception);
-        }
+        return CanonicalJsonCodec.parse(value);
     }
 }

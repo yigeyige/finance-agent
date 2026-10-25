@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import cn.com.crc.ems.finance.agent.governance.application.AuditEventRepository;
 import cn.com.crc.ems.finance.agent.governance.domain.AuditEvent;
+import cn.com.crc.ems.finance.agent.shared.domain.JsonCodec;
 import cn.com.crc.ems.finance.agent.task.domain.VersionedJson;
 
 /**
@@ -26,7 +26,6 @@ import cn.com.crc.ems.finance.agent.task.domain.VersionedJson;
 @Component
 public final class TaskAuditEventAppender {
 
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
     private static final String PAYLOAD_SCHEMA = "audit-payload-v1";
 
     private final AuditEventRepository auditEventRepository;
@@ -42,12 +41,12 @@ public final class TaskAuditEventAppender {
                 || occurredAt == null || payloadWriter == null) {
             throw new IllegalArgumentException("audit event identity, type, time and payload are required");
         }
-        ObjectNode payload = JSON_MAPPER.createObjectNode();
+        ObjectNode payload = JsonCodec.mapper().createObjectNode();
         payloadWriter.accept(payload);
         try {
             Optional<AuditEvent> previous = auditEventRepository.findLatestByTaskId(taskId);
             AuditEvent event = AuditEvent.create(eventId, taskId, actorUserId, eventType, targetType, targetId,
-                    new VersionedJson(PAYLOAD_SCHEMA, JSON_MAPPER.writeValueAsString(payload)), occurredAt,
+                    new VersionedJson(PAYLOAD_SCHEMA, JsonCodec.mapper().writeValueAsString(payload)), occurredAt,
                     previous.map(AuditEvent::eventDigest).orElse(null), actorUserId, occurredAt, actorUserId,
                     occurredAt);
             return auditEventRepository.append(event);

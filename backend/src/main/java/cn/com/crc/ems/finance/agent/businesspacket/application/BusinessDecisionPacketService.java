@@ -12,13 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessDecisionPacket;
 import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessEvidenceAccum;
 import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJson;
+import cn.com.crc.ems.finance.agent.shared.domain.JsonCodec;
 import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
 import cn.com.crc.ems.finance.agent.task.application.GuidanceDraftRepository;
 
@@ -33,7 +33,6 @@ import cn.com.crc.ems.finance.agent.task.application.GuidanceDraftRepository;
 @Service
 public class BusinessDecisionPacketService {
 
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
     private static final int MAX_EVIDENCE = 50;
     private static final String EVIDENCE_FIELD = "evidence";
 
@@ -97,20 +96,20 @@ public class BusinessDecisionPacketService {
     }
 
     private ObjectNode buildBusinessContent(String draftJson, List<EmsDatabaseEvidence> evidence) {
-        ObjectNode content = JSON_MAPPER.createObjectNode();
+        ObjectNode content = JsonCodec.mapper().createObjectNode();
         JsonNode draft = readTree(draftJson);
         draft.fieldNames().forEachRemaining(name -> {
             if (!EVIDENCE_FIELD.equals(name)) {
                 content.set(name, draft.get(name));
             }
         });
-        content.set(EVIDENCE_FIELD, JSON_MAPPER.valueToTree(evidence));
+        content.set(EVIDENCE_FIELD, JsonCodec.mapper().valueToTree(evidence));
         return content;
     }
 
     private ObjectNode buildFullContent(UUID packetId, UUID taskId, int revision, Instant createdAt,
             ObjectNode businessContent) {
-        ObjectNode full = JSON_MAPPER.createObjectNode();
+        ObjectNode full = JsonCodec.mapper().createObjectNode();
         full.put("packetId", packetId.toString());
         full.put("taskId", taskId.toString());
         full.put("revision", revision);
@@ -136,7 +135,7 @@ public class BusinessDecisionPacketService {
 
     private List<EmsDatabaseEvidence> parseEvidence(String evidenceJson) {
         try {
-            return JSON_MAPPER.readValue(evidenceJson, new TypeReference<List<EmsDatabaseEvidence>>() { });
+            return JsonCodec.mapper().readValue(evidenceJson, new TypeReference<List<EmsDatabaseEvidence>>() { });
         } catch (Exception exception) {
             throw new IllegalStateException("证据工作区数据不可解析", exception);
         }
@@ -144,7 +143,7 @@ public class BusinessDecisionPacketService {
 
     private JsonNode readTree(String json) {
         try {
-            return JSON_MAPPER.readTree(json);
+            return JsonCodec.mapper().readTree(json);
         } catch (Exception exception) {
             throw new IllegalStateException("业务处理草稿数据不可解析", exception);
         }

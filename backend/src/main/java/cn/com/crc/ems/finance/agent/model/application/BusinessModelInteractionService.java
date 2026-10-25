@@ -32,8 +32,8 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessSceneSkillContex
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseAssistanceService;
 import cn.com.crc.ems.finance.agent.businesspacket.application.BusinessEvidenceAccumRepository;
 import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessEvidenceAccum;
+import cn.com.crc.ems.finance.agent.shared.domain.JsonCodec;
 import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 
 /**
  *
@@ -45,8 +45,6 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
  */
 @Service
 public final class BusinessModelInteractionService {
-
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
 
     private final BusinessModelClient modelClient;
     private final InvestigationTaskRepository taskRepository;
@@ -153,7 +151,7 @@ public final class BusinessModelInteractionService {
 
     private static String serializeEvidence(List<EmsDatabaseEvidence> evidence) {
         try {
-            return JSON_MAPPER.writeValueAsString(evidence);
+            return JsonCodec.mapper().writeValueAsString(evidence);
         } catch (Exception exception) {
             throw new IllegalStateException("关联证据序列化失败", exception);
         }

@@ -2,9 +2,8 @@ package cn.com.crc.ems.finance.agent.businesspacket.web;
 
 import java.time.Instant;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
-
 import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessEvidenceAccum;
+import cn.com.crc.ems.finance.agent.shared.domain.JsonCodec;
 
 /**
  *
@@ -16,8 +15,6 @@ import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessEvidenceAccum;
  */
 public record BusinessEvidenceAccumResponse(int roundNo, Object evidence, Instant createdAt) {
 
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
-
     /** 由单轮累积记录构造响应。 */
     public static BusinessEvidenceAccumResponse from(BusinessEvidenceAccum accum) {
         return new BusinessEvidenceAccumResponse(accum.roundNo(), parse(accum.evidenceJson()), accum.createdAt());
@@ -25,7 +22,7 @@ public record BusinessEvidenceAccumResponse(int roundNo, Object evidence, Instan
 
     private static Object parse(String json) {
         try {
-            return JSON_MAPPER.readValue(json, Object.class);
+            return JsonCodec.mapper().readValue(json, Object.class);
         } catch (Exception exception) {
             throw new IllegalStateException("证据工作区数据不可解析", exception);
         }

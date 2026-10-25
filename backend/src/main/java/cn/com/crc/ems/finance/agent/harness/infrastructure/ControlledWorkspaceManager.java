@@ -3,6 +3,7 @@ package cn.com.crc.ems.finance.agent.harness.infrastructure;
 import cn.com.crc.ems.finance.agent.config.FinanceAgentProperties;
 import cn.com.crc.ems.finance.agent.harness.application.ControlledWorkspaceException;
 import cn.com.crc.ems.finance.agent.harness.application.WorkspaceArtifact;
+import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +17,6 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Objects;
@@ -133,7 +133,7 @@ public class ControlledWorkspaceManager {
                     throw new ControlledWorkspaceException("workspace target is not a regular file");
                 }
                 temporary = Files.createTempFile(workspace, ".upload-", ".tmp");
-                MessageDigest digest = sha256();
+                MessageDigest digest = Sha256Digest.newDigest();
                 AtomicLong size = new AtomicLong();
                 try (OutputStream output = Files.newOutputStream(temporary, StandardOpenOption.TRUNCATE_EXISTING)) {
                     byte[] buffer = new byte[8192];
@@ -160,7 +160,7 @@ public class ControlledWorkspaceManager {
                 }
                 temporary = null;
                 return new WorkspaceArtifact(userId, taskId, sessionId, normalizeRelativePath(relativePath), target,
-                        hex(digest.digest()), size.get(), normalizedMediaType);
+                        Sha256Digest.hex(digest.digest()), size.get(), normalizedMediaType);
             } catch (ControlledWorkspaceException exception) {
                 throw exception;
             } catch (IOException exception) {
@@ -373,19 +373,4 @@ public class ControlledWorkspaceManager {
         Objects.requireNonNull(sessionId, "sessionId is required");
     }
 
-    private static MessageDigest sha256() {
-        try {
-            return MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException exception) {
-            throw new IllegalStateException("SHA-256 is unavailable", exception);
-        }
-    }
-
-    private static String hex(byte[] bytes) {
-        StringBuilder result = new StringBuilder(bytes.length * 2);
-        for (byte value : bytes) {
-            result.append(String.format(Locale.ROOT, "%02x", value));
-        }
-        return result.toString();
-    }
 }

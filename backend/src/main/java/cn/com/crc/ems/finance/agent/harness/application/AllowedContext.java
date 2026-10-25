@@ -1,15 +1,12 @@
 package cn.com.crc.ems.finance.agent.harness.application;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.HexFormat;
 import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
+import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 import cn.com.crc.ems.finance.agent.tool.application.SensitiveFieldScanner;
 
 /**
@@ -45,12 +42,7 @@ public record AllowedContext(JsonNode projectedEvidence, Set<String> evidenceIds
                 + "|" + String.join(",", allowedFields.stream().sorted().toList())
                 + "|" + taskMetadata.entrySet().stream().sorted(Map.Entry.comparingByKey())
                         .map(entry -> entry.getKey() + "=" + entry.getValue()).toList();
-        try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
-                    .digest(canonical.getBytes(StandardCharsets.UTF_8)));
-        } catch (NoSuchAlgorithmException exception) {
-            throw new IllegalStateException("SHA-256 is unavailable", exception);
-        }
+        return Sha256Digest.hex(canonical);
     }
 
     /** 返回仅由允许字段名称组成的摘要，供调用元数据追踪字段清单。 */
@@ -74,11 +66,6 @@ public record AllowedContext(JsonNode projectedEvidence, Set<String> evidenceIds
     }
 
     private static String digestText(String value) {
-        try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
-                    .digest(value.getBytes(StandardCharsets.UTF_8)));
-        } catch (NoSuchAlgorithmException exception) {
-            throw new IllegalStateException("SHA-256 is unavailable", exception);
-        }
+        return Sha256Digest.hex(value);
     }
 }

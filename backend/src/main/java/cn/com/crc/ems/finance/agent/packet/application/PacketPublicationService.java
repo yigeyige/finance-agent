@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import cn.com.crc.ems.finance.agent.governance.application.AuditEventRepository;
 import cn.com.crc.ems.finance.agent.governance.application.AuditOutboxTransaction;
@@ -19,6 +18,7 @@ import cn.com.crc.ems.finance.agent.packet.domain.PacketRevision;
 import cn.com.crc.ems.finance.agent.packet.domain.ReviewDecision;
 import cn.com.crc.ems.finance.agent.packet.infrastructure.TransactionalPacketPublisher;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJson;
+import cn.com.crc.ems.finance.agent.shared.domain.JsonCodec;
 import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.RepositoryEntityNotFoundException;
 import cn.com.crc.ems.finance.agent.shared.infrastructure.RepositoryStateViolationException;
@@ -37,8 +37,6 @@ import cn.com.crc.ems.finance.agent.task.domain.VersionedJson;
  */
 @Service
 public class PacketPublicationService {
-
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
 
     private final InvestigationTaskRepository taskRepository;
     private final PacketDraftRepository draftRepository;
@@ -132,7 +130,7 @@ public class PacketPublicationService {
     }
 
     private AuditEvent auditEvent(PacketPublicationCommand command, PacketRevision revision, Instant now) {
-        ObjectNode payload = JSON_MAPPER.createObjectNode();
+        ObjectNode payload = JsonCodec.mapper().createObjectNode();
         payload.put("revisionNo", revision.revisionNo());
         payload.put("contentDigest", revision.contentDigest());
         payload.put("scopeRevisionId", command.scopeRevisionId().toString());
@@ -143,7 +141,7 @@ public class PacketPublicationService {
     }
 
     private static OutboxEvent outboxEvent(PacketPublicationCommand command, PacketRevision revision, Instant now) {
-        ObjectNode payload = JSON_MAPPER.createObjectNode();
+        ObjectNode payload = JsonCodec.mapper().createObjectNode();
         payload.put("taskId", command.taskId().toString());
         payload.put("packetRevisionId", revision.packetRevisionId().toString());
         payload.put("contentDigest", revision.contentDigest());

@@ -3,10 +3,9 @@ package cn.com.crc.ems.finance.agent.businesspacket.web;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
-
 import cn.com.crc.ems.finance.agent.businesspacket.application.BusinessDecisionPacketResult;
 import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessDecisionPacket;
+import cn.com.crc.ems.finance.agent.shared.domain.JsonCodec;
 
 /**
  *
@@ -18,8 +17,6 @@ import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessDecisionPacket
  */
 public record BusinessDecisionPacketResponse(UUID packetId, UUID taskId, int revision, Instant createdAt,
         Object content, boolean created, String message) {
-
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
 
     /** 由已持久化的决策包构造查询响应。 */
     public static BusinessDecisionPacketResponse from(BusinessDecisionPacket packet) {
@@ -36,7 +33,7 @@ public record BusinessDecisionPacketResponse(UUID packetId, UUID taskId, int rev
 
     private static Object parse(String json) {
         try {
-            return JSON_MAPPER.readValue(json, Object.class);
+            return JsonCodec.mapper().readValue(json, Object.class);
         } catch (Exception exception) {
             throw new IllegalStateException("决策包内容不可解析", exception);
         }

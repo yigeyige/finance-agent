@@ -8,8 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
+import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 import cn.com.crc.ems.finance.agent.storage.application.ObjectStorageGateway;
 import cn.com.crc.ems.finance.agent.storage.application.ObjectStorageIoException;
 import cn.com.crc.ems.finance.agent.storage.application.ObjectStorageLimitExceededException;
@@ -58,7 +58,7 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
         try {
             Files.createDirectories(root);
             temporary = Files.createTempFile(root, ".upload-", ".tmp");
-            MessageDigest digest = sha256();
+            MessageDigest digest = Sha256Digest.newDigest();
             long size = 0;
             byte[] buffer = new byte[8192];
             try (OutputStream output = Files.newOutputStream(temporary)) {
@@ -76,7 +76,7 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
             Files.createDirectories(target.getParent());
             moveIntoPlace(temporary, target);
             temporary = null;
-            return new ObjectReference(safeKey, hex(digest.digest()), size, mediaType);
+            return new ObjectReference(safeKey, Sha256Digest.hex(digest.digest()), size, mediaType);
         } catch (ObjectStorageLimitExceededException exception) {
             deleteQuietly(temporary);
             throw exception;
@@ -161,37 +161,6 @@ public final class LocalTemporaryObjectStorageGateway implements ObjectStorageGa
         } catch (IllegalArgumentException exception) {
             throw new ObjectStoragePathViolationException();
         }
-    }
-
-    /**
-     *
-     * @description: 执行当前职责所需的处理。
-     *
-     * @return: 当前处理结果。
-     * @author: yigeyige99
-     */
-    private static MessageDigest sha256() {
-        try {
-            return MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException exception) {
-            throw new IllegalStateException("SHA-256 is unavailable", exception);
-        }
-    }
-
-    /**
-     *
-     * @description: 执行当前职责所需的处理。
-     *
-     * @param: bytes 输入参数。
-     * @return: 当前处理结果。
-     * @author: yigeyige99
-     */
-    private static String hex(byte[] bytes) {
-        StringBuilder result = new StringBuilder(bytes.length * 2);
-        for (byte value : bytes) {
-            result.append(String.format("%02x", value));
-        }
-        return result.toString();
     }
 
     /**
