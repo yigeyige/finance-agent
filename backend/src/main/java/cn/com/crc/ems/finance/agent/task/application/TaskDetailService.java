@@ -12,6 +12,8 @@ import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
+import cn.com.crc.ems.finance.agent.businesspacket.application.BusinessDecisionPacketRepository;
+import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessDecisionPacket;
 import cn.com.crc.ems.finance.agent.iam.application.CurrentIdentity;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
@@ -36,15 +38,18 @@ public class TaskDetailService {
     private final ScopeRevisionRepository scopeRevisionRepository;
     private final InvestigationStepRepository stepRepository;
     private final GuidanceDraftRepository guidanceDraftRepository;
+    private final BusinessDecisionPacketRepository decisionPacketRepository;
 
     public TaskDetailService(InvestigationTaskRepository taskRepository, TaskPremiseRepository premiseRepository,
             ScopeRevisionRepository scopeRevisionRepository, InvestigationStepRepository stepRepository,
-            GuidanceDraftRepository guidanceDraftRepository) {
+            GuidanceDraftRepository guidanceDraftRepository,
+            BusinessDecisionPacketRepository decisionPacketRepository) {
         this.taskRepository = taskRepository;
         this.premiseRepository = premiseRepository;
         this.scopeRevisionRepository = scopeRevisionRepository;
         this.stepRepository = stepRepository;
         this.guidanceDraftRepository = guidanceDraftRepository;
+        this.decisionPacketRepository = decisionPacketRepository;
     }
 
     /**
@@ -68,10 +73,12 @@ public class TaskDetailService {
                 : scopeRevisionRepository.findById(task.currentScopeRevisionId()).orElse(null);
         GuidanceDraftProjection guidance = guidanceDraftRepository.findLatestDraftJsonByTaskId(task.taskId())
                 .map(TaskDetailService::projectGuidance).orElse(GuidanceDraftProjection.EMPTY);
+        DecisionPacket decisionPacket = decisionPacketRepository.findLatestByTaskId(task.taskId())
+                .map(TaskDetailService::projectDecisionPacket).orElse(null);
         return new Detail(task.taskId(), task.title(), task.originalQuestion(), task.status().name(), task.initiatorUserId(), task.createdAt(),
                 premiseRepository.findByTaskId(task.taskId()).stream().map(Premise::from).toList(), Scope.from(scope),
                 stepRepository.findByTaskId(task.taskId()).stream().map(PlanStep::from).toList(),
-                guidance.conclusion(), guidance.evidence());
+                guidance.conclusion(), guidance.evidence(), decisionPacket);
     }
 
     private static GuidanceDraftProjection projectGuidance(String draftJson) {
@@ -90,8 +97,22 @@ public class TaskDetailService {
                 JsonNodeFactory.instance.arrayNode());
     }
 
+    /** 投影最新业务决策包的修订号、结论与去重后证据，不存在时返回空。 */
+    private static DecisionPacket projectDecisionPacket(BusinessDecisionPacket packet) {
+        try {
+            JsonNode content = CanonicalJsonCodec.parse(packet.canonicalContent());
+            JsonNode evidence = content.path("evidence");
+            return new DecisionPacket(packet.revision(), content.path("conclusion").asText(""),
+                    evidence.isArray() ? evidence : JsonNodeFactory.instance.arrayNode());
+        } catch (RuntimeException ignored) {
+            return null;
+        }
+    }
+
     public record Detail(UUID taskId, String title, String description, String status, UUID initiatorUserId, Instant createdAt,
-            List<Premise> premises, Scope scope, List<PlanStep> plans, String conclusion, @JsonRawValue JsonNode evidence) { }
+            List<Premise> premises, Scope scope, List<PlanStep> plans, String conclusion, @JsonRawValue JsonNode evidence,
+            DecisionPacket decisionPacket) { }
+    public record DecisionPacket(int revision, String conclusion, @JsonRawValue JsonNode evidence) { }
     public record Premise(String premiseType, String subjectKey, String statement, String sourceDescription) {
         static Premise from(TaskPremise value) { return new Premise(value.premiseType(), value.subjectKey(), value.statement(), value.sourceDescription()); }
     }

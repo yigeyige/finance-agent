@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -76,7 +77,11 @@ public class BusinessDecisionPacketService {
         ObjectNode fullContent = buildFullContent(packetId, taskId, revision, now, businessContent);
         BusinessDecisionPacket packet = new BusinessDecisionPacket(packetId, taskId, revision,
                 CanonicalJson.of(fullContent.toString()).value(), contentDigest, now);
-        packetRepository.insert(packet);
+        try {
+            packetRepository.insert(packet);
+        } catch (DuplicateKeyException exception) {
+            throw new IllegalStateException("业务决策包已被并发生成，请刷新后重试", exception);
+        }
         return new BusinessDecisionPacketResult(packet, true, "业务决策包已生成");
     }
 

@@ -34,6 +34,9 @@ import cn.com.crc.ems.finance.agent.businesspacket.application.BusinessEvidenceA
 import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessEvidenceAccum;
 import cn.com.crc.ems.finance.agent.shared.domain.JsonCodec;
 import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
+import org.springframework.dao.DuplicateKeyException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -45,6 +48,8 @@ import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
  */
 @Service
 public final class BusinessModelInteractionService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BusinessModelInteractionService.class);
 
     private final BusinessModelClient modelClient;
     private final InvestigationTaskRepository taskRepository;
@@ -127,7 +132,6 @@ public final class BusinessModelInteractionService {
                 feedback, currentDraft, findSceneSkill(taskId), attachments);
         List<EmsDatabaseEvidence> evidence = emsDatabaseAssistanceService == null ? List.of()
                 : emsDatabaseAssistanceService.collect(modelClient, base, progress);
-        accumulateEvidence(task.taskId(), evidence);
         progress.accept("正在生成业务处理初稿");
         BusinessModelResult<BusinessGuidanceSuggestion> result = modelClient.guideBusinessHandling(
                 new BusinessGuidanceContext(task.taskId(), task.title(), task.originalQuestion(), feedback, currentDraft,
@@ -136,17 +140,27 @@ public final class BusinessModelInteractionService {
         if (guidanceDraftRepository != null) {
             guidanceDraftRepository.save(taskId, result.value().draft().toJson().toString(), task.initiatorUserId());
         }
+        accumulateEvidence(task.taskId(), evidence);
         return result;
     }
 
-    /** 将当轮非空证据追加写入证据工作区，保留轮次且不覆盖历史轮次。 */
+    /** 将当轮非空证据追加写入证据工作区，保留轮次且不覆盖历史轮次；唯一约束冲突时重新分配轮次。 */
     private void accumulateEvidence(UUID taskId, List<EmsDatabaseEvidence> evidence) {
         if (evidenceAccumRepository == null || evidence == null || evidence.isEmpty()) {
             return;
         }
-        int nextRound = evidenceAccumRepository.findMaxRoundNo(taskId) + 1;
-        evidenceAccumRepository.save(new BusinessEvidenceAccum(UuidGenerator.newUuid(), taskId, nextRound,
-                serializeEvidence(evidence), Instant.now()));
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            int nextRound = evidenceAccumRepository.findMaxRoundNo(taskId) + 1;
+            try {
+                evidenceAccumRepository.save(new BusinessEvidenceAccum(UuidGenerator.newUuid(), taskId, nextRound,
+                        serializeEvidence(evidence), Instant.now()));
+                return;
+            } catch (DuplicateKeyException exception) {
+                if (attempt == 3) {
+                    LOGGER.warn("证据轮次分配冲突，放弃本轮证据累积 taskId={}", taskId, exception);
+                }
+            }
+        }
     }
 
     private static String serializeEvidence(List<EmsDatabaseEvidence> evidence) {
