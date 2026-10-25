@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,8 +49,9 @@ public class EmsDatabaseAssistanceService {
         this.executor = executor;
     }
 
-    /** 无启用连接、不需查询或任一受控失败时静默降级，不影响原有模型指导。 */
-    public List<EmsDatabaseEvidence> collect(BusinessModelClient modelClient, BusinessGuidanceContext context) {
+    /** 无启用连接、不需查询或任一受控失败时静默降级，不影响原有模型指导；每个关键阶段回传进度文案。 */
+    public List<EmsDatabaseEvidence> collect(BusinessModelClient modelClient, BusinessGuidanceContext context,
+            Consumer<String> progress) {
         try {
             EmsDatabaseConnectionConfig config = configService.requireEnabled();
         List<EmsDatabaseTableMetadata> catalog = coarseFilter(executor.listAllowedTables(config));
@@ -57,8 +59,12 @@ public class EmsDatabaseAssistanceService {
         if (catalog.isEmpty()) {
             return List.of();
         }
+        progress.accept("正在匹配相关数据表");
         List<String> selectedTables = modelClient.selectRelevantTables(context, catalog);
         LOGGER.info("EMS 辅助查询：模型选表 {}", selectedTables);
+        if (!selectedTables.isEmpty()) {
+            progress.accept("正在读取数据表字段");
+        }
         Map<String, List<EmsDatabaseColumnMetadata>> tableColumns = new LinkedHashMap<>();
         for (String table : selectedTables) {
             String[] parts = table.split("\\.");
@@ -73,6 +79,7 @@ public class EmsDatabaseAssistanceService {
         }
         List<EmsDatabaseEvidence> evidence = new ArrayList<>();
         for (int round = 0; round < MAX_ROUNDS; round++) {
+            progress.accept("正在规划只读查询（第 " + (round + 1) + " 轮）");
             Optional<EmsDatabaseQueryRequest> request = modelClient.planEmsDatabaseQuery(context, catalog, evidence,
                     tableColumns);
             LOGGER.info("EMS 辅助查询第 {} 轮：needQuery={}", round + 1, request.isPresent());
@@ -81,6 +88,7 @@ public class EmsDatabaseAssistanceService {
             }
             String sql = sqlGuard.validate(request.get().sql());
             EmsDatabaseQueryResult result = executor.execute(config, sql);
+            progress.accept("已获取第 " + (round + 1) + " 轮查询证据");
             String[] source = sourceTable(sql);
             evidence.add(new EmsDatabaseEvidence(source[0], source[1], request.get().purpose(), result.columns(),
                     result.rows()));

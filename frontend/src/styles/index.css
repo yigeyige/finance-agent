@@ -88,7 +88,7 @@ body,
 }
 
 .workbench-content {
-  padding: 32px;
+  padding: 20px;
   background: #f4f6fa;
 }
 
@@ -387,7 +387,15 @@ body,
 }
 
 .task-workbench .task-form .el-form-item {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
+}
+
+.task-workbench .el-card__body {
+  padding: 16px;
+}
+
+.task-workbench .el-form--label-top .el-form-item__label {
+  padding-bottom: 4px;
 }
 
 .task-workbench .guided-workflow,
@@ -399,7 +407,13 @@ body,
 }
 
 .guided-workflow .el-steps {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
+}
+
+/* 压缩步骤条自身上下内边距，减少灰色条带占高。 */
+.task-workbench .el-steps--simple {
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .step-intro {
@@ -647,13 +661,22 @@ body,
   background: #fff;
 }
 
+/* 统一分区标题边距，避免浏览器默认 h4 留白过大。 */
+.handling-form-panel > h4,
+.guidance-result-panel > h4 {
+  margin: 0 0 10px;
+  color: #172033;
+  font-size: 15px;
+  font-weight: 600;
+}
+
 .handling-form-panel .task-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 16px;
 }
 
-.handling-form-panel .task-form > .el-form-item:nth-of-type(n + 3),
+.handling-form-panel .task-form > .el-form-item:nth-of-type(n + 5),
 .handling-form-panel .task-form > .el-row {
   grid-column: 1 / -1;
 }

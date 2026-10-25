@@ -1,8 +1,8 @@
 /** 调用后端受控模型交互接口，只接收结构化业务建议和非敏感元数据。 */
-import { BusinessGuidanceRequest, BusinessGuidanceResponse, BusinessHandlingDraft, ModelEvidenceAnalysisResponse, ModelPlanResponse, parseBusinessGuidance, parseModelEvidenceAnalysis, parseModelPlan } from '../api/generated'
-import { postForm, postJson } from './http'
+import { BusinessDecisionPacketResponse, BusinessEvidenceAccumResponse, BusinessGuidanceRequest, BusinessGuidanceResponse, BusinessHandlingDraft, ModelEvidenceAnalysisResponse, ModelPlanResponse, parseBusinessDecisionPacket, parseBusinessEvidenceAccums, parseBusinessGuidance, parseModelEvidenceAnalysis, parseModelPlan } from '../api/generated'
+import { getJson, postForm, postJson } from './http'
 
-export type { BusinessGuidanceResponse, BusinessHandlingDraft, ModelEvidenceAnalysisResponse, ModelPlanResponse }
+export type { BusinessDecisionPacketResponse, BusinessEvidenceAccumResponse, BusinessGuidanceResponse, BusinessHandlingDraft, ModelEvidenceAnalysisResponse, ModelPlanResponse }
 
 /** 模型调用最长等待时间，覆盖后端选表、多轮只读查询与初稿生成的总耗时上限，避免链路被前端超时截断。 */
 const MODEL_TIMEOUT = 600_000
@@ -30,6 +30,21 @@ export async function generateBusinessGuidance(taskId: string, attachments: File
 /** 用管理员的自然语言反馈修订当前结构化业务处理草稿。 */
 export async function reviseBusinessGuidance(taskId: string, message: string, currentDraft: BusinessHandlingDraft): Promise<BusinessGuidanceResponse> {
   return parseBusinessGuidance(await postJson<unknown, BusinessGuidanceRequest>(`/v1/tasks/${taskId}/model-interactions/guidance`, { message, currentDraft }, { timeout: MODEL_TIMEOUT }, { idempotencyKey: createKey('business-guidance-revise') }))
+}
+
+/** 读取业务处理初稿生成的当前阶段进度，供等待期间轮询展示。 */
+export async function getGuidanceProgress(taskId: string): Promise<{ stage: string }> {
+  return getJson<{ stage: string }>(`/v1/tasks/${taskId}/model-interactions/guidance/progress`)
+}
+
+/** 生成业务决策包：读取证据工作区与最新草稿，去重合并后固化修订。 */
+export async function generateBusinessDecisionPacket(taskId: string): Promise<BusinessDecisionPacketResponse> {
+  return parseBusinessDecisionPacket(await postJson<unknown, Record<string, never>>(`/v1/tasks/${taskId}/decision-packet`, {}, { timeout: MODEL_TIMEOUT }, { idempotencyKey: createKey('business-decision-packet') }))
+}
+
+/** 读取任务证据工作区按轮累积的全部证据，供证据面板展示跨轮过程。 */
+export async function getBusinessEvidenceAccums(taskId: string): Promise<BusinessEvidenceAccumResponse[]> {
+  return parseBusinessEvidenceAccums(await getJson<unknown>(`/v1/tasks/${taskId}/decision-packet/evidence`))
 }
 
 /** 生成模型交互请求的前端关联键。 */

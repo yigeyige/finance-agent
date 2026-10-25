@@ -1,7 +1,9 @@
 package cn.com.crc.ems.finance.agent.model.application;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceAttachment;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessHandlingDraft;
+import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanContext;
@@ -27,6 +30,10 @@ import cn.com.crc.ems.finance.agent.task.application.TaskBusinessSceneSkillRepos
 import cn.com.crc.ems.finance.agent.scenario.application.BusinessSceneSkillRepository;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessSceneSkillContext;
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseAssistanceService;
+import cn.com.crc.ems.finance.agent.businesspacket.application.BusinessEvidenceAccumRepository;
+import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessEvidenceAccum;
+import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 /**
  *
@@ -39,6 +46,8 @@ import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseAssistanc
 @Service
 public final class BusinessModelInteractionService {
 
+    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
+
     private final BusinessModelClient modelClient;
     private final InvestigationTaskRepository taskRepository;
     private final ScopeRevisionRepository scopeRepository;
@@ -49,13 +58,15 @@ public final class BusinessModelInteractionService {
     private final BusinessSceneSkillRepository businessSceneSkillRepository;
     private final EmsDatabaseAssistanceService emsDatabaseAssistanceService;
     private final GuidanceDraftRepository guidanceDraftRepository;
+    private final GuidanceProgressStore progressStore;
+    private final BusinessEvidenceAccumRepository evidenceAccumRepository;
 
     public BusinessModelInteractionService(BusinessModelClient modelClient,
             InvestigationTaskRepository taskRepository, ScopeRevisionRepository scopeRepository,
             FactSnapshotRepository snapshotRepository, CoverageRecordRepository coverageRepository,
             FindingRepository findingRepository) {
         this(modelClient, taskRepository, scopeRepository, snapshotRepository, coverageRepository, findingRepository,
-                null, null, null, null);
+                null, null, null, null, null, null);
     }
 
     @Autowired
@@ -64,7 +75,8 @@ public final class BusinessModelInteractionService {
             FactSnapshotRepository snapshotRepository, CoverageRecordRepository coverageRepository,
             FindingRepository findingRepository, TaskBusinessSceneSkillRepository taskBusinessSceneSkillRepository,
             BusinessSceneSkillRepository businessSceneSkillRepository, EmsDatabaseAssistanceService emsDatabaseAssistanceService,
-            GuidanceDraftRepository guidanceDraftRepository) {
+            GuidanceDraftRepository guidanceDraftRepository, GuidanceProgressStore progressStore,
+            BusinessEvidenceAccumRepository evidenceAccumRepository) {
         this.modelClient = modelClient;
         this.taskRepository = taskRepository;
         this.scopeRepository = scopeRepository;
@@ -75,6 +87,8 @@ public final class BusinessModelInteractionService {
         this.businessSceneSkillRepository = businessSceneSkillRepository;
         this.emsDatabaseAssistanceService = emsDatabaseAssistanceService;
         this.guidanceDraftRepository = guidanceDraftRepository;
+        this.progressStore = progressStore;
+        this.evidenceAccumRepository = evidenceAccumRepository;
     }
 
     /**
@@ -109,17 +123,40 @@ public final class BusinessModelInteractionService {
             BusinessHandlingDraft currentDraft, List<BusinessGuidanceAttachment> attachments) {
         var task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalStateException("业务处理任务不存在或已失效"));
+        Consumer<String> progress = progressStore == null ? stage -> { } : stage -> progressStore.record(task.taskId(), stage);
+        progress.accept("正在分析业务说明与处理范围");
         BusinessGuidanceContext base = new BusinessGuidanceContext(task.taskId(), task.title(), task.originalQuestion(),
                 feedback, currentDraft, findSceneSkill(taskId), attachments);
+        List<EmsDatabaseEvidence> evidence = emsDatabaseAssistanceService == null ? List.of()
+                : emsDatabaseAssistanceService.collect(modelClient, base, progress);
+        accumulateEvidence(task.taskId(), evidence);
+        progress.accept("正在生成业务处理初稿");
         BusinessModelResult<BusinessGuidanceSuggestion> result = modelClient.guideBusinessHandling(
                 new BusinessGuidanceContext(task.taskId(), task.title(), task.originalQuestion(), feedback, currentDraft,
-                        findSceneSkill(taskId), attachments,
-                        emsDatabaseAssistanceService == null ? List.of()
-                                : emsDatabaseAssistanceService.collect(modelClient, base)));
+                        findSceneSkill(taskId), attachments, evidence));
+        progress.accept("初稿生成完成");
         if (guidanceDraftRepository != null) {
             guidanceDraftRepository.save(taskId, result.value().draft().toJson().toString(), task.initiatorUserId());
         }
         return result;
+    }
+
+    /** 将当轮非空证据追加写入证据工作区，保留轮次且不覆盖历史轮次。 */
+    private void accumulateEvidence(UUID taskId, List<EmsDatabaseEvidence> evidence) {
+        if (evidenceAccumRepository == null || evidence == null || evidence.isEmpty()) {
+            return;
+        }
+        int nextRound = evidenceAccumRepository.findMaxRoundNo(taskId) + 1;
+        evidenceAccumRepository.save(new BusinessEvidenceAccum(UuidGenerator.newUuid(), taskId, nextRound,
+                serializeEvidence(evidence), Instant.now()));
+    }
+
+    private static String serializeEvidence(List<EmsDatabaseEvidence> evidence) {
+        try {
+            return JSON_MAPPER.writeValueAsString(evidence);
+        } catch (Exception exception) {
+            throw new IllegalStateException("关联证据序列化失败", exception);
+        }
     }
 
     /** 将任务已固化的有效业务场景投影为模型上下文，失效场景拒绝继续生成。 */

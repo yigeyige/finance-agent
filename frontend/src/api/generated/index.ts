@@ -442,3 +442,34 @@ function parseDraftEvidence(value: unknown): DraftEvidence {
   const record = assertObjectFields(value, ['schema', 'table', 'purpose', 'columns', 'rows'], '关联证据')
   return { schema: requireString(record.schema, '证据库名'), table: requireString(record.table, '证据表名'), purpose: requireString(record.purpose, '证据用途'), columns: requireArray(record.columns, '证据列').map((column) => requireDisplayString(column, '证据列')), rows: requireArray(record.rows, '证据行').map((row) => requireArray(row, '证据行').map((cell) => requireDisplayString(cell, '证据行'))) }
 }
+
+/** 业务决策包内容契约：标识 + 业务处理关键字段 + 去重后证据。 */
+export interface BusinessDecisionPacketContent { packetId: string; taskId: string; revision: number; createdAt: string; conclusion: string; recommendedGoal: string; reason: string; statement: string; evidence: DraftEvidence[] }
+/** 业务决策包生成/查看响应契约。 */
+export interface BusinessDecisionPacketResponse { packetId: string; taskId: string; revision: number; createdAt: string; content: BusinessDecisionPacketContent; created: boolean; message: string | null }
+/** 证据工作区单轮累积证据响应契约。 */
+export interface BusinessEvidenceAccumResponse { roundNo: number; evidence: DraftEvidence[]; createdAt: string }
+
+const BUSINESS_DECISION_PACKET_RESPONSE_FIELDS = ['packetId', 'taskId', 'revision', 'createdAt', 'content', 'created', 'message']
+const BUSINESS_EVIDENCE_ACCUM_FIELDS = ['roundNo', 'evidence', 'createdAt']
+
+/** 校验业务决策包响应。 */
+export function parseBusinessDecisionPacket(value: unknown): BusinessDecisionPacketResponse {
+  const record = assertObjectFields(value, BUSINESS_DECISION_PACKET_RESPONSE_FIELDS, '业务决策包')
+  return { packetId: requireString(record.packetId, '决策包标识'), taskId: requireString(record.taskId, '任务标识'), revision: requirePositiveNumber(record.revision, '修订号'), createdAt: requireString(record.createdAt, '生成时间'), content: parseBusinessDecisionPacketContent(record.content), created: requireBoolean(record.created, '生成结果'), message: nullableString(record.message) }
+}
+
+/** 校验业务决策包内容，仅提取展示所需字段，保留后端规范内容其余字段。 */
+export function parseBusinessDecisionPacketContent(value: unknown): BusinessDecisionPacketContent {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error('决策包内容格式无法识别，请联系管理员同步接口契约')
+  const record = value as Record<string, unknown>
+  return { packetId: requireString(record.packetId, '决策包标识'), taskId: requireString(record.taskId, '任务标识'), revision: requirePositiveNumber(record.revision, '修订号'), createdAt: requireString(record.createdAt, '生成时间'), conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', recommendedGoal: typeof record.recommendedGoal === 'string' ? record.recommendedGoal : '', reason: typeof record.reason === 'string' ? record.reason : '', statement: typeof record.statement === 'string' ? record.statement : '', evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence) }
+}
+
+/** 校验证据工作区累积证据列表响应。 */
+export function parseBusinessEvidenceAccums(value: unknown): BusinessEvidenceAccumResponse[] {
+  return requireArray(value, '累积证据').map((item) => {
+    const record = assertObjectFields(item, BUSINESS_EVIDENCE_ACCUM_FIELDS, '累积证据')
+    return { roundNo: requirePositiveNumber(record.roundNo, '轮次'), evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence), createdAt: requireString(record.createdAt, '记录时间') }
+  })
+}

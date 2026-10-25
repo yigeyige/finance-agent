@@ -3,6 +3,7 @@ package cn.com.crc.ems.finance.agent.harness.web;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 import cn.com.crc.ems.finance.agent.model.application.BusinessModelInteractionService;
+import cn.com.crc.ems.finance.agent.model.application.GuidanceProgressStore;
 
 /**
  *
@@ -30,16 +32,19 @@ public final class BusinessModelController {
 
     private final BusinessModelInteractionService interactionService;
     private final BusinessGuidanceAttachmentExtractor attachmentExtractor;
+    private final GuidanceProgressStore progressStore;
 
     @Autowired
-    public BusinessModelController(BusinessModelInteractionService interactionService) {
-        this(interactionService, new BusinessGuidanceAttachmentExtractor());
+    public BusinessModelController(BusinessModelInteractionService interactionService,
+            GuidanceProgressStore progressStore) {
+        this(interactionService, new BusinessGuidanceAttachmentExtractor(), progressStore);
     }
 
     BusinessModelController(BusinessModelInteractionService interactionService,
-            BusinessGuidanceAttachmentExtractor attachmentExtractor) {
+            BusinessGuidanceAttachmentExtractor attachmentExtractor, GuidanceProgressStore progressStore) {
         this.interactionService = interactionService;
         this.attachmentExtractor = attachmentExtractor;
+        this.progressStore = progressStore;
     }
 
     /**
@@ -73,6 +78,19 @@ public final class BusinessModelController {
             @RequestParam("files") List<MultipartFile> files) {
         return BusinessModelResponse.Guidance.from(interactionService.guideBusinessHandling(taskId, null, null,
                 attachmentExtractor.extract(files)));
+    }
+
+    /**
+     *
+     * @description: 读取业务处理初稿生成的当前阶段进度，供前端在等待期间轮询展示。
+     *
+     * @param: taskId 当前任务标识
+     * @return: 最近阶段进度文案，未开始时为空字符串
+     * @author: yigeyige99
+     */
+    @GetMapping("/guidance/progress")
+    public BusinessModelResponse.Progress guidanceProgress(@PathVariable UUID taskId) {
+        return BusinessModelResponse.Progress.of(progressStore.latest(taskId).orElse(""));
     }
 
     /** 生成当前范围的模型调查方案，不直接保存或批准步骤。 */

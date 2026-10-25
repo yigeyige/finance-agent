@@ -62,4 +62,11 @@ public final class BusinessModelResponse {
                     Metadata.from(result.metadata()));
         }
     }
+
+    /** 初稿生成阶段进度，未开始时 stage 为空字符串。 */
+    public record Progress(String stage) {
+        public static Progress of(String stage) {
+            return new Progress(stage == null ? "" : stage);
+        }
+    }
 }

@@ -151,12 +151,13 @@ source: development-workplan
 | 123 | P0 自定义需求 | [20261011-standardize-backend-type-javadocs](../03.achieved/20261011-规范后端类型注释.md) | 规范后端各代码类 Javadoc 注释 | [20261011-规范后端类型注释.md](../03.achieved/20261011-规范后端类型注释.md) | 已完成 | 无 |
 | 124 | P0 自定义需求 | [20261016-add-data-exploration](../03.achieved/20261016-数据探索.md) | 数据探索功能 | [20261016-数据探索.md](../03.achieved/20261016-数据探索.md) | 已完成 | 无 |
 | 125 | P0 自定义需求 | [20261016-fix-data-exploration-empty-comments](../03.achieved/20261016-修复数据探索空注释.md) | 修复数据探索空表注释 | [20261016-修复数据探索空注释.md](../03.achieved/20261016-修复数据探索空注释.md) | 已完成 | `20261016-add-data-exploration` |
+| 126 | P0 自定义需求 | [20261024-business-decision-packet](../03.achieved/20261024-业务决策包.md) | 业务决策包：业务处理证据累积与一键生成决策包 | [20261024-业务决策包.md](../03.achieved/20261024-业务决策包.md) | 已完成 | 无 |
 
 ## 阶段统计
 
 | 阶段 | 数量 |
 |---|---:|
-| P0 | 101 |
+| P0 | 102 |
 | P1 | 9 |
 | P2 | 10 |
-| 合计 | 120 |
+| 合计 | 121 |

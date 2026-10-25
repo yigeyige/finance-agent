@@ -53,7 +53,7 @@ public record BusinessHandlingDraft(String handlingType, String premiseType, Str
         investigationAreas = List.copyOf(investigationAreas);
         requireEnum(dataUse, DATA_USES, "dataUse");
         requireText(recommendedGoal, "recommendedGoal", 2000);
-        if (alternativeGoals == null || alternativeGoals.size() > 3) {
+        if (alternativeGoals == null || alternativeGoals.size() > 5) {
             throw new IllegalArgumentException("alternativeGoals is invalid");
         }
         alternativeGoals = List.copyOf(alternativeGoals);
@@ -81,7 +81,7 @@ public record BusinessHandlingDraft(String handlingType, String premiseType, Str
     public static BusinessHandlingDraft fromJson(JsonNode value) {
         requireExactObject(value);
         List<String> areas = textArray(value.get("investigationAreas"), "investigationAreas", 1, AREAS.size());
-        List<String> alternatives = textArray(value.get("alternativeGoals"), "alternativeGoals", 0, 3);
+        List<String> alternatives = textArray(value.get("alternativeGoals"), "alternativeGoals", 0, 5);
         List<EmsDatabaseEvidence> evidence = evidenceArray(value.get("evidence"));
         try {
             return new BusinessHandlingDraft(text(value, "handlingType", 20), text(value, "premiseType", 100),
