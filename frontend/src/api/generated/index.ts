@@ -217,7 +217,7 @@ export function parseDataExplorationCatalog(value: unknown): DataExplorationCata
 /** 校验受限数据探索查询结果。 */
 export function parseDataExplorationQueryResult(value: unknown): DataExplorationQueryResult {
   const record = assertObjectFields(value, DATA_EXPLORATION_QUERY_RESULT_FIELDS, '数据探索查询结果')
-  const rows = requireArray(record.rows, '查询结果行').map((row) => requireArray(row, '查询结果单行').map((cell) => cell === null ? null : requireString(cell, '查询结果单元格')))
+  const rows = requireArray(record.rows, '查询结果行').map((row) => requireArray(row, '查询结果单行').map((cell) => cell === null ? null : requireDisplayString(cell, '查询结果单元格')))
   return { columns: requireStringArray(record.columns, '查询结果列'), rows, rowCount: requireNonNegativeNumber(record.rowCount, '返回行数'), elapsedMillis: requireNonNegativeNumber(record.elapsedMillis, '执行耗时') }
 }
 
