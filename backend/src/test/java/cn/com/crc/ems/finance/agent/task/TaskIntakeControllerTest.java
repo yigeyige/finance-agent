@@ -45,7 +45,8 @@ class TaskIntakeControllerTest {
                 .header("Idempotency-Key", "task-intake-000001")
                 .content("{\"title\":\"审批配置调查\",\"originalQuestion\":\"请检查审批配置\","
                         + "\"initiatorUserId\":\"00000000-0000-0000-0000-000000000001\","
-                        + "\"runtimeBundleId\":\"00000000-0000-0000-0000-000000000002\"}"))
+                        + "\"runtimeBundleId\":\"00000000-0000-0000-0000-000000000002\","
+                        + "\"businessSceneSkillId\":\"00000000-0000-0000-0000-000000000003\"}"))
                 .andExpect(status().isCreated());
     }
 

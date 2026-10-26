@@ -1,5 +1,7 @@
 package cn.com.crc.ems.finance.agent.scenario.web;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -19,7 +21,8 @@ import jakarta.validation.constraints.Size;
 public record BusinessSceneSkillRequest(@NotBlank @Size(max = 100) String name,
         @NotBlank @Size(max = 1000) String description,
         @NotBlank @Pattern(regexp = "INVESTIGATE|ADJUST") String handlingType,
-        @NotBlank @Size(max = 100) String premiseType) {
+        @NotBlank @Size(max = 100) String premiseType,
+        UUID databaseConfigId) {
 
     @JsonAnySetter
     public void rejectUnknown(String name, Object value) {

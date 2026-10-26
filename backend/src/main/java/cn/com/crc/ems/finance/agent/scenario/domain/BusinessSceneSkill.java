@@ -6,14 +6,14 @@ import java.util.UUID;
 
 /**
  *
- * @Description: 可复用业务处理场景的受控领域对象。
+ * @Description: 可复用业务处理场景的受控领域对象，可关联至多一个 EMS 数据库连接实例。
  *
  * @Version: 0.1.0
  * @Author: yigeyige99
  * @Date: 2026-10-08 23:00:00
  */
 public record BusinessSceneSkill(UUID skillId, String name, String description, String handlingType, String premiseType,
-        UUID createdBy, Instant createdAt, UUID updatedBy, Instant updatedAt) {
+        UUID databaseConfigId, UUID createdBy, Instant createdAt, UUID updatedBy, Instant updatedAt) {
 
     private static final Set<String> HANDLING_TYPES = Set.of("INVESTIGATE", "ADJUST");
 
@@ -38,15 +38,16 @@ public record BusinessSceneSkill(UUID skillId, String name, String description, 
      * @param: description 业务说明
      * @param: handlingType 处理方式
      * @param: premiseType 业务场景
+     * @param: databaseConfigId 关联的 EMS 数据库连接实例，可为空
      * @param: operatorId 当前管理员标识
      * @param: now 当前时间
      * @return: 可持久化的业务场景 Skill
      * @author: yigeyige99
      */
     public static BusinessSceneSkill create(UUID skillId, String name, String description, String handlingType,
-            String premiseType, UUID operatorId, Instant now) {
-        return new BusinessSceneSkill(skillId, name, description, handlingType, premiseType, operatorId, now,
-                operatorId, now);
+            String premiseType, UUID databaseConfigId, UUID operatorId, Instant now) {
+        return new BusinessSceneSkill(skillId, name, description, handlingType, premiseType, databaseConfigId,
+                operatorId, now, operatorId, now);
     }
 
     /**
@@ -57,15 +58,16 @@ public record BusinessSceneSkill(UUID skillId, String name, String description, 
      * @param: description 业务说明
      * @param: handlingType 处理方式
      * @param: premiseType 业务场景
+     * @param: databaseConfigId 关联的 EMS 数据库连接实例，可为空
      * @param: operatorId 当前管理员标识
      * @param: now 编辑时间
      * @return: 已更新的业务场景 Skill
      * @author: yigeyige99
      */
     public BusinessSceneSkill revise(String name, String description, String handlingType, String premiseType,
-            UUID operatorId, Instant now) {
-        return new BusinessSceneSkill(skillId, name, description, handlingType, premiseType, createdBy, createdAt,
-                operatorId, now);
+            UUID databaseConfigId, UUID operatorId, Instant now) {
+        return new BusinessSceneSkill(skillId, name, description, handlingType, premiseType, databaseConfigId,
+                createdBy, createdAt, operatorId, now);
     }
 
     private static void validateText(String value, int maxLength, String field) {

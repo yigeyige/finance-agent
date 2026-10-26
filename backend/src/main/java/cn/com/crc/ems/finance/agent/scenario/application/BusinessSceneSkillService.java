@@ -39,9 +39,9 @@ public class BusinessSceneSkillService {
     /** 新增业务场景 Skill。 */
     @Transactional
     public BusinessSceneSkill create(String name, String description, String handlingType, String premiseType,
-            UUID operatorId) {
+            UUID databaseConfigId, UUID operatorId) {
         BusinessSceneSkill skill = BusinessSceneSkill.create(UuidGenerator.newUuid(), name, description, handlingType,
-                premiseType, operatorId, UtcTime.now(applicationClock));
+                premiseType, databaseConfigId, operatorId, UtcTime.now(applicationClock));
         repository.insert(skill);
         return skill;
     }
@@ -49,11 +49,11 @@ public class BusinessSceneSkillService {
     /** 更新一个当前有效的业务场景 Skill。 */
     @Transactional
     public BusinessSceneSkill update(UUID skillId, String name, String description, String handlingType,
-            String premiseType, UUID operatorId) {
+            String premiseType, UUID databaseConfigId, UUID operatorId) {
         BusinessSceneSkill current = repository.findActiveById(skillId)
                 .orElseThrow(() -> new IllegalArgumentException("business scene skill is unavailable"));
-        BusinessSceneSkill revised = current.revise(name, description, handlingType, premiseType, operatorId,
-                UtcTime.now(applicationClock));
+        BusinessSceneSkill revised = current.revise(name, description, handlingType, premiseType, databaseConfigId,
+                operatorId, UtcTime.now(applicationClock));
         if (!repository.update(revised)) {
             throw new IllegalStateException("business scene skill was changed concurrently");
         }

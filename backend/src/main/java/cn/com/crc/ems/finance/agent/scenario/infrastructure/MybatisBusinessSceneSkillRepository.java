@@ -67,8 +67,9 @@ public class MybatisBusinessSceneSkillRepository implements BusinessSceneSkillRe
 
     private static BusinessSceneSkill toDomain(BusinessSceneSkillEntity entity) {
         return new BusinessSceneSkill(PersistenceUuid.toDomain(entity.skillId), entity.name, entity.description,
-                entity.handlingType, entity.premiseType, entity.createdBy, entity.createdAt, entity.updatedBy,
-                entity.updatedAt);
+                entity.handlingType, entity.premiseType, entity.databaseConfigId == null ? null
+                        : PersistenceUuid.toDomain(entity.databaseConfigId), entity.createdBy, entity.createdAt,
+                entity.updatedBy, entity.updatedAt);
     }
 
     private static BusinessSceneSkillEntity toEntity(BusinessSceneSkill skill) {
@@ -78,6 +79,7 @@ public class MybatisBusinessSceneSkillRepository implements BusinessSceneSkillRe
         entity.description = skill.description();
         entity.handlingType = skill.handlingType();
         entity.premiseType = skill.premiseType();
+        entity.databaseConfigId = skill.databaseConfigId() == null ? null : PersistenceUuid.toStorage(skill.databaseConfigId());
         entity.createdBy = skill.createdBy();
         entity.createdAt = skill.createdAt();
         entity.updatedBy = skill.updatedBy();

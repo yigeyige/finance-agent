@@ -115,11 +115,13 @@ public class TaskIntakeApplicationService {
      * @author: yigeyige99
      */
     private void persistBusinessSceneSkill(CreateTaskDraftCommand command, UUID taskId) {
-        if (command.businessSceneSkillId() == null) {
+        if (businessSceneSkillRepository == null || taskBusinessSceneSkillRepository == null) {
             return;
         }
-        if (businessSceneSkillRepository == null || taskBusinessSceneSkillRepository == null
-                || businessSceneSkillRepository.findActiveById(command.businessSceneSkillId()).isEmpty()) {
+        if (command.businessSceneSkillId() == null) {
+            throw new IllegalArgumentException("请先选择业务场景 Skill");
+        }
+        if (businessSceneSkillRepository.findActiveById(command.businessSceneSkillId()).isEmpty()) {
             throw new IllegalArgumentException("业务场景 Skill 不存在或已失效");
         }
         taskBusinessSceneSkillRepository.insert(taskId, command.businessSceneSkillId(), command.actorUserId(),

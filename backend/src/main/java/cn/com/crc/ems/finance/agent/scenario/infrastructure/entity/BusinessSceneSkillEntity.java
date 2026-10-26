@@ -23,6 +23,7 @@ public class BusinessSceneSkillEntity {
     public String description;
     public String handlingType;
     public String premiseType;
+    public String databaseConfigId;
     public UUID createdBy;
     public Instant createdAt;
     public UUID updatedBy;

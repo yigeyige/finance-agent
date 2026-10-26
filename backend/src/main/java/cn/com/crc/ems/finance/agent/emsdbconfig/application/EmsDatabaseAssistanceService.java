@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,20 +42,33 @@ public class EmsDatabaseAssistanceService {
     private final EmsDatabaseConnectionConfigService configService;
     private final EmsReadOnlySqlGuard sqlGuard;
     private final EmsDatabaseQueryExecutor executor;
+    private final EmsTableKnowledgeService tableKnowledgeService;
 
     public EmsDatabaseAssistanceService(EmsDatabaseConnectionConfigService configService, EmsReadOnlySqlGuard sqlGuard,
-            EmsDatabaseQueryExecutor executor) {
+            EmsDatabaseQueryExecutor executor, EmsTableKnowledgeService tableKnowledgeService) {
         this.configService = configService;
         this.sqlGuard = sqlGuard;
         this.executor = executor;
+        this.tableKnowledgeService = tableKnowledgeService;
     }
 
-    /** 无启用连接、不需查询或任一受控失败时静默降级，不影响原有模型指导；每个关键阶段回传进度文案。 */
+    /** 无关联库、不需查询或任一受控失败时静默降级，不影响原有模型指导；每个关键阶段回传进度文案。 */
     public List<EmsDatabaseEvidence> collect(BusinessModelClient modelClient, BusinessGuidanceContext context,
             Consumer<String> progress) {
         try {
-            EmsDatabaseConnectionConfig config = configService.requireEnabled();
-        List<EmsDatabaseTableMetadata> catalog = coarseFilter(executor.listAllowedTables(config));
+        UUID configId = resolveConfigId(context);
+        if (configId == null) {
+            LOGGER.info("EMS 辅助查询：任务未关联数据库，降级纯文本");
+            return List.of();
+        }
+        EmsDatabaseConnectionConfig config = configService.requireById(configId);
+        Map<String, String> hints = tableKnowledgeService.hints(configId).stream()
+                .collect(java.util.stream.Collectors.toMap(hint -> hint.schema() + "." + hint.table(),
+                        EmsTableKnowledgeHint::promptHint, (first, second) -> first));
+        List<EmsDatabaseTableMetadata> catalog = coarseFilter(executor.listAllowedTables(config)).stream()
+                .map(item -> new EmsDatabaseTableMetadata(item.schema(), item.table(), item.comment(),
+                        hints.getOrDefault(item.schema() + "." + item.table(), "")))
+                .toList();
         LOGGER.info("EMS 辅助查询：候选表 {} 张", catalog.size());
         if (catalog.isEmpty()) {
             return List.of();
@@ -101,6 +115,14 @@ public class EmsDatabaseAssistanceService {
             LOGGER.warn("EMS 辅助查询降级：{} - {}", exception.getClass().getSimpleName(), exception.getMessage());
             return List.of();
         }
+    }
+
+    /** 从任务关联 Skill 解析查询目标数据库，无关联时返回空。 */
+    private static UUID resolveConfigId(BusinessGuidanceContext context) {
+        if (context.sceneSkill() == null) {
+            return null;
+        }
+        return context.sceneSkill().databaseConfigId();
     }
 
     /** 配置类数据只在 basedata；其他库仅保留人员定位所需表。 */

@@ -43,6 +43,11 @@ public class EmsDatabaseConnectionConfigService {
         return repository.findEnabled().orElseThrow(() -> new IllegalStateException("请先在 EMS 数据库配置中启用一个连接"));
     }
 
+    @Transactional(readOnly = true)
+    public EmsDatabaseConnectionConfig requireById(UUID configId) {
+        return repository.findById(configId).orElseThrow(() -> new IllegalStateException("EMS 数据库配置不存在"));
+    }
+
     @Transactional
     public EmsDatabaseConnectionConfig create(String name, String jdbcUrl, String username, String password,
             int connectTimeoutSeconds, int queryTimeoutSeconds, int maxRows, UUID operator) {

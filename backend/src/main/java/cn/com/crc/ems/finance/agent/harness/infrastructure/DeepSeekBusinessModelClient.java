@@ -50,7 +50,7 @@ import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
 public final class DeepSeekBusinessModelClient implements BusinessModelClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeepSeekBusinessModelClient.class);
-    private static final Duration TIMEOUT = Duration.ofSeconds(180);
+    private static final Duration TIMEOUT = Duration.ofSeconds(600);
     private final DeepSeekOpenAiAdapter adapter;
     private final PromptTemplateRepository promptTemplates;
 
@@ -105,6 +105,7 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         ObjectNode input = databaseQueryInput(context);
         if (tableColumns != null && !tableColumns.isEmpty()) {
             input.set("tableColumns", columnsJson(tableColumns));
+            input.set("tableKnowledge", knowledgeJson(tableCatalog));
         } else if (tableCatalog != null && !tableCatalog.isEmpty()) {
             input.set("tableCatalog", catalogJson(tableCatalog));
         }
@@ -148,6 +149,23 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
             node.put("schema", item.schema());
             node.put("table", item.table());
             node.put("comment", item.comment());
+            if (item.promptHint() != null && !item.promptHint().isBlank()) {
+                node.put("promptHint", item.promptHint());
+            }
+        });
+        return array;
+    }
+
+    private static JsonNode knowledgeJson(List<EmsDatabaseTableMetadata> catalog) {
+        ArrayNode array = JsonNodeFactory.instance.arrayNode();
+        if (catalog == null) {
+            return array;
+        }
+        catalog.stream().filter(item -> item.promptHint() != null && !item.promptHint().isBlank()).forEach(item -> {
+            ObjectNode node = array.addObject();
+            node.put("schema", item.schema());
+            node.put("table", item.table());
+            node.put("promptHint", item.promptHint());
         });
         return array;
     }

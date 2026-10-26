@@ -1,0 +1,1179 @@
+[
+  {
+    "schema": "activiti_ems",
+    "table": "act_ge_bytearray",
+    "tableComment": "",
+    "businessMeaning": "Activiti 引擎二进制资源表（标准引擎表），保存部署的流程定义、流程图等二进制内容。",
+    "keyFields": [
+      {
+        "name": "ID_",
+        "meaning": "主键"
+      },
+      {
+        "name": "REV_",
+        "meaning": "版本号"
+      },
+      {
+        "name": "NAME_",
+        "meaning": "资源名称"
+      },
+      {
+        "name": "DEPLOYMENT_ID_",
+        "meaning": "部署ID"
+      },
+      {
+        "name": "BYTES_",
+        "meaning": "二进制内容（流程图/流程定义）"
+      },
+      {
+        "name": "GENERATED_",
+        "meaning": "是否引擎生成"
+      }
+    ],
+    "relations": [
+      "act_re_deployment(DEPLOYMENT_ID_)"
+    ],
+    "promptHint": "引擎资源表（标准表）；NAME_ 为资源名、BYTES_ 存流程图/流程定义二进制；按 DEPLOYMENT_ID_ 关联部署。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_ge_property",
+    "tableComment": "",
+    "businessMeaning": "Activiti 引擎属性表（标准引擎表），保存引擎 schema 版本等属性。",
+    "keyFields": [
+      {
+        "name": "NAME_",
+        "meaning": "属性名（主键）"
+      },
+      {
+        "name": "VALUE_",
+        "meaning": "属性值"
+      },
+      {
+        "name": "REV_",
+        "meaning": "版本号"
+      }
+    ],
+    "relations": [],
+    "promptHint": "引擎属性表（标准表）；NAME_/VALUE_ 存引擎属性（如 schema.version）；一般业务查询不涉及。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_id_group",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_id_info",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_id_membership",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_id_user",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_procdef_info",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_re_deployment",
+    "tableComment": "",
+    "businessMeaning": "Activiti 部署表（标准引擎表），记录每次流程部署的名称、KEY 与部署时间。",
+    "keyFields": [
+      {
+        "name": "ID_",
+        "meaning": "主键"
+      },
+      {
+        "name": "NAME_",
+        "meaning": "部署名称"
+      },
+      {
+        "name": "CATEGORY_",
+        "meaning": "分类"
+      },
+      {
+        "name": "DEPLOY_TIME_",
+        "meaning": "部署时间"
+      },
+      {
+        "name": "KEY_",
+        "meaning": "部署KEY"
+      },
+      {
+        "name": "ENGINE_VERSION_",
+        "meaning": "引擎版本"
+      }
+    ],
+    "relations": [
+      "act_re_procdef(DEPLOYMENT_ID_)",
+      "act_ge_bytearray(DEPLOYMENT_ID_)"
+    ],
+    "promptHint": "流程部署（标准表）；ID_ 为部署ID；按 DEPLOYMENT_ID_ 关联流程定义与资源。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_re_model",
+    "tableComment": "",
+    "businessMeaning": "Activiti 流程模型表（标准引擎表），记录流程设计模型（BPMN 模型）与其版本。",
+    "keyFields": [
+      {
+        "name": "ID_",
+        "meaning": "主键"
+      },
+      {
+        "name": "NAME_",
+        "meaning": "模型名称"
+      },
+      {
+        "name": "KEY_",
+        "meaning": "模型KEY"
+      },
+      {
+        "name": "CATEGORY_",
+        "meaning": "分类"
+      },
+      {
+        "name": "VERSION_",
+        "meaning": "版本"
+      },
+      {
+        "name": "META_INFO_",
+        "meaning": "元信息"
+      },
+      {
+        "name": "DEPLOYMENT_ID_",
+        "meaning": "部署ID"
+      }
+    ],
+    "relations": [
+      "act_re_deployment(DEPLOYMENT_ID_)"
+    ],
+    "promptHint": "流程模型（标准表）；KEY_ 为模型KEY、VERSION_ 为版本；模型编辑源在 EDITOR_SOURCE_VALUE_ID_。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_re_procdef",
+    "tableComment": "",
+    "businessMeaning": "Activiti 流程定义表（标准引擎表），记录已部署流程定义的 KEY、版本、资源与挂起状态。",
+    "keyFields": [
+      {
+        "name": "ID_",
+        "meaning": "主键"
+      },
+      {
+        "name": "KEY_",
+        "meaning": "流程定义KEY"
+      },
+      {
+        "name": "NAME_",
+        "meaning": "流程名称"
+      },
+      {
+        "name": "VERSION_",
+        "meaning": "版本"
+      },
+      {
+        "name": "DEPLOYMENT_ID_",
+        "meaning": "部署ID"
+      },
+      {
+        "name": "RESOURCE_NAME_",
+        "meaning": "流程定义资源名"
+      },
+      {
+        "name": "DGRM_RESOURCE_NAME_",
+        "meaning": "流程图资源名"
+      },
+      {
+        "name": "DESCRIPTION_",
+        "meaning": "描述"
+      },
+      {
+        "name": "SUSPENSION_STATE_",
+        "meaning": "挂起状态 1激活/2挂起"
+      },
+      {
+        "name": "HAS_START_FORM_KEY_",
+        "meaning": "是否有开始表单"
+      }
+    ],
+    "relations": [
+      "act_re_deployment(DEPLOYMENT_ID_)"
+    ],
+    "promptHint": "流程定义（标准表）；KEY_ + VERSION_ 唯一定位流程版本；SUSPENSION_STATE_ 1激活/2挂起；按 DEPLOYMENT_ID_ 关联部署。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_ru_deadletter_job",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_ru_delegate",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_ru_delegatevar",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_ru_event_subscr",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_ru_execution",
+    "tableComment": "",
+    "businessMeaning": "Activiti 运行时执行表（标准引擎表），记录流程实例/执行的活动节点、业务键、挂起状态与发起人。",
+    "keyFields": [
+      {
+        "name": "ID_",
+        "meaning": "主键"
+      },
+      {
+        "name": "PROC_INST_ID_",
+        "meaning": "流程实例ID"
+      },
+      {
+        "name": "BUSINESS_KEY_",
+        "meaning": "业务键（通常为业务单号）"
+      },
+      {
+        "name": "PROC_DEF_ID_",
+        "meaning": "流程定义ID"
+      },
+      {
+        "name": "PARENT_ID_",
+        "meaning": "父执行ID"
+      },
+      {
+        "name": "ACT_ID_",
+        "meaning": "当前活动节点ID"
+      },
+      {
+        "name": "IS_ACTIVE_",
+        "meaning": "是否活跃"
+      },
+      {
+        "name": "SUSPENSION_STATE_",
+        "meaning": "挂起状态"
+      },
+      {
+        "name": "ROOT_PROC_INST_ID_",
+        "meaning": "根流程实例ID"
+      },
+      {
+        "name": "START_USER_ID_",
+        "meaning": "发起人"
+      },
+      {
+        "name": "START_TIME_",
+        "meaning": "开始时间"
+      }
+    ],
+    "relations": [
+      "act_re_procdef(PROC_DEF_ID_)",
+      "act_ru_task(EXECUTION_ID_)"
+    ],
+    "promptHint": "运行时执行（标准表）；BUSINESS_KEY_ 通常为业务单号，按业务单号定位运行中的流程；ACT_ID_ 为当前活动节点；SUSPENSION_STATE_ 挂起状态。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_ru_identitylink",
+    "tableComment": "",
+    "businessMeaning": "Activiti 运行时身份关联表（标准引擎表），记录任务/流程实例的候选人或参与人关系。",
+    "keyFields": [
+      {
+        "name": "ID_",
+        "meaning": "主键"
+      },
+      {
+        "name": "GROUP_ID_",
+        "meaning": "群组ID"
+      },
+      {
+        "name": "TYPE_",
+        "meaning": "身份类型"
+      },
+      {
+        "name": "USER_ID_",
+        "meaning": "用户ID"
+      },
+      {
+        "name": "TASK_ID_",
+        "meaning": "任务ID"
+      },
+      {
+        "name": "PROC_INST_ID_",
+        "meaning": "流程实例ID"
+      }
+    ],
+    "relations": [
+      "act_ru_task(TASK_ID_)"
+    ],
+    "promptHint": "运行时身份关联（标准表）；USER_ID_/GROUP_ID_ 为候选/参与人；按 TASK_ID_ 关联任务查候选人。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_ru_job",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_ru_suspended_job",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_ru_task",
+    "tableComment": "",
+    "businessMeaning": "Activiti 运行时任务表（标准引擎表），记录当前待办任务、处理人、认领与到期信息。",
+    "keyFields": [
+      {
+        "name": "ID_",
+        "meaning": "主键"
+      },
+      {
+        "name": "EXECUTION_ID_",
+        "meaning": "执行ID"
+      },
+      {
+        "name": "PROC_INST_ID_",
+        "meaning": "流程实例ID"
+      },
+      {
+        "name": "PROC_DEF_ID_",
+        "meaning": "流程定义ID"
+      },
+      {
+        "name": "NAME_",
+        "meaning": "任务名称"
+      },
+      {
+        "name": "TASK_DEF_KEY_",
+        "meaning": "任务定义KEY"
+      },
+      {
+        "name": "OWNER_",
+        "meaning": "任务所有者"
+      },
+      {
+        "name": "ASSIGNEE_",
+        "meaning": "任务处理人"
+      },
+      {
+        "name": "DELEGATION_",
+        "meaning": "委托状态"
+      },
+      {
+        "name": "PRIORITY_",
+        "meaning": "优先级"
+      },
+      {
+        "name": "CREATE_TIME_",
+        "meaning": "创建时间"
+      },
+      {
+        "name": "DUE_DATE_",
+        "meaning": "到期时间"
+      },
+      {
+        "name": "FORM_KEY_",
+        "meaning": "表单KEY"
+      },
+      {
+        "name": "CLAIM_TIME_",
+        "meaning": "认领时间"
+      },
+      {
+        "name": "SUSPENSION_STATE_",
+        "meaning": "挂起状态"
+      }
+    ],
+    "relations": [
+      "act_ru_execution(EXECUTION_ID_)",
+      "act_re_procdef(PROC_DEF_ID_)"
+    ],
+    "promptHint": "运行时待办任务（标准表）；ASSIGNEE_ 为当前处理人、OWNER_ 为所有者；按 PROC_INST_ID_ 关联流程实例查当前待办；TASK_DEF_KEY_ 为任务节点标识。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_ru_timer_job",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "act_ru_variable",
+    "tableComment": "",
+    "businessMeaning": "Activiti 运行时变量表（标准引擎表），记录运行中流程实例的变量值。",
+    "keyFields": [
+      {
+        "name": "ID_",
+        "meaning": "主键"
+      },
+      {
+        "name": "TYPE_",
+        "meaning": "变量类型"
+      },
+      {
+        "name": "NAME_",
+        "meaning": "变量名"
+      },
+      {
+        "name": "EXECUTION_ID_",
+        "meaning": "执行ID"
+      },
+      {
+        "name": "PROC_INST_ID_",
+        "meaning": "流程实例ID"
+      },
+      {
+        "name": "TASK_ID_",
+        "meaning": "任务ID"
+      },
+      {
+        "name": "LONG_",
+        "meaning": "长整型值"
+      },
+      {
+        "name": "TEXT_",
+        "meaning": "文本值"
+      },
+      {
+        "name": "DOUBLE_",
+        "meaning": "浮点值"
+      }
+    ],
+    "relations": [
+      "act_ru_execution(EXECUTION_ID_)"
+    ],
+    "promptHint": "运行时变量（标准表）；NAME_ 变量名、TEXT_/LONG_/DOUBLE_ 为不同类型值；按 PROC_INST_ID_ 关联流程实例。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "excel_psc_form_proc",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_act_assignee",
+    "tableComment": "流程节点任务处理人",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_act_call_activity",
+    "tableComment": "子流程",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_act_call_activity_para",
+    "tableComment": "子流程参数",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_act_config",
+    "tableComment": "流程节点配置表",
+    "businessMeaning": "流程节点配置，定义某流程版本的节点类型、表单、处理人/候选人、跳转与多实例等运行配置。",
+    "keyFields": [
+      {
+        "name": "id",
+        "meaning": "编号（主键）"
+      },
+      {
+        "name": "procdef_id",
+        "meaning": "流程定义ID"
+      },
+      {
+        "name": "act_name",
+        "meaning": "节点名称（流程集合名称）"
+      },
+      {
+        "name": "act_id",
+        "meaning": "流程节点ID"
+      },
+      {
+        "name": "act_type",
+        "meaning": "节点类型 start/用户节点/其他"
+      },
+      {
+        "name": "form_key",
+        "meaning": "表单URL"
+      },
+      {
+        "name": "is_async",
+        "meaning": "是否异步节点"
+      },
+      {
+        "name": "due_date",
+        "meaning": "任务超时时间"
+      },
+      {
+        "name": "jump_type",
+        "meaning": "0仅相邻处理人身份重复跳过 / 1处理人身份重复跳过"
+      },
+      {
+        "name": "assignee",
+        "meaning": "任务处理人"
+      },
+      {
+        "name": "assignee_type",
+        "meaning": "任务处理人类型"
+      },
+      {
+        "name": "candidate_user",
+        "meaning": "候选人（授权信息）"
+      },
+      {
+        "name": "candidate_user_type",
+        "meaning": "候选人类型 0指定人/1部门等"
+      },
+      {
+        "name": "candidate_group",
+        "meaning": "候选人群组"
+      },
+      {
+        "name": "default_choose",
+        "meaning": "0提交窗口默认选择 / 1需人工选择"
+      },
+      {
+        "name": "del_flag",
+        "meaning": "删除标记 0正常/1删除"
+      }
+    ],
+    "relations": [
+      "psc_act_re_procdef(procdef_id)",
+      "psc_act_assignee(act_config_id)",
+      "psc_act_sequence_flow(act_config_id)"
+    ],
+    "promptHint": "流程节点配置；act_id 为节点标识、act_type 为节点类型；assignee 为处理人、candidate_user/candidate_group 为候选人/群组；按 procdef_id 关联流程定义查节点配置。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_act_exec_filter",
+    "tableComment": "流程节点执行过滤器",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_act_prco_set",
+    "tableComment": "流程集合表",
+    "businessMeaning": "流程集合定义，将多个流程版本聚合为一个流程集合（流程发起入口）。",
+    "keyFields": [
+      {
+        "name": "id",
+        "meaning": "编号（主键）"
+      },
+      {
+        "name": "proc_set_name",
+        "meaning": "名称（流程集合名称）"
+      },
+      {
+        "name": "proc_set_key",
+        "meaning": "流程模型KEY（自动生成UUID）"
+      },
+      {
+        "name": "category_id",
+        "meaning": "业务系统流程分类ID"
+      },
+      {
+        "name": "proc_set_type",
+        "meaning": "流程类型（区分子流程）"
+      },
+      {
+        "name": "sort",
+        "meaning": "排序号"
+      },
+      {
+        "name": "del_flag",
+        "meaning": "删除标记 0正常/1删除"
+      }
+    ],
+    "relations": [
+      "psc_act_prco_set_start(proc_set_key)",
+      "psc_formset_procset(proc_set_key)",
+      "psc_category(category_id)"
+    ],
+    "promptHint": "流程集合；proc_set_key 为流程集合KEY，与表单集绑定(psc_formset_procset) 决定发起入口；category_id 关联流程分类。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_act_prco_set_start",
+    "tableComment": "流程发起授权",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_act_re_model",
+    "tableComment": "流程模型表",
+    "businessMeaning": "EMS 流程模型，记录流程模型名称、模型KEY与版本。",
+    "keyFields": [
+      {
+        "name": "id",
+        "meaning": "编号（主键）"
+      },
+      {
+        "name": "name",
+        "meaning": "模型名称"
+      },
+      {
+        "name": "procdef_key",
+        "meaning": "流程版本的KEY（与流程模型KEY一致）"
+      },
+      {
+        "name": "version",
+        "meaning": "排序号"
+      },
+      {
+        "name": "model_id",
+        "meaning": "对应的模型ID"
+      },
+      {
+        "name": "del_flag",
+        "meaning": "删除标记 0正常/1删除"
+      }
+    ],
+    "relations": [
+      "psc_act_re_procdef(model_id)"
+    ],
+    "promptHint": "流程模型；procdef_key 为流程KEY；model_id 关联流程版本；version 为排序号。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_act_re_procdef",
+    "tableComment": "流程版本表",
+    "businessMeaning": "EMS 流程版本定义，记录流程版本的名称、KEY、表单URL、分类、版本号与是否运行版本。",
+    "keyFields": [
+      {
+        "name": "id",
+        "meaning": "编号（主键）"
+      },
+      {
+        "name": "procdef_id",
+        "meaning": "流程定义ID"
+      },
+      {
+        "name": "procdef_name",
+        "meaning": "名称（流程集合名称）"
+      },
+      {
+        "name": "procdef_key",
+        "meaning": "流程版本KEY（与流程模型KEY一致）"
+      },
+      {
+        "name": "form_key",
+        "meaning": "外置表单启动URL（节点未配置时采用流程版本配置的URL）"
+      },
+      {
+        "name": "category_id",
+        "meaning": "业务系统流程分类ID"
+      },
+      {
+        "name": "version",
+        "meaning": "排序号"
+      },
+      {
+        "name": "is_run_version",
+        "meaning": "是否运行版本"
+      },
+      {
+        "name": "model_id",
+        "meaning": "对应的模型ID"
+      },
+      {
+        "name": "del_flag",
+        "meaning": "删除标记 0正常/1删除"
+      }
+    ],
+    "relations": [
+      "psc_act_config(procdef_id)",
+      "psc_act_re_model(model_id)",
+      "psc_category(category_id)"
+    ],
+    "promptHint": "流程版本；procdef_key 为流程KEY、is_run_version 标记运行版本；procdef_id 被节点配置(psc_act_config)引用；form_key 为默认表单URL。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_act_sequence_flow",
+    "tableComment": "流程出线配置表",
+    "businessMeaning": "流程节点出线（连线）配置，定义节点间的流转关系、流转条件与默认流。",
+    "keyFields": [
+      {
+        "name": "id",
+        "meaning": "编号（主键）"
+      },
+      {
+        "name": "seq_flow_id",
+        "meaning": "出线ID"
+      },
+      {
+        "name": "procdef_id",
+        "meaning": "流程定义ID"
+      },
+      {
+        "name": "name",
+        "meaning": "出线名称"
+      },
+      {
+        "name": "type",
+        "meaning": "0出线 / 1网关"
+      },
+      {
+        "name": "source_ref",
+        "meaning": "起始节点"
+      },
+      {
+        "name": "target_ref",
+        "meaning": "目标节点"
+      },
+      {
+        "name": "flow_order",
+        "meaning": "线执行顺序（网关具备）"
+      },
+      {
+        "name": "default_flow_id",
+        "meaning": "0默认流 / 1非默认流"
+      },
+      {
+        "name": "condition_expression",
+        "meaning": "流转条件"
+      },
+      {
+        "name": "default_choose",
+        "meaning": "0提交窗口默认选择 / 1需人工选择"
+      }
+    ],
+    "relations": [
+      "psc_act_config(procdef_id)",
+      "psc_act_re_procdef(procdef_id)"
+    ],
+    "promptHint": "流程出线；source_ref/target_ref 为起止节点；condition_expression 为流转条件（脚本，高风险，仅定位）；按 procdef_id 关联流程版本。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_act_set_assignee",
+    "tableComment": "",
+    "businessMeaning": "流程节点指定处理人快照，记录运行中流程节点实际指定的处理人（后台指定或用户选择）。",
+    "keyFields": [
+      {
+        "name": "ID",
+        "meaning": "主键"
+      },
+      {
+        "name": "PROCESSID",
+        "meaning": "流程实例ID"
+      },
+      {
+        "name": "RESOURCEID",
+        "meaning": "资源ID"
+      },
+      {
+        "name": "ACT_NODE_ID",
+        "meaning": "节点ID"
+      },
+      {
+        "name": "ACT_NODE_NAME",
+        "meaning": "节点名称"
+      },
+      {
+        "name": "ASSIGNEE",
+        "meaning": "处理人"
+      },
+      {
+        "name": "ASSIGNEE_NAME",
+        "meaning": "处理人名称"
+      },
+      {
+        "name": "ASSIGN_TYPE",
+        "meaning": "指定类型 devOps后台指定 / user前端用户选择"
+      }
+    ],
+    "relations": [
+      "act_hi_procinst(PROCESSID)"
+    ],
+    "promptHint": "节点指定处理人；ASSIGNEE/ASSIGNEE_NAME 为处理人；ASSIGN_TYPE 区分 devOps后台指定/user用户选择；按 PROCESSID 关联流程实例。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_business_unit",
+    "tableComment": "业务单位",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_category",
+    "tableComment": "树结构表",
+    "businessMeaning": "通用树结构表，记录流程分类等树形结构的父子关系与排序。",
+    "keyFields": [
+      {
+        "name": "id",
+        "meaning": "编号（主键）"
+      },
+      {
+        "name": "parent_id",
+        "meaning": "父级编号"
+      },
+      {
+        "name": "parent_ids",
+        "meaning": "所有父级编号"
+      },
+      {
+        "name": "name",
+        "meaning": "名称"
+      },
+      {
+        "name": "sort",
+        "meaning": "排序"
+      },
+      {
+        "name": "del_flag",
+        "meaning": "删除标记 0正常/1删除"
+      }
+    ],
+    "relations": [
+      "psc_act_prco_set(category_id)",
+      "psc_act_re_procdef(category_id)"
+    ],
+    "promptHint": "树结构；parent_id/parent_ids 定义父子关系；name 为节点名称；被流程集合/流程版本以 category_id 引用作为流程分类。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_communication",
+    "tableComment": "沟通表",
+    "businessMeaning": "流程沟通记录，记录流程/任务上的沟通内容、反馈与发起人/沟通人。",
+    "keyFields": [
+      {
+        "name": "id",
+        "meaning": "id（主键）"
+      },
+      {
+        "name": "process_instance_id",
+        "meaning": "流程实例id"
+      },
+      {
+        "name": "task_id",
+        "meaning": "任务id"
+      },
+      {
+        "name": "process_type",
+        "meaning": "类型"
+      },
+      {
+        "name": "title",
+        "meaning": "标题"
+      },
+      {
+        "name": "content",
+        "meaning": "内容"
+      },
+      {
+        "name": "reply_content",
+        "meaning": "反馈内容"
+      },
+      {
+        "name": "parent_id",
+        "meaning": "父id"
+      },
+      {
+        "name": "ldap_id_from",
+        "meaning": "发起人"
+      },
+      {
+        "name": "ldap_id_to",
+        "meaning": "沟通人"
+      },
+      {
+        "name": "communication_id",
+        "meaning": "沟通编号"
+      },
+      {
+        "name": "status",
+        "meaning": "状态"
+      }
+    ],
+    "relations": [
+      "act_hi_procinst(process_instance_id)"
+    ],
+    "promptHint": "流程沟通；process_instance_id 关联流程实例；ldap_id_from/ldap_id_to 为发起人/沟通人（LDAP账号）；content/reply_content 为沟通/反馈内容。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_dept",
+    "tableComment": "部门表",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_employee",
+    "tableComment": "人员表",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_form",
+    "tableComment": "表单版本表",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_form_act_config",
+    "tableComment": "表单节点配置表",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_form_auth",
+    "tableComment": "表单授权信息",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_form_button",
+    "tableComment": "表单按钮",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_form_proc",
+    "tableComment": "表单版本与流程版本的绑定关系表，主要实现表单授权管理等",
+    "businessMeaning": "表单版本与流程版本的绑定关系，含角色/归属公司/机构单元/公司组等授权维度。",
+    "keyFields": [
+      {
+        "name": "id",
+        "meaning": "编号（主键）"
+      },
+      {
+        "name": "form_id",
+        "meaning": "表单版本ID"
+      },
+      {
+        "name": "procdef_id",
+        "meaning": "流程定义ID（流程版本ID）"
+      },
+      {
+        "name": "form_proc_no",
+        "meaning": "表单流程编号"
+      },
+      {
+        "name": "role_code",
+        "meaning": "角色编码"
+      },
+      {
+        "name": "ou_code",
+        "meaning": "归属公司编码"
+      },
+      {
+        "name": "ou_name",
+        "meaning": "归属公司名称"
+      },
+      {
+        "name": "ORG_UNIT",
+        "meaning": "机构单元"
+      },
+      {
+        "name": "ORG_UNIT_NAME",
+        "meaning": "机构单元名称"
+      },
+      {
+        "name": "COMPANY_GROUP",
+        "meaning": "公司组字段"
+      }
+    ],
+    "relations": [
+      "psc_form(form_id)",
+      "psc_act_re_procdef(procdef_id)"
+    ],
+    "promptHint": "表单-流程绑定；form_id 关联表单版本、procdef_id 关联流程版本；role_code/ou_code/ORG_UNIT/COMPANY_GROUP 为授权维度。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_form_set",
+    "tableComment": "表单版本表",
+    "businessMeaning": "表单集定义，记录表单集名称、当前运行表单、流程集KEY、分类与排序。",
+    "keyFields": [
+      {
+        "name": "id",
+        "meaning": "编号（主键）"
+      },
+      {
+        "name": "formset_name",
+        "meaning": "表单集名称"
+      },
+      {
+        "name": "formset_name_app",
+        "meaning": "流程集（移动端）名称"
+      },
+      {
+        "name": "formset_tips",
+        "meaning": "tips提示信息（发起入口显示）"
+      },
+      {
+        "name": "formset_icon",
+        "meaning": "ICON（发起页面图标）"
+      },
+      {
+        "name": "current_form_id",
+        "meaning": "当前运行表单版本"
+      },
+      {
+        "name": "proc_set_key",
+        "meaning": "流程集KEY"
+      },
+      {
+        "name": "category_id",
+        "meaning": "业务系统流程分类ID"
+      },
+      {
+        "name": "sort",
+        "meaning": "排序号"
+      }
+    ],
+    "relations": [
+      "psc_act_prco_set(proc_set_key)",
+      "psc_form(current_form_id)",
+      "psc_category(category_id)"
+    ],
+    "promptHint": "表单集；proc_set_key 关联流程集；current_form_id 为当前运行表单；用于定位流程发起入口。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_formset_procset",
+    "tableComment": "表单集与流程集绑定关系表，基于该关联关系实现流程发起页面，并且提供判断是否有权限发起流程",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_group",
+    "tableComment": "群组",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_group_user",
+    "tableComment": "群组成员",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_job",
+    "tableComment": "岗位表",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_proc_notify",
+    "tableComment": "流程通知设置表",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_procdef_variable_conf",
+    "tableComment": "流程环节扩展属性配置表",
+    "businessMeaning": "流程环节扩展属性配置，定义流程节点的变量参数（名称、值、类型、默认值与是否可空）。",
+    "keyFields": [
+      {
+        "name": "id",
+        "meaning": "编号（主键）"
+      },
+      {
+        "name": "variable_name",
+        "meaning": "参数名"
+      },
+      {
+        "name": "procdef_id",
+        "meaning": "流程定义ID（含版本信息）"
+      },
+      {
+        "name": "procdef_name",
+        "meaning": "名称（流程集合名称）"
+      },
+      {
+        "name": "act_id",
+        "meaning": "流程节点ID"
+      },
+      {
+        "name": "act_name",
+        "meaning": "节点名称"
+      },
+      {
+        "name": "variable_value",
+        "meaning": "参数值（JSON格式配置信息）"
+      },
+      {
+        "name": "variable_defaultvalue",
+        "meaning": "参数默认值"
+      },
+      {
+        "name": "variable_isnull",
+        "meaning": "参数是否可空 1是/0否"
+      },
+      {
+        "name": "variable_datatype",
+        "meaning": "参数对象类型 String/Date/Boolean/Long/Double"
+      },
+      {
+        "name": "variable_format",
+        "meaning": "参数类别（动态变量/固定变量/JSON自定义变量）"
+      },
+      {
+        "name": "scope",
+        "meaning": "作用域 global"
+      }
+    ],
+    "relations": [
+      "psc_act_re_procdef(procdef_id)",
+      "psc_act_config(act_id)"
+    ],
+    "promptHint": "流程节点扩展变量；variable_name 为参数名、variable_value 为 JSON 配置；按 procdef_id + act_id 定位节点参数。"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_rule_category",
+    "tableComment": "规则树结构表",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_rule_package",
+    "tableComment": "规则包表",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_tenant_app",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "activiti_ems",
+    "table": "psc_tenant_app_privilege",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  }
+]

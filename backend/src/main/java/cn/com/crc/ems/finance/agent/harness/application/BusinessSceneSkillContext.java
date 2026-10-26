@@ -1,5 +1,7 @@
 package cn.com.crc.ems.finance.agent.harness.application;
 
+import java.util.UUID;
+
 /**
  *
  * @Description: 送入模型的业务场景 Skill 受控投影，不包含管理员审计信息。
@@ -8,5 +10,6 @@ package cn.com.crc.ems.finance.agent.harness.application;
  * @Author: yigeyige99
  * @Date: 2026-10-11 21:28:41
  */
-public record BusinessSceneSkillContext(String name, String description, String handlingType, String premiseType) {
+public record BusinessSceneSkillContext(String name, String description, String handlingType, String premiseType,
+        UUID databaseConfigId) {
 }

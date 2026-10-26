@@ -1,0 +1,1264 @@
+[
+  {
+    "schema": "account",
+    "table": "t_account_allo_record",
+    "tableComment": "",
+    "businessMeaning": "报账单分配给会计（小组/成员）的分单流水记录，记录每次分单的报账单、分配时间与分配对象。",
+    "keyFields": [
+      {
+        "name": "ID",
+        "meaning": "主键"
+      },
+      {
+        "name": "CLAIM_NO",
+        "meaning": "报账单号"
+      },
+      {
+        "name": "ALLO_DATE",
+        "meaning": "分配时间"
+      },
+      {
+        "name": "YEAR_MONTH",
+        "meaning": "分配年月"
+      },
+      {
+        "name": "GROUP_ID",
+        "meaning": "分配的会计组ID"
+      },
+      {
+        "name": "CREW_LDAP",
+        "meaning": "分配的会计LDAP账号"
+      },
+      {
+        "name": "ALLO_TYPE",
+        "meaning": "分配类型：HAND手工 / JOB自动"
+      }
+    ],
+    "relations": [
+      "t_account_group(GROUP_ID)",
+      "t_account_crew(CREW_LDAP)"
+    ],
+    "promptHint": "报账单分单流水，按 CLAIM_NO 关联报账单；CREW_LDAP 存会计账号（LDAP）；ALLO_TYPE 区分手工(HAND)/自动(JOB)分单。"
+  },
+  {
+    "schema": "account",
+    "table": "t_account_assign_config",
+    "tableComment": "会计分单配置",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "account",
+    "table": "t_account_budget",
+    "tableComment": "会计科目预算关联",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "account",
+    "table": "t_account_calendar",
+    "tableComment": "会计工作日设置",
+    "businessMeaning": "会计工作日历，定义工作日/非工作日及上下班时间，用于会计处理截止时间计算。",
+    "keyFields": [
+      {
+        "name": "WORK_ID",
+        "meaning": "主键"
+      },
+      {
+        "name": "WORK_DATE",
+        "meaning": "日期；为null时表示默认时间设置"
+      },
+      {
+        "name": "WORK_FLAG",
+        "meaning": "是否工作日：1是 / 0否；为null时表示默认时间设置"
+      },
+      {
+        "name": "WORK_TITLE",
+        "meaning": "标题"
+      },
+      {
+        "name": "WORK_STIME",
+        "meaning": "上午上班时间 HH:MM"
+      },
+      {
+        "name": "WORK_ETIME",
+        "meaning": "上午下班时间 HH:MM"
+      },
+      {
+        "name": "WORK_STIME2",
+        "meaning": "下午上班时间 HH:MM"
+      },
+      {
+        "name": "WORK_ETIME2",
+        "meaning": "下午下班时间 HH:MM"
+      }
+    ],
+    "relations": [],
+    "promptHint": "判断会计工作日与截止时间；WORK_FLAG=1 为工作日；WORK_DATE 为 null 表示全局默认时间设置。"
+  },
+  {
+    "schema": "account",
+    "table": "t_account_close_submit",
+    "tableComment": "会计关闭提单配置",
+    "businessMeaning": "配置关账/关闭提单时间段：是否每月重复、每月开始/结束日、例外人员与例外费用类别。",
+    "keyFields": [
+      {
+        "name": "CLOSE_SUBMIT_ID",
+        "meaning": "关闭提单编号（主键）"
+      },
+      {
+        "name": "BU_CODE",
+        "meaning": "BU编码"
+      },
+      {
+        "name": "OU_CODE",
+        "meaning": "归属公司编码（可能逗号分隔多公司）"
+      },
+      {
+        "name": "OU_NAME",
+        "meaning": "归属公司名称"
+      },
+      {
+        "name": "START_CLOSE_SUBMIT_DATE",
+        "meaning": "开始关闭提单日期"
+      },
+      {
+        "name": "END_CLOSE_SUBMIT_DATE",
+        "meaning": "结束关闭提单日期"
+      },
+      {
+        "name": "IS_MONTHLY_REPEAT",
+        "meaning": "是否每月重复"
+      },
+      {
+        "name": "START_CLOSE_SUBMIT_DAY",
+        "meaning": "每月开始关闭提单日"
+      },
+      {
+        "name": "END_CLOSE_SUBMIT_DAY",
+        "meaning": "每月结束关闭提单日"
+      },
+      {
+        "name": "EXCLUDE_USER_CODE",
+        "meaning": "例外人员编码（可能逗号分隔）"
+      },
+      {
+        "name": "EXCLUDE_CATEGORY_CODE",
+        "meaning": "例外费用类别编码（可能逗号分隔）"
+      },
+      {
+        "name": "IS_ENABLED",
+        "meaning": "是否启用"
+      },
+      {
+        "name": "IS_DELETE",
+        "meaning": "是否删除"
+      }
+    ],
+    "relations": [],
+    "promptHint": "判断某公司某期间是否允许提单；IS_ENABLED 为生效开关；OU_CODE / EXCLUDE_USER_CODE / EXCLUDE_CATEGORY_CODE 可能存逗号分隔的编码集合，匹配时需考虑分隔。"
+  },
+  {
+    "schema": "account",
+    "table": "t_account_comment",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "account",
+    "table": "t_account_crew",
+    "tableComment": "小组成员",
+    "businessMeaning": "会计小组成员表，记录会计员工所属小组、分工上限、分单优先级及替换人。",
+    "keyFields": [
+      {
+        "name": "CREW_ID",
+        "meaning": "主键"
+      },
+      {
+        "name": "CREW_EMP_ID",
+        "meaning": "会计员工ID"
+      },
+      {
+        "name": "CREW_EMP_CODE",
+        "meaning": "会计员工工号"
+      },
+      {
+        "name": "CREW_EMP_NAME",
+        "meaning": "会计员工姓名"
+      },
+      {
+        "name": "GROUP_CODE",
+        "meaning": "会计小组编码"
+      },
+      {
+        "name": "GROUP_ID",
+        "meaning": "会计小组ID"
+      },
+      {
+        "name": "MEMBER_TASKS",
+        "meaning": "组员分工上限"
+      },
+      {
+        "name": "PRIORITY_LEVEL",
+        "meaning": "分单优先级"
+      },
+      {
+        "name": "CREW_EMP_CODE_REPLACER",
+        "meaning": "组员替换者员工编码"
+      },
+      {
+        "name": "CREW_EMP_NAME_REPLACER",
+        "meaning": "组员替换者员工姓名"
+      }
+    ],
+    "relations": [
+      "t_account_group(GROUP_ID/GROUP_CODE)",
+      "人员（CREW_EMP_ID/CREW_EMP_CODE）"
+    ],
+    "promptHint": "定位会计小组成员；CREW_EMP_CODE 为员工工号；替换人字段（*_REPLACER）用于人员离岗/交接；按 GROUP_ID 关联会计小组。"
+  },
+  {
+    "schema": "account",
+    "table": "t_account_crew_factor",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "account",
+    "table": "t_account_fms_gldate",
+    "tableComment": "",
+    "businessMeaning": "FMS 总账账期状态，记录各 BU/公司/账簿的账期开关与核算、报账状态。",
+    "keyFields": [
+      {
+        "name": "Period_Status_Id",
+        "meaning": "主键"
+      },
+      {
+        "name": "Bu_Code",
+        "meaning": "BU"
+      },
+      {
+        "name": "Set_Of_Book_Id",
+        "meaning": "BOOK ID"
+      },
+      {
+        "name": "Company_Code",
+        "meaning": "公司(OU)编码"
+      },
+      {
+        "name": "Company_Name",
+        "meaning": "公司(OU)名称"
+      },
+      {
+        "name": "Period_Name",
+        "meaning": "账期"
+      },
+      {
+        "name": "Period_Year",
+        "meaning": "年份"
+      },
+      {
+        "name": "Period_Month",
+        "meaning": "月份"
+      },
+      {
+        "name": "Start_Date",
+        "meaning": "开始时间"
+      },
+      {
+        "name": "End_Date",
+        "meaning": "结束时间"
+      },
+      {
+        "name": "Closing_Status",
+        "meaning": "核算状态"
+      },
+      {
+        "name": "EMS_STATUS",
+        "meaning": "报账状态"
+      }
+    ],
+    "relations": [],
+    "promptHint": "账期开关：Company_Code 定位公司，Period_Year/Period_Month 定位账期，Closing_Status 核算状态、EMS_STATUS 报账状态。"
+  },
+  {
+    "schema": "account",
+    "table": "t_account_fms_voucher_batch",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "account",
+    "table": "t_account_fms_voucher_head",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "account",
+    "table": "t_account_group",
+    "tableComment": "会计分组表",
+    "businessMeaning": "会计小组定义，记录小组所属部门、组长、组员人数、小组类型（费用会计/复核）。",
+    "keyFields": [
+      {
+        "name": "GROUP_ID",
+        "meaning": "主键"
+      },
+      {
+        "name": "GROUP_DEPT_ID",
+        "meaning": "所属部门ID"
+      },
+      {
+        "name": "GROUP_DEPT_CODE",
+        "meaning": "所属部门编码"
+      },
+      {
+        "name": "GROUP_DEPT_NAME",
+        "meaning": "所属部门名称"
+      },
+      {
+        "name": "GROUP_CODE",
+        "meaning": "会计小组编码"
+      },
+      {
+        "name": "GROUP_NAME",
+        "meaning": "会计小组名称"
+      },
+      {
+        "name": "GROUP_LEADER_ID",
+        "meaning": "小组组长ID"
+      },
+      {
+        "name": "GROUP_LEADER_CODE",
+        "meaning": "小组组长工号"
+      },
+      {
+        "name": "GROUP_LEADER_NAME",
+        "meaning": "小组组长名称"
+      },
+      {
+        "name": "GROUP_CREWCOUNT",
+        "meaning": "会计组员人数"
+      },
+      {
+        "name": "DEL_FLG",
+        "meaning": "删除标志 0未删除/1已删除"
+      },
+      {
+        "name": "GROUP_TYPE",
+        "meaning": "小组类型：0费用会计小组 / 1复核小组"
+      },
+      {
+        "name": "MEMBER_TASKS",
+        "meaning": "组员分工上限"
+      }
+    ],
+    "relations": [
+      "t_account_crew(GROUP_ID)",
+      "t_account_groupwork(GROUP_ID)"
+    ],
+    "promptHint": "定位会计小组：GROUP_CODE/GROUP_NAME 为小组标识；GROUP_TYPE 区分费用会计(0)/复核(1)小组；DEL_FLG=0 未删除；组长工号在 GROUP_LEADER_CODE。"
+  },
+  {
+    "schema": "account",
+    "table": "t_account_groupwork",
+    "tableComment": "会计小组工作范围",
+    "businessMeaning": "会计小组与申请组织/费用类别/公司的分单工作范围及加权值映射。",
+    "keyFields": [
+      {
+        "name": "WORKSPACE_ID",
+        "meaning": "主键"
+      },
+      {
+        "name": "DEPT_ID",
+        "meaning": "申请组织ID"
+      },
+      {
+        "name": "DEPT_NAME",
+        "meaning": "申请组织名称"
+      },
+      {
+        "name": "EXP_CATEGORY_ID",
+        "meaning": "费用类别ID"
+      },
+      {
+        "name": "EXP_CATEGORY_CODE",
+        "meaning": "费用类别CODE"
+      },
+      {
+        "name": "EXP_CATEGORY_NAME",
+        "meaning": "费用类别名称"
+      },
+      {
+        "name": "GROUP_ID",
+        "meaning": "会计小组ID"
+      },
+      {
+        "name": "GROUP_NAME",
+        "meaning": "会计小组名称"
+      },
+      {
+        "name": "OU_CODE",
+        "meaning": "所属公司编码"
+      },
+      {
+        "name": "OU_NAME",
+        "meaning": "所属公司名称"
+      },
+      {
+        "name": "RATE_VALUE",
+        "meaning": "加权值"
+      },
+      {
+        "name": "MODIFY_RATE_VALUE",
+        "meaning": "调整值"
+      },
+      {
+        "name": "USE_FLAY",
+        "meaning": "是否启用（0/1 是/否）"
+      },
+      {
+        "name": "GROUP_TYPE",
+        "meaning": "分组类型：0费用会计 / 1复核会计"
+      }
+    ],
+    "relations": [
+      "t_account_group(GROUP_ID)"
+    ],
+    "promptHint": "分单工作范围：按 DEPT_ID + EXP_CATEGORY_CODE + OU_CODE 组合定位会计小组(GROUP_ID)；USE_FLAY 为启用开关；RATE_VALUE/MODIFY_RATE_VALUE 为加权值。"
+  },
+  {
+    "schema": "account",
+    "table": "t_account_monthly_closing",
+    "tableComment": "会计月结期间设置",
+    "businessMeaning": "会计月结期间配置，定义各业务线/公司的月结开始与结束日、例外费用类别、加急标记。",
+    "keyFields": [
+      {
+        "name": "MONTHLY_CLOSING_ID",
+        "meaning": "月结期间编号（主键）"
+      },
+      {
+        "name": "BUSINESS_LINE_CODE",
+        "meaning": "业务线编码"
+      },
+      {
+        "name": "BUSINESS_LINE_NAME",
+        "meaning": "业务线名称"
+      },
+      {
+        "name": "START_DAY",
+        "meaning": "月结开始日期（日）"
+      },
+      {
+        "name": "END_DAY",
+        "meaning": "月结结束日期（日）"
+      },
+      {
+        "name": "EXCLUDE_CATEGORY_CODE",
+        "meaning": "例外费用类别编码（可能逗号分隔）"
+      },
+      {
+        "name": "EXCLUDE_CATEGORY_NAME",
+        "meaning": "例外费用类别名称"
+      },
+      {
+        "name": "COMPANYS_CODE",
+        "meaning": "归属公司编码（可能逗号分隔）"
+      },
+      {
+        "name": "COMPANYS_NAME",
+        "meaning": "归属公司名称"
+      },
+      {
+        "name": "IS_URGENT_FLAG",
+        "meaning": "是否加急 Y是/N否"
+      },
+      {
+        "name": "IS_DELETE",
+        "meaning": "是否删除"
+      }
+    ],
+    "relations": [],
+    "promptHint": "判断月结期间：BUSINESS_LINE_CODE + COMPANYS_CODE 定位；START_DAY/END_DAY 为每月开始/结束日；COMPANYS_CODE/EXCLUDE_CATEGORY_CODE 可能存逗号分隔编码。"
+  },
+  {
+    "schema": "account",
+    "table": "t_account_record",
+    "tableComment": "会计(不)在岗记录",
+    "businessMeaning": "会计在岗/不在岗记录，用于分单时排除不在岗会计。",
+    "keyFields": [
+      {
+        "name": "RECORD_ID",
+        "meaning": "主键"
+      },
+      {
+        "name": "RECORD_DATE",
+        "meaning": "日期"
+      },
+      {
+        "name": "RECORD_STIME",
+        "meaning": "(不)在岗开始时间"
+      },
+      {
+        "name": "RECORD_ETIME",
+        "meaning": "(不)在岗结束时间"
+      },
+      {
+        "name": "GROUP_CODE",
+        "meaning": "会计小组编码"
+      },
+      {
+        "name": "GROUP_ID",
+        "meaning": "会计小组ID"
+      },
+      {
+        "name": "CREW_EMP_CODE",
+        "meaning": "会计员工工号"
+      },
+      {
+        "name": "CREW_EMP_ID",
+        "meaning": "会计员工ID"
+      },
+      {
+        "name": "SETTING_DIFF",
+        "meaning": "在岗/不在岗区分：0不在岗设置 / 1在岗设置"
+      },
+      {
+        "name": "GROUP_TYPE",
+        "meaning": "分组类型"
+      }
+    ],
+    "relations": [
+      "t_account_group(GROUP_ID)",
+      "t_account_crew(CREW_EMP_CODE)"
+    ],
+    "promptHint": "判断会计是否在岗；SETTING_DIFF：0不在岗、1在岗；按 GROUP_ID + CREW_EMP_CODE + 时间区间过滤，分单时排除不在岗会计。"
+  },
+  {
+    "schema": "account",
+    "table": "t_account_voucher_data",
+    "tableComment": "",
+    "businessMeaning": "报账单/付款单对应的记账凭证数据，记录凭证号、日记账、期间与凭证类型。",
+    "keyFields": [
+      {
+        "name": "id",
+        "meaning": "编号（主键）"
+      },
+      {
+        "name": "claim_no",
+        "meaning": "报账单号"
+      },
+      {
+        "name": "payclaim_no",
+        "meaning": "付款申请单号"
+      },
+      {
+        "name": "paybatch_no",
+        "meaning": "付款准备批号"
+      },
+      {
+        "name": "pay_line_detail_id",
+        "meaning": "付款准备明细编号"
+      },
+      {
+        "name": "head_name",
+        "meaning": "日记账名称"
+      },
+      {
+        "name": "voucher_no",
+        "meaning": "记账凭证号"
+      },
+      {
+        "name": "batch_name",
+        "meaning": "日记账批名"
+      },
+      {
+        "name": "voucher_type",
+        "meaning": "凭证类型：1报账单凭证 / 2付款单凭证"
+      },
+      {
+        "name": "vouchered_no",
+        "meaning": "记账凭证号（已过账）"
+      },
+      {
+        "name": "import_voucher_batchno",
+        "meaning": "导入凭证批号"
+      },
+      {
+        "name": "GL_DATE",
+        "meaning": "期间"
+      }
+    ],
+    "relations": [
+      "报账单（claim_no）",
+      "付款申请单（payclaim_no）",
+      "付款准备明细（pay_line_detail_id）"
+    ],
+    "promptHint": "查报账单/付款单对应凭证：claim_no 关联报账单、payclaim_no 关联付款单；voucher_type 1报账/2付款；voucher_no 为凭证号。"
+  },
+  {
+    "schema": "account",
+    "table": "t_claim_event_adapt",
+    "tableComment": "报账单导入渠道表",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "account",
+    "table": "t_esb_config",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "account",
+    "table": "t_md_vendor",
+    "tableComment": "供应商",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "account",
+    "table": "t_md_vendor_account",
+    "tableComment": "供应商地点银行账户",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "account",
+    "table": "t_md_vendor_bk_account",
+    "tableComment": "供应商银行账户信息表",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "account",
+    "table": "t_md_vendor_site",
+    "tableComment": "供应商地址信息",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "account",
+    "table": "t_payment_flow",
+    "tableComment": "支付流水记录",
+    "businessMeaning": "支付流水，记录报账单/凭证/付款申请行的冻结与实际支付事件及金额。",
+    "keyFields": [
+      {
+        "name": "id",
+        "meaning": "主键"
+      },
+      {
+        "name": "claim_no",
+        "meaning": "报账单号"
+      },
+      {
+        "name": "voucher_id",
+        "meaning": "报账单对应凭证ID"
+      },
+      {
+        "name": "payment_plan_line_id",
+        "meaning": "凭证对应付款计划ID"
+      },
+      {
+        "name": "ems_pay_detail_id",
+        "meaning": "表单付款清单ID"
+      },
+      {
+        "name": "payment_detail_line_id",
+        "meaning": "付款申请行ID"
+      },
+      {
+        "name": "type",
+        "meaning": "流水类型：1冻结 / 2实际"
+      },
+      {
+        "name": "amount",
+        "meaning": "流水金额"
+      },
+      {
+        "name": "event_type",
+        "meaning": "事件类型：1创建付款申请/2支付/3拒付/4退票/5付款申请驳回"
+      },
+      {
+        "name": "create_time",
+        "meaning": "发生时间"
+      }
+    ],
+    "relations": [
+      "报账单（claim_no）",
+      "付款申请行（payment_detail_line_id）"
+    ],
+    "promptHint": "支付流水；type 1冻结/2实际；event_type 1-5 为付款事件；按 claim_no 或 payment_detail_line_id 关联；amount 为流水金额。"
+  },
+  {
+    "schema": "account",
+    "table": "t_payment_list_detail",
+    "tableComment": "",
+    "businessMeaning": "付款清单明细，记录收款方（对私员工/对公供应商）、收款账户、付款方式、金额、银行与支付状态。含银行账号，敏感。",
+    "keyFields": [
+      {
+        "name": "PAYMENT_LIST_DETAIL_ID",
+        "meaning": "主键"
+      },
+      {
+        "name": "VOUCHER_ID",
+        "meaning": "凭证主键"
+      },
+      {
+        "name": "EMS_PAY_DETAIL_ID",
+        "meaning": "EMS表单付款清单ID"
+      },
+      {
+        "name": "CLAIM_PAY_PLAN_ID",
+        "meaning": "付款计划ID"
+      },
+      {
+        "name": "CLAIM_NO",
+        "meaning": "报账单号"
+      },
+      {
+        "name": "TYPE",
+        "meaning": "类型：对私1 / 对公2"
+      },
+      {
+        "name": "PAYMENT_METHOD",
+        "meaning": "付款方式（转账、网银等）"
+      },
+      {
+        "name": "PAYMENT_TYPE",
+        "meaning": "付款类型（立即付款、账龄付款等）"
+      },
+      {
+        "name": "EMP_ID",
+        "meaning": "员工编号"
+      },
+      {
+        "name": "EMP_NAME",
+        "meaning": "员工名称"
+      },
+      {
+        "name": "ACCOUNT_NO",
+        "meaning": "收款账号（敏感）"
+      },
+      {
+        "name": "VENDOR_CODE",
+        "meaning": "供应商编号"
+      },
+      {
+        "name": "VENDOR_SITE_CODE",
+        "meaning": "供应商地点编号"
+      },
+      {
+        "name": "PAYMENT_CURRENCY",
+        "meaning": "付款币种"
+      },
+      {
+        "name": "PAYMENT_AMOUNT",
+        "meaning": "付款金额"
+      },
+      {
+        "name": "PAYMENT_ACCOUNT_NO",
+        "meaning": "付款银行账户（敏感）"
+      },
+      {
+        "name": "IS_LOCK",
+        "meaning": "是否锁定 Y是/N否"
+      },
+      {
+        "name": "IS_STOP_PAY",
+        "meaning": "是否止付 Y是/N否"
+      },
+      {
+        "name": "PAY_BALANCE",
+        "meaning": "付款余额"
+      },
+      {
+        "name": "PAID_AMOUNT",
+        "meaning": "已支付金额"
+      },
+      {
+        "name": "VENDOR_TYPE",
+        "meaning": "供应商类型：员工EMPLOYEE/对公PROVIDER/第三方THIRD"
+      },
+      {
+        "name": "DUE_DATE",
+        "meaning": "到期日"
+      }
+    ],
+    "relations": [
+      "报账单（CLAIM_NO）",
+      "t_md_vendor(VENDOR_CODE)",
+      "付款计划（CLAIM_PAY_PLAN_ID）"
+    ],
+    "promptHint": "付款清单明细；ACCOUNT_NO/PAYMENT_ACCOUNT_NO 为收款/付款银行账号（敏感，禁止整行读取）；TYPE 1对私/2对公；IS_LOCK/IS_STOP_PAY 为锁定/止付开关；按 CLAIM_NO 关联报账单。"
+  },
+  {
+    "schema": "account",
+    "table": "t_payment_schedule_line",
+    "tableComment": "",
+    "businessMeaning": "付款计划行，记录报账单/凭证的付款计划行号、预计付款时间、金额、付款方式、付款银行与弹性域。",
+    "keyFields": [
+      {
+        "name": "PAYMENT_SCHEDULE_LINE_ID",
+        "meaning": "付款计划行主键"
+      },
+      {
+        "name": "CLAIM_NO",
+        "meaning": "报账单号"
+      },
+      {
+        "name": "VOUCHER_ID",
+        "meaning": "凭证主键"
+      },
+      {
+        "name": "CLAIM_PAY_PLAN_ID",
+        "meaning": "表单付款计划ID"
+      },
+      {
+        "name": "PAY_PLAN_LINE_NUM",
+        "meaning": "付款计划行号"
+      },
+      {
+        "name": "DUE_DATE",
+        "meaning": "预计付款时间"
+      },
+      {
+        "name": "GROSS_AMOUNT",
+        "meaning": "金额"
+      },
+      {
+        "name": "HOLD_FLAG",
+        "meaning": "是否暂挂"
+      },
+      {
+        "name": "PAYMENT_TYPE",
+        "meaning": "付款方式"
+      },
+      {
+        "name": "PAYMENT_PRIORITY",
+        "meaning": "优先级"
+      },
+      {
+        "name": "BANK_NAME",
+        "meaning": "付款银行名称"
+      },
+      {
+        "name": "BANK_ACCOUNT_NUM",
+        "meaning": "付款银行账号（敏感）"
+      },
+      {
+        "name": "PROFILE_NAME",
+        "meaning": "配置文件"
+      },
+      {
+        "name": "PAYMENT_DOCUMENT_NAME",
+        "meaning": "单据"
+      }
+    ],
+    "relations": [
+      "报账单（CLAIM_NO）",
+      "t_payment_list_detail(CLAIM_PAY_PLAN_ID)"
+    ],
+    "promptHint": "付款计划行；BANK_ACCOUNT_NUM 为付款银行账号（敏感）；DUE_DATE 预计付款时间；HOLD_FLAG 是否暂挂；按 CLAIM_NO 关联报账单。"
+  },
+  {
+    "schema": "account",
+    "table": "t_voucher_excel_result",
+    "tableComment": "核销池导出报表记录",
+    "businessMeaning": "核销池导出报表记录，记录导出文件名、路径、工号与导出状态。",
+    "keyFields": [
+      {
+        "name": "VOUCHER_EXCEL_RESULT_ID",
+        "meaning": "主键"
+      },
+      {
+        "name": "FILE_NAME",
+        "meaning": "文件名"
+      },
+      {
+        "name": "FILE_PATH",
+        "meaning": "文件路径"
+      },
+      {
+        "name": "FILE_SIZE",
+        "meaning": "文件大小"
+      },
+      {
+        "name": "FILE_TYPE",
+        "meaning": "文件类型"
+      },
+      {
+        "name": "USER_NO",
+        "meaning": "工号"
+      },
+      {
+        "name": "STATUS",
+        "meaning": "状态 100导出中 / 200导出成功"
+      },
+      {
+        "name": "PARAMETER",
+        "meaning": "参数（JSON）"
+      },
+      {
+        "name": "ERROR_FLAG",
+        "meaning": "错误标识"
+      },
+      {
+        "name": "ERROR_MSG",
+        "meaning": "错误信息"
+      }
+    ],
+    "relations": [],
+    "promptHint": "核销池导出记录；STATUS 100导出中/200成功；USER_NO 为工号；PARAMETER 为导出参数（JSON）。"
+  },
+  {
+    "schema": "account",
+    "table": "t_voucher_head",
+    "tableComment": "",
+    "businessMeaning": "应付(AP)凭证头，记录报账单生成凭证的供应商、发票、付款、事件适配、科目/会计与复核信息。",
+    "keyFields": [
+      {
+        "name": "VOUCHER_ID",
+        "meaning": "主键"
+      },
+      {
+        "name": "CLAIM_NO",
+        "meaning": "报账单号"
+      },
+      {
+        "name": "claim_id",
+        "meaning": "表单ID"
+      },
+      {
+        "name": "VOUCHER_MODULE",
+        "meaning": "凭证模块 AP/GL/FA/AR"
+      },
+      {
+        "name": "VOUCHER_IMPORT_ESB_NUM",
+        "meaning": "凭证导入流水号"
+      },
+      {
+        "name": "VOUCHER_STATUS",
+        "meaning": "凭证状态"
+      },
+      {
+        "name": "IMPORT_FLAG",
+        "meaning": "是否导入FMS标识"
+      },
+      {
+        "name": "PAYMENT_GENERATOR_FLAG",
+        "meaning": "付款凭证生成规则 0/1/2/3"
+      },
+      {
+        "name": "EVENT_CODE",
+        "meaning": "事件编码"
+      },
+      {
+        "name": "EVENT_NAME",
+        "meaning": "事件名称"
+      },
+      {
+        "name": "ADAPT_CODE",
+        "meaning": "适配器编码"
+      },
+      {
+        "name": "IMPORT_ID",
+        "meaning": "AP发票编号"
+      },
+      {
+        "name": "BATCH_NUM",
+        "meaning": "AP批次编号"
+      },
+      {
+        "name": "ORG_CODE",
+        "meaning": "AP业务实体编码"
+      },
+      {
+        "name": "VENDOR_NUMBER",
+        "meaning": "供应商编码"
+      },
+      {
+        "name": "VENDOR_ID",
+        "meaning": "供应商主键ID"
+      },
+      {
+        "name": "INVOICE_NUM",
+        "meaning": "AP发票编号"
+      },
+      {
+        "name": "FMS_VOUCHER_NUM",
+        "meaning": "FMS凭证编号"
+      },
+      {
+        "name": "GL_DATE",
+        "meaning": "总账日期"
+      },
+      {
+        "name": "VOUCHER_CURRENCY_CODE",
+        "meaning": "凭证币种"
+      },
+      {
+        "name": "PAYMENT_CURRENCY_CODE",
+        "meaning": "本位币币种"
+      },
+      {
+        "name": "VOUCHER_AMOUNT",
+        "meaning": "凭证金额"
+      },
+      {
+        "name": "CLAIMMAKER",
+        "meaning": "应付会计LDAP账号"
+      },
+      {
+        "name": "REVIEW_ACCOUNTANT_ID",
+        "meaning": "复核会计员工号"
+      },
+      {
+        "name": "REVIEW_ACCOUNTANT_LDAP",
+        "meaning": "复核会计LDAP账号"
+      },
+      {
+        "name": "APPLY_TYPE",
+        "meaning": "付款申请类型 1总账/2应付/3清账"
+      },
+      {
+        "name": "CLAIM_APPLY_LDAP",
+        "meaning": "报账单申请人LDAP账号"
+      },
+      {
+        "name": "GENERATOR_SOURCE",
+        "meaning": "凭证生成来源 CLAIM/PAYMENT"
+      },
+      {
+        "name": "group_Code",
+        "meaning": "核算小组code"
+      },
+      {
+        "name": "BU_CODE",
+        "meaning": "bu代码"
+      }
+    ],
+    "relations": [
+      "报账单（CLAIM_NO/claim_id）",
+      "t_voucher_line(VOUCHER_ID)",
+      "t_md_vendor(VENDOR_NUMBER/VENDOR_ID)"
+    ],
+    "promptHint": "AP 凭证头；VOUCHER_ID 主键、CLAIM_NO 关联报账单；VENDOR_NUMBER/VENDOR_ID 定位供应商；GENERATOR_SOURCE 区分报账(CLAIM)/付款(PAYMENT)来源；REVIEW_ACCOUNTANT_LDAP 为复核会计LDAP。"
+  },
+  {
+    "schema": "account",
+    "table": "t_voucher_info",
+    "tableComment": "",
+    "dataStatus": "无数据"
+  },
+  {
+    "schema": "account",
+    "table": "t_voucher_line",
+    "tableComment": "",
+    "businessMeaning": "凭证行，记录报账单生成凭证的行类型、借贷方向、科目组合(SEGMENT1-10)、金额、采购订单与供应商信息。",
+    "keyFields": [
+      {
+        "name": "VOUCHER_LINE_ID",
+        "meaning": "凭证行主键"
+      },
+      {
+        "name": "VOUCHER_ID",
+        "meaning": "凭证主键"
+      },
+      {
+        "name": "CLAIM_NO",
+        "meaning": "报账单号"
+      },
+      {
+        "name": "claim_id",
+        "meaning": "表单ID"
+      },
+      {
+        "name": "VOUCHER_LINE_TYPE",
+        "meaning": "凭证行类型 ITEM/WRITEOFF/PO/TAX"
+      },
+      {
+        "name": "DR_CR_FLAG",
+        "meaning": "借贷方向 DR/CR"
+      },
+      {
+        "name": "LINE_NUM",
+        "meaning": "发票行号"
+      },
+      {
+        "name": "LINE_TYPE_LOOKUP_CODE",
+        "meaning": "FMS行类型"
+      },
+      {
+        "name": "SEGMENT1",
+        "meaning": "账户组合第一段"
+      },
+      {
+        "name": "SEGMENT2",
+        "meaning": "账户组合第二段"
+      },
+      {
+        "name": "SEGMENT3",
+        "meaning": "账户组合第三段"
+      },
+      {
+        "name": "SEGMENT4",
+        "meaning": "账户组合第四段"
+      },
+      {
+        "name": "SEGMENT5",
+        "meaning": "账户组合第五段"
+      },
+      {
+        "name": "LINE_AMOUNT",
+        "meaning": "行金额"
+      },
+      {
+        "name": "LINE_DESCRIPTION",
+        "meaning": "行摘要"
+      },
+      {
+        "name": "PO_NUMBER",
+        "meaning": "采购订单编号"
+      },
+      {
+        "name": "VENDOR_CODE",
+        "meaning": "供应商编码"
+      },
+      {
+        "name": "VENDOR_SITE_CODE",
+        "meaning": "供应商地点"
+      },
+      {
+        "name": "WRITEOFF_OTHER_CODE",
+        "meaning": "核销对方编号"
+      },
+      {
+        "name": "RESOURCE_VOUCHER_ID",
+        "meaning": "原凭证ID"
+      },
+      {
+        "name": "GL_DATE",
+        "meaning": "记账日期"
+      }
+    ],
+    "relations": [
+      "t_voucher_head(VOUCHER_ID)",
+      "报账单（CLAIM_NO/claim_id）",
+      "t_md_vendor(VENDOR_CODE)"
+    ],
+    "promptHint": "凭证行；VOUCHER_ID 关联凭证头、CLAIM_NO 关联报账单；DR_CR_FLAG 为借贷方向；SEGMENT1-10 为账户组合分段；VOUCHER_LINE_TYPE 区分 ITEM/WRITEOFF/PO/TAX。"
+  },
+  {
+    "schema": "account",
+    "table": "t_voucher_pool",
+    "tableComment": "凭证核销池",
+    "businessMeaning": "凭证核销池（挂账池），记录可核销凭证行的科目段、供应商、原币/本位币金额、已核销/冻结/余额与核销完成标记。",
+    "keyFields": [
+      {
+        "name": "voucher_pool_id",
+        "meaning": "主键"
+      },
+      {
+        "name": "VOUCHER_ID",
+        "meaning": "凭证ID"
+      },
+      {
+        "name": "VOUCHER_LINE_ID",
+        "meaning": "凭证行主键"
+      },
+      {
+        "name": "BU_CODE",
+        "meaning": "BU"
+      },
+      {
+        "name": "CLAIM_ID",
+        "meaning": "单据ID"
+      },
+      {
+        "name": "CLAIM_NO",
+        "meaning": "单据编号"
+      },
+      {
+        "name": "CLAIM_LINE_ID",
+        "meaning": "单据行ID"
+      },
+      {
+        "name": "RESOURCE_VOUCHER_ID",
+        "meaning": "来源凭证ID"
+      },
+      {
+        "name": "VENDOR_TYPE",
+        "meaning": "供应商类型"
+      },
+      {
+        "name": "VENDOR_CODE",
+        "meaning": "供应商"
+      },
+      {
+        "name": "CATEGORY_CODE",
+        "meaning": "业务大类"
+      },
+      {
+        "name": "SUBCATEGORY_CODE",
+        "meaning": "小类"
+      },
+      {
+        "name": "DR_CR_FLAG",
+        "meaning": "借贷方向"
+      },
+      {
+        "name": "SEGMENT1",
+        "meaning": "机构段值"
+      },
+      {
+        "name": "SEGMENT2",
+        "meaning": "成本中心段值"
+      },
+      {
+        "name": "SEGMENT3",
+        "meaning": "科目段值"
+      },
+      {
+        "name": "SEGMENT4",
+        "meaning": "会计子目"
+      },
+      {
+        "name": "ORIGIN_CURRENCY",
+        "meaning": "原币"
+      },
+      {
+        "name": "BASE_CURRENCY",
+        "meaning": "本位币"
+      },
+      {
+        "name": "AMOUNT",
+        "meaning": "原币金额"
+      },
+      {
+        "name": "ALREADY_WRITE_AMOUNT",
+        "meaning": "已核销金额"
+      },
+      {
+        "name": "FREEZE_AMOUNT",
+        "meaning": "冻结金额"
+      },
+      {
+        "name": "AVAILABLE_AMOUNT",
+        "meaning": "余额"
+      },
+      {
+        "name": "IS_FULL",
+        "meaning": "是否核销完成"
+      },
+      {
+        "name": "STATUS",
+        "meaning": "状态 100/200"
+      }
+    ],
+    "relations": [
+      "t_voucher_head(VOUCHER_ID)",
+      "t_voucher_line(VOUCHER_LINE_ID)",
+      "报账单（CLAIM_NO/CLAIM_ID）"
+    ],
+    "promptHint": "凭证核销池；VOUCHER_ID/VOUCHER_LINE_ID 定位凭证行；AMOUNT/ALREADY_WRITE_AMOUNT/FREEZE_AMOUNT/AVAILABLE_AMOUNT 为金额与余额；IS_FULL 标记是否核销完成；按 CLAIM_NO 关联报账单。"
+  },
+  {
+    "schema": "account",
+    "table": "t_voucher_pool_detail",
+    "tableComment": "凭证核销池-流水",
+    "dataStatus": "无数据"
+  }
+]

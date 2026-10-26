@@ -59,6 +59,13 @@
           <el-input v-model.trim="form.description" type="textarea" :rows="4" maxlength="1000" show-word-limit
             placeholder="说明该场景需要处理的业务内容" />
         </el-form-item>
+        <el-form-item label="关联数据库">
+          <el-select v-model="form.databaseConfigId" clearable filterable placeholder="选择 EMS 数据库（可选）"
+            :loading="false">
+            <el-option v-for="config in databaseConfigs" :key="config.configId" :label="config.name"
+              :value="config.configId" />
+          </el-select>
+        </el-form-item>
       </el-form>
       <span slot="footer" class="workbench-dialog__actions">
         <el-button :disabled="saving" @click="dialogVisible = false">取消</el-button>
@@ -80,12 +87,14 @@ import {
   listBusinessSceneSkills,
   updateBusinessSceneSkill,
 } from '../services/business-skill-api'
+import { EmsDatabaseConnectionConfig, listEmsDatabaseConfigurations } from '../services/ems-database-config-api'
 
 interface SkillForm {
   name: string
   description: string
   handlingType: BusinessHandlingType
   premiseType: string
+  databaseConfigId: string
 }
 
 const emptyForm = (): SkillForm => ({
@@ -93,6 +102,7 @@ const emptyForm = (): SkillForm => ({
   description: '',
   handlingType: 'INVESTIGATE',
   premiseType: '',
+  databaseConfigId: '',
 })
 
 /** 维护业务场景 Skill，供管理员集中新增、编辑与删除。 */
@@ -101,6 +111,7 @@ export default Vue.extend({
   data() {
     return {
       skills: [] as BusinessSceneSkill[],
+      databaseConfigs: [] as EmsDatabaseConnectionConfig[],
       loading: false,
       saving: false,
       errorMessage: '',
@@ -111,6 +122,7 @@ export default Vue.extend({
   },
   created() {
     void this.loadSkills()
+    void this.loadDatabaseConfigs()
   },
   methods: {
     async loadSkills() {
@@ -122,6 +134,14 @@ export default Vue.extend({
         this.errorMessage = error instanceof Error ? error.message : '业务场景暂时无法读取'
       } finally {
         this.loading = false
+      }
+    },
+    /** 加载可关联的 EMS 数据库连接实例列表。 */
+    async loadDatabaseConfigs() {
+      try {
+        this.databaseConfigs = await listEmsDatabaseConfigurations()
+      } catch {
+        this.databaseConfigs = []
       }
     },
     openCreateDialog() {
@@ -140,6 +160,7 @@ export default Vue.extend({
         description: skill.description,
         handlingType: skill.handlingType,
         premiseType: skill.premiseType,
+        databaseConfigId: skill.databaseConfigId || '',
       }
       this.dialogVisible = true
     },
@@ -150,7 +171,13 @@ export default Vue.extend({
       }
       this.saving = true
       try {
-        const payload: BusinessSceneSkillPayload = { ...this.form }
+        const payload: BusinessSceneSkillPayload = {
+          name: this.form.name,
+          description: this.form.description,
+          handlingType: this.form.handlingType,
+          premiseType: this.form.premiseType,
+          databaseConfigId: this.form.databaseConfigId || undefined,
+        }
         if (this.editingId) await updateBusinessSceneSkill(this.editingId, payload)
         else await createBusinessSceneSkill(payload)
         this.dialogVisible = false

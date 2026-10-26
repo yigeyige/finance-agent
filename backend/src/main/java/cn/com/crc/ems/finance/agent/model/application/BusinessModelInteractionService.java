@@ -171,14 +171,14 @@ public final class BusinessModelInteractionService {
         }
     }
 
-    /** 将任务已固化的有效业务场景投影为模型上下文，失效场景拒绝继续生成。 */
+    /** 将任务已固化的有效业务场景投影为模型上下文，失效场景拒绝继续生成；无关联 Skill 时返回空以降级纯文本。 */
     private BusinessSceneSkillContext findSceneSkill(UUID taskId) {
         if (taskBusinessSceneSkillRepository == null || businessSceneSkillRepository == null) {
             return null;
         }
         return taskBusinessSceneSkillRepository.findSkillIdByTaskId(taskId).map(skillId -> businessSceneSkillRepository
                 .findActiveById(skillId).map(skill -> new BusinessSceneSkillContext(skill.name(), skill.description(),
-                        skill.handlingType(), skill.premiseType()))
+                        skill.handlingType(), skill.premiseType(), skill.databaseConfigId()))
                 .orElseThrow(() -> new IllegalStateException("任务关联的业务场景 Skill 已失效，请重新创建任务"))).orElse(null);
     }
 
