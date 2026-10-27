@@ -1,8 +1,8 @@
 package cn.com.crc.ems.finance.agent.task.application;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -97,22 +97,33 @@ public class TaskDetailService {
                 JsonNodeFactory.instance.arrayNode());
     }
 
-    /** 投影最新业务决策包的修订号、结论与去重后证据，不存在时返回空。 */
+    /** 投影最新业务决策包的修订号、待决策操作、涉及对象、影响、待确认与去重证据，不存在时返回空。 */
     private static DecisionPacket projectDecisionPacket(BusinessDecisionPacket packet) {
         try {
             JsonNode content = CanonicalJsonCodec.parse(packet.canonicalContent());
             JsonNode evidence = content.path("evidence");
-            return new DecisionPacket(packet.revision(), content.path("conclusion").asText(""),
+            return new DecisionPacket(packet.revision(), content.path("action").asText(""),
+                    stringList(content.get("targets")),
                     evidence.isArray() ? evidence : JsonNodeFactory.instance.arrayNode());
         } catch (RuntimeException ignored) {
             return null;
         }
     }
 
+    private static List<String> stringList(JsonNode value) {
+        if (value == null || !value.isArray()) {
+            return List.of();
+        }
+        List<String> result = new ArrayList<>();
+        value.forEach(item -> result.add(item.asText()));
+        return List.copyOf(result);
+    }
+
     public record Detail(UUID taskId, String title, String description, String status, UUID initiatorUserId, Instant createdAt,
             List<Premise> premises, Scope scope, List<PlanStep> plans, String conclusion, @JsonRawValue JsonNode evidence,
             DecisionPacket decisionPacket) { }
-    public record DecisionPacket(int revision, String conclusion, @JsonRawValue JsonNode evidence) { }
+    public record DecisionPacket(int revision, String action, List<String> targets,
+            @JsonRawValue JsonNode evidence) { }
     public record Premise(String premiseType, String subjectKey, String statement, String sourceDescription) {
         static Premise from(TaskPremise value) { return new Premise(value.premiseType(), value.subjectKey(), value.statement(), value.sourceDescription()); }
     }

@@ -26,6 +26,7 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessModelException;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelResult;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
+import cn.com.crc.ems.finance.agent.harness.application.DecisionPacketSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
@@ -204,6 +205,14 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         return invoke(instruction, input, EvidenceAnalysisSuggestion::fromJson);
     }
 
+    @Override
+    public BusinessModelResult<DecisionPacketSuggestion> generateDecisionPacket(BusinessGuidanceContext context,
+            List<EmsDatabaseEvidence> evidence) {
+        ObjectNode input = packetInput(context, evidence);
+        String instruction = instruction("GENERATE_PACKET", input);
+        return invoke(instruction, input, DecisionPacketSuggestion::fromJson);
+    }
+
     private <T> BusinessModelResult<T> invoke(String instruction, ObjectNode input,
             java.util.function.Function<JsonNode, T> parser) {
         long started = System.nanoTime();
@@ -324,6 +333,28 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         node.put("undeterminedCount", context.undeterminedCount());
         node.putPOJO("coverageStates", context.coverageStates());
         node.putPOJO("findingStatements", context.findingStatements());
+        return node;
+    }
+
+    private static ObjectNode packetInput(BusinessGuidanceContext context, List<EmsDatabaseEvidence> evidence) {
+        ObjectNode node = JsonNodeFactory.instance.objectNode();
+        node.put("title", context.title());
+        node.put("description", context.description());
+        if (context.sceneSkill() != null) {
+            ObjectNode skill = node.putObject("sceneSkill");
+            skill.put("name", context.sceneSkill().name());
+            skill.put("description", context.sceneSkill().description());
+        }
+        var evidenceArray = node.putArray("evidence");
+        evidence.stream().filter(item -> !item.rows().isEmpty()).forEach(item -> {
+            ObjectNode projected = evidenceArray.addObject();
+            projected.put("schema", item.schema());
+            projected.put("table", item.table());
+            projected.put("purpose", item.purpose());
+            projected.putPOJO("columns", item.columns());
+            projected.putPOJO("rows", item.rows().stream().limit(20).toList());
+            projected.put("boundary", "只读查询的待核验辅助信息，不代表已确认事实或授权执行操作");
+        });
         return node;
     }
 }

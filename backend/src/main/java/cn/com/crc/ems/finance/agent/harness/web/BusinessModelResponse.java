@@ -41,17 +41,16 @@ public final class BusinessModelResponse {
         static Guidance from(BusinessModelResult<BusinessGuidanceSuggestion> result) {
             var draft = result.value().draft();
             return new Guidance(result.value().reply(), new BusinessHandlingDraftResponse(draft.handlingType(),
-                    draft.premiseType(), draft.subjectKey(), draft.statement(), draft.sourceDescription(),
-                    draft.systemCode(), draft.objectKey(), draft.startDate(), draft.endDate(),
-                    draft.investigationAreas(), draft.dataUse(), draft.recommendedGoal(), draft.alternativeGoals(),
-                    draft.reason(), draft.conclusion(), draft.evidence()), Metadata.from(result.metadata()));
+                    draft.premiseType(), draft.statement(),
+                    draft.objectKey(), draft.startDate(), draft.endDate(),
+                    draft.investigationAreas(), draft.dataUse(),
+                    draft.conclusion(), draft.evidence()), Metadata.from(result.metadata()));
         }
     }
 
-    public record BusinessHandlingDraftResponse(String handlingType, String premiseType, String subjectKey,
-            String statement, String sourceDescription, String systemCode, String objectKey, String startDate,
-            String endDate, List<String> investigationAreas, String dataUse, String recommendedGoal,
-            List<String> alternativeGoals, String reason, String conclusion, List<EmsDatabaseEvidence> evidence) {
+    public record BusinessHandlingDraftResponse(String handlingType, String premiseType, String statement,
+            String objectKey, String startDate, String endDate, List<String> investigationAreas, String dataUse,
+            String conclusion, List<EmsDatabaseEvidence> evidence) {
     }
 
     public record Analysis(String summary, String riskLevel, String riskExplanation,

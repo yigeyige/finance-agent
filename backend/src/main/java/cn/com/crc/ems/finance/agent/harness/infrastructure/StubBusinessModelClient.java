@@ -12,6 +12,8 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessModelResult;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessHandlingDraft;
+import cn.com.crc.ems.finance.agent.harness.application.DecisionPacketSuggestion;
+import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanContext;
@@ -82,6 +84,21 @@ public final class StubBusinessModelClient implements BusinessModelClient {
         return result(contextJson(context), analysisJson(value), value, started);
     }
 
+    @Override
+    public BusinessModelResult<DecisionPacketSuggestion> generateDecisionPacket(BusinessGuidanceContext context,
+            List<EmsDatabaseEvidence> evidence) {
+        long started = System.nanoTime();
+        ObjectNode input = JsonNodeFactory.instance.objectNode();
+        input.put("title", context.title());
+        input.put("description", context.description());
+        input.put("evidenceCount", evidence.size());
+        ObjectNode output = JsonNodeFactory.instance.objectNode();
+        output.put("action", "核对已授权范围内的现状并形成可复核结论");
+        output.putPOJO("targets", List.of("待管理员确认的业务对象"));
+        return result(input, output, new DecisionPacketSuggestion("核对已授权范围内的现状并形成可复核结论",
+                List.of("待管理员确认的业务对象")), started);
+    }
+
     private static <T> BusinessModelResult<T> result(ObjectNode input, ObjectNode output, T value, long started) {
         return new BusinessModelResult<>(value, new BusinessModelCallMetadata("STUB", MODEL_NAME,
                 Sha256Digest.hex(CanonicalJsonCodec.canonicalize(input)),
@@ -106,12 +123,10 @@ public final class StubBusinessModelClient implements BusinessModelClient {
         boolean adjust = context.description().contains("调整") || context.description().contains("修改")
                 || context.title().contains("调整");
         String handlingType = adjust ? "ADJUST" : "INVESTIGATE";
-        String action = adjust ? "梳理调整影响范围并形成可执行处理方案" : "核对已授权范围内的现状并形成可复核结论";
-        return new BusinessHandlingDraft(handlingType, adjust ? "业务调整" : "业务核查", "待管理员确认的业务对象",
-                context.description(), "管理员填写的业务说明", "FIN-SYN", "待管理员确认的系统对象", "2026-01-01",
-                "2026-12-31", List.of("APPROVAL", "ROLE"), "MINIMUM", action,
-                List.of("复核对象关联关系和责任归属", "核对时间范围内的变更及待处理事项"),
-                "本地模拟模型已根据业务说明形成初稿，管理员确认后才会写入业务范围。",
+        return new BusinessHandlingDraft(handlingType, adjust ? "业务调整" : "业务核查",
+                context.description(),
+                "待管理员确认的系统对象", "2026-01-01",
+                "2026-12-31", List.of("APPROVAL", "ROLE"), "MINIMUM",
                 "本地模拟模型未查询 EMS 数据库，暂无检查结论。", List.of());
     }
 
@@ -119,12 +134,10 @@ public final class StubBusinessModelClient implements BusinessModelClient {
         BusinessHandlingDraft current = context.currentDraft();
         boolean adjust = context.feedback().contains("调整") || context.feedback().contains("修改")
                 || current.handlingType().equals("ADJUST");
-        String goal = current.recommendedGoal() + "；已纳入管理员意见：" + context.feedback();
         return new BusinessHandlingDraft(adjust ? "ADJUST" : "INVESTIGATE", current.premiseType(),
-                current.subjectKey(), current.statement(), current.sourceDescription(), current.systemCode(),
+                current.statement(),
                 current.objectKey(), current.startDate(), current.endDate(), current.investigationAreas(),
-                current.dataUse(), goal.length() > 2000 ? goal.substring(0, 2000) : goal,
-                current.alternativeGoals(), "本地模拟模型已根据管理员的本次意见更新初稿，请再次核对。",
+                current.dataUse(),
                 current.conclusion(), current.evidence());
     }
 

@@ -70,7 +70,6 @@ class BusinessModelClientTest {
         assertThat(initial.value().draft().handlingType()).isEqualTo("ADJUST");
         assertThat(initial.value().draft().investigationAreas()).containsExactly("APPROVAL", "ROLE");
         assertThat(revised.value().reply()).contains("更新");
-        assertThat(revised.value().draft().recommendedGoal()).contains("管理员意见");
     }
 
     @Test

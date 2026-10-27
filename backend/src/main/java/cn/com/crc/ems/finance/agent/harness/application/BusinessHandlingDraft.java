@@ -19,14 +19,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @Author: yigeyige99
  * @Date: 2026-10-08 21:10:00
  */
-public record BusinessHandlingDraft(String handlingType, String premiseType, String subjectKey, String statement,
-        String sourceDescription, String systemCode, String objectKey, String startDate, String endDate,
-        List<String> investigationAreas, String dataUse, String recommendedGoal, List<String> alternativeGoals,
-        String reason, String conclusion, List<EmsDatabaseEvidence> evidence) {
+public record BusinessHandlingDraft(String handlingType, String premiseType, String statement,
+        String objectKey, String startDate, String endDate,
+        List<String> investigationAreas, String dataUse,
+        String conclusion, List<EmsDatabaseEvidence> evidence) {
 
-    private static final Set<String> FIELDS = Set.of("handlingType", "premiseType", "subjectKey", "statement",
-            "sourceDescription", "systemCode", "objectKey", "startDate", "endDate", "investigationAreas",
-            "dataUse", "recommendedGoal", "alternativeGoals", "reason", "conclusion", "evidence");
+    private static final Set<String> FIELDS = Set.of("handlingType", "premiseType", "statement",
+            "objectKey", "startDate", "endDate", "investigationAreas",
+            "dataUse", "conclusion", "evidence");
     private static final Set<String> HANDLING_TYPES = Set.of("INVESTIGATE", "ADJUST");
     private static final Set<String> AREAS = Set.of("APPROVAL", "ROLE", "ACCOUNTING", "CONFIG");
     private static final Set<String> DATA_USES = Set.of("MINIMUM", "ANALYSIS");
@@ -34,12 +34,7 @@ public record BusinessHandlingDraft(String handlingType, String premiseType, Str
     public BusinessHandlingDraft {
         requireEnum(handlingType, HANDLING_TYPES, "handlingType");
         requireText(premiseType, "premiseType", 100);
-        requireText(subjectKey, "subjectKey", 200);
         requireText(statement, "statement", 2000);
-        requireText(sourceDescription, "sourceDescription", 500);
-        if (!"FIN-SYN".equals(systemCode)) {
-            throw new IllegalArgumentException("systemCode is invalid");
-        }
         requireText(objectKey, "objectKey", 200);
         requireDate(startDate, "startDate");
         requireDate(endDate, "endDate");
@@ -52,13 +47,6 @@ public record BusinessHandlingDraft(String handlingType, String premiseType, Str
         }
         investigationAreas = List.copyOf(investigationAreas);
         requireEnum(dataUse, DATA_USES, "dataUse");
-        requireText(recommendedGoal, "recommendedGoal", 2000);
-        if (alternativeGoals == null || alternativeGoals.size() > 5) {
-            throw new IllegalArgumentException("alternativeGoals is invalid");
-        }
-        alternativeGoals = List.copyOf(alternativeGoals);
-        alternativeGoals.forEach(value -> requireText(value, "alternativeGoal", 2000));
-        requireText(reason, "reason", 2000);
         conclusion = conclusion == null ? "" : conclusion;
         if (conclusion.length() > 2000) {
             throw new IllegalArgumentException("conclusion is invalid");
@@ -80,16 +68,14 @@ public record BusinessHandlingDraft(String handlingType, String premiseType, Str
      */
     public static BusinessHandlingDraft fromJson(JsonNode value) {
         requireExactObject(value);
-        List<String> areas = textArray(value.get("investigationAreas"), "investigationAreas", 1, AREAS.size());
-        List<String> alternatives = textArray(value.get("alternativeGoals"), "alternativeGoals", 0, 5);
+        List<String> areas = textArray(value.get("investigationAreas"), "investigationAreas", 1, AREAS.size(), 20);
         List<EmsDatabaseEvidence> evidence = evidenceArray(value.get("evidence"));
         try {
             return new BusinessHandlingDraft(text(value, "handlingType", 20), text(value, "premiseType", 100),
-                    text(value, "subjectKey", 200), text(value, "statement", 2000),
-                    text(value, "sourceDescription", 500), text(value, "systemCode", 100),
+                    text(value, "statement", 2000),
                     text(value, "objectKey", 200), text(value, "startDate", 10), text(value, "endDate", 10),
-                    areas, text(value, "dataUse", 20), text(value, "recommendedGoal", 2000), alternatives,
-                    text(value, "reason", 2000), textValue(value.get("conclusion"), "conclusion", 2000), evidence);
+                    areas, text(value, "dataUse", 20),
+                    textValue(value.get("conclusion"), "conclusion", 2000), evidence);
         } catch (IllegalArgumentException exception) {
             throw new BusinessModelException("模型返回的业务处理初稿格式不正确", exception);
         }
@@ -109,7 +95,7 @@ public record BusinessHandlingDraft(String handlingType, String premiseType, Str
                 String schema = textValue(item.get("schema"), "evidence.schema", 100);
                 String table = textValue(item.get("table"), "evidence.table", 100);
                 String purpose = textValue(item.get("purpose"), "evidence.purpose", 300);
-                List<String> columns = textArray(item.get("columns"), "evidence.columns", 1, 20);
+                List<String> columns = textArray(item.get("columns"), "evidence.columns", 1, 20, 200);
                 List<List<String>> rows = new ArrayList<>();
                 if (item.has("rows") && item.get("rows").isArray()) {
                     item.get("rows").forEach(row -> {
@@ -139,18 +125,12 @@ public record BusinessHandlingDraft(String handlingType, String premiseType, Str
         ObjectNode node = JsonNodeFactory.instance.objectNode();
         node.put("handlingType", handlingType);
         node.put("premiseType", premiseType);
-        node.put("subjectKey", subjectKey);
         node.put("statement", statement);
-        node.put("sourceDescription", sourceDescription);
-        node.put("systemCode", systemCode);
         node.put("objectKey", objectKey);
         node.put("startDate", startDate);
         node.put("endDate", endDate);
         node.putPOJO("investigationAreas", investigationAreas);
         node.put("dataUse", dataUse);
-        node.put("recommendedGoal", recommendedGoal);
-        node.putPOJO("alternativeGoals", alternativeGoals);
-        node.put("reason", reason);
         node.put("conclusion", conclusion);
         node.putPOJO("evidence", evidence);
         return node;
@@ -168,12 +148,12 @@ public record BusinessHandlingDraft(String handlingType, String premiseType, Str
         }
     }
 
-    private static List<String> textArray(JsonNode value, String field, int minSize, int maxSize) {
+    private static List<String> textArray(JsonNode value, String field, int minSize, int maxSize, int itemMax) {
         if (value == null || !value.isArray() || value.size() < minSize || value.size() > maxSize) {
             throw new BusinessModelException("模型返回字段格式不正确: " + field);
         }
         List<String> values = new ArrayList<>();
-        value.forEach(item -> values.add(textValue(item, field, 2000)));
+        value.forEach(item -> values.add(textValue(item, field, itemMax)));
         return values;
     }
 

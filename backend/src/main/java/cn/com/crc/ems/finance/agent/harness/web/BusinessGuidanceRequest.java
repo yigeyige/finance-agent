@@ -27,17 +27,16 @@ public record BusinessGuidanceRequest(String message, Draft currentDraft) {
             return null;
         }
         return new BusinessHandlingDraft(currentDraft.handlingType(), currentDraft.premiseType(),
-                currentDraft.subjectKey(), currentDraft.statement(), currentDraft.sourceDescription(),
-                currentDraft.systemCode(), currentDraft.objectKey(), currentDraft.startDate(), currentDraft.endDate(),
-                currentDraft.investigationAreas(), currentDraft.dataUse(), currentDraft.recommendedGoal(),
-                currentDraft.alternativeGoals(), currentDraft.reason(), currentDraft.conclusion(),
-                currentDraft.evidence());
+                currentDraft.statement(),
+                currentDraft.objectKey(), currentDraft.startDate(), currentDraft.endDate(),
+                currentDraft.investigationAreas(), currentDraft.dataUse(),
+                currentDraft.conclusion(), currentDraft.evidence());
     }
 
     /** 业务处理草稿的接口层字段，保持与前端表单一一对应。 */
-    public record Draft(String handlingType, String premiseType, String subjectKey, String statement,
-            String sourceDescription, String systemCode, String objectKey, String startDate, String endDate,
-            List<String> investigationAreas, String dataUse, String recommendedGoal, List<String> alternativeGoals,
-            String reason, String conclusion, List<EmsDatabaseEvidence> evidence) {
+    public record Draft(String handlingType, String premiseType, String statement,
+            String objectKey, String startDate, String endDate,
+            List<String> investigationAreas, String dataUse,
+            String conclusion, List<EmsDatabaseEvidence> evidence) {
     }
 }

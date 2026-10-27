@@ -45,4 +45,8 @@ public interface BusinessModelClient {
 
     /** 根据脱敏证据摘要生成业务分析建议。 */
     BusinessModelResult<EvidenceAnalysisSuggestion> analyzeEvidence(EvidenceAnalysisContext context);
+
+    /** 根据任务说明与调查累积证据生成业务决策包的待决策操作与涉及对象。 */
+    BusinessModelResult<DecisionPacketSuggestion> generateDecisionPacket(BusinessGuidanceContext context,
+            List<EmsDatabaseEvidence> evidence);
 }

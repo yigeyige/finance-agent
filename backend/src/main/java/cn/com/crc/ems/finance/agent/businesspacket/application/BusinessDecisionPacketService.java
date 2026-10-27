@@ -17,11 +17,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessDecisionPacket;
 import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessEvidenceAccum;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
+import cn.com.crc.ems.finance.agent.harness.application.DecisionPacketSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJson;
 import cn.com.crc.ems.finance.agent.shared.domain.JsonCodec;
 import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
 import cn.com.crc.ems.finance.agent.task.application.GuidanceDraftRepository;
+import cn.com.crc.ems.finance.agent.task.application.InvestigationTaskRepository;
 
 /**
  *
@@ -40,14 +44,18 @@ public class BusinessDecisionPacketService {
     private final BusinessDecisionPacketRepository packetRepository;
     private final BusinessEvidenceAccumRepository evidenceRepository;
     private final GuidanceDraftRepository guidanceDraftRepository;
+    private final InvestigationTaskRepository taskRepository;
+    private final BusinessModelClient modelClient;
     private final Clock clock;
 
     public BusinessDecisionPacketService(BusinessDecisionPacketRepository packetRepository,
             BusinessEvidenceAccumRepository evidenceRepository, GuidanceDraftRepository guidanceDraftRepository,
-            Clock clock) {
+            InvestigationTaskRepository taskRepository, BusinessModelClient modelClient, Clock clock) {
         this.packetRepository = packetRepository;
         this.evidenceRepository = evidenceRepository;
         this.guidanceDraftRepository = guidanceDraftRepository;
+        this.taskRepository = taskRepository;
+        this.modelClient = modelClient;
         this.clock = clock;
     }
 
@@ -64,8 +72,14 @@ public class BusinessDecisionPacketService {
     public BusinessDecisionPacketResult generate(UUID taskId) {
         String draftJson = guidanceDraftRepository.findLatestDraftJsonByTaskId(taskId)
                 .orElseThrow(() -> new IllegalStateException("尚未生成业务处理草稿，无法生成业务决策包"));
+        var task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalStateException("业务处理任务不存在"));
         List<EmsDatabaseEvidence> deduplicated = deduplicate(evidenceRepository.findByTaskIdOrderByRound(taskId));
-        ObjectNode businessContent = buildBusinessContent(draftJson, deduplicated);
+        DecisionPacketSuggestion suggestion = modelClient.generateDecisionPacket(
+                new BusinessGuidanceContext(taskId, task.title(), task.originalQuestion(), null, null, null,
+                        List.of(), List.of()),
+                deduplicated).value();
+        ObjectNode businessContent = buildBusinessContent(suggestion, deduplicated);
         String contentDigest = CanonicalJson.of(businessContent.toString()).sha256();
         var latest = packetRepository.findLatestByTaskId(taskId);
         if (latest.isPresent() && latest.get().contentDigest().equals(contentDigest)) {
@@ -100,14 +114,10 @@ public class BusinessDecisionPacketService {
         return packetRepository.findByTaskIdAndRevision(taskId, revision);
     }
 
-    private ObjectNode buildBusinessContent(String draftJson, List<EmsDatabaseEvidence> evidence) {
+    private ObjectNode buildBusinessContent(DecisionPacketSuggestion suggestion, List<EmsDatabaseEvidence> evidence) {
         ObjectNode content = JsonCodec.mapper().createObjectNode();
-        JsonNode draft = readTree(draftJson);
-        draft.fieldNames().forEachRemaining(name -> {
-            if (!EVIDENCE_FIELD.equals(name)) {
-                content.set(name, draft.get(name));
-            }
-        });
+        content.put("action", suggestion.action());
+        content.putPOJO("targets", suggestion.targets());
         content.set(EVIDENCE_FIELD, JsonCodec.mapper().valueToTree(evidence));
         return content;
     }
@@ -143,14 +153,6 @@ public class BusinessDecisionPacketService {
             return JsonCodec.mapper().readValue(evidenceJson, new TypeReference<List<EmsDatabaseEvidence>>() { });
         } catch (Exception exception) {
             throw new IllegalStateException("证据工作区数据不可解析", exception);
-        }
-    }
-
-    private JsonNode readTree(String json) {
-        try {
-            return JsonCodec.mapper().readTree(json);
-        } catch (Exception exception) {
-            throw new IllegalStateException("业务处理草稿数据不可解析", exception);
         }
     }
 }

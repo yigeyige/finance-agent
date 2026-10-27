@@ -8,6 +8,7 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelResult;
+import cn.com.crc.ems.finance.agent.harness.application.DecisionPacketSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
@@ -47,5 +48,6 @@ public final class DatabaseConfiguredBusinessModelClient implements BusinessMode
     @Override public BusinessModelResult<BusinessGuidanceSuggestion> guideBusinessHandling(BusinessGuidanceContext context) { return live().guideBusinessHandling(context); }
     @Override public BusinessModelResult<ModelPlanSuggestion> generatePlan(ModelPlanContext context) { return live().generatePlan(context); }
     @Override public BusinessModelResult<EvidenceAnalysisSuggestion> analyzeEvidence(EvidenceAnalysisContext context) { return live().analyzeEvidence(context); }
+    @Override public BusinessModelResult<DecisionPacketSuggestion> generateDecisionPacket(BusinessGuidanceContext context, List<EmsDatabaseEvidence> evidence) { return live().generateDecisionPacket(context, evidence); }
     private DeepSeekBusinessModelClient live() { var config = configService.requireEnabled(); return new DeepSeekBusinessModelClient(new DeepSeekOpenAiAdapter(config.apiUrl(), config.modelName(), config.reasoningEffort(), cipher.decrypt(config.apiKeyCiphertext())), promptTemplates); }
 }
