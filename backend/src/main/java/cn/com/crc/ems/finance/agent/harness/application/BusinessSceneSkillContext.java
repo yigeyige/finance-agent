@@ -6,7 +6,7 @@ package cn.com.crc.ems.finance.agent.harness.application;
  *
  * @Version: 0.1.0
  * @Author: yigeyige99
- * @Date: 2026-10-11 21:28:41
+ * @Date: 2026-10-27 11:20:00
  */
-public record BusinessSceneSkillContext(String name, String description, String handlingType, String premiseType) {
+public record BusinessSceneSkillContext(String name, String investigationPrompt, String decisionPacketPrompt) {
 }

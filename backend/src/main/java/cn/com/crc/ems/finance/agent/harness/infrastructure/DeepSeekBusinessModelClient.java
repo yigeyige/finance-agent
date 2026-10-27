@@ -249,9 +249,8 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         if (context.sceneSkill() != null) {
             ObjectNode skill = node.putObject("sceneSkill");
             skill.put("name", context.sceneSkill().name());
-            skill.put("description", context.sceneSkill().description());
-            skill.put("handlingType", context.sceneSkill().handlingType());
-            skill.put("premiseType", context.sceneSkill().premiseType());
+            skill.put("investigationPrompt", context.sceneSkill().investigationPrompt());
+            skill.put("decisionPacketPrompt", context.sceneSkill().decisionPacketPrompt());
         }
         if (context.feedback() != null) {
             node.put("feedback", context.feedback());
@@ -290,9 +289,8 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         if (context.sceneSkill() != null) {
             ObjectNode skill = node.putObject("sceneSkill");
             skill.put("name", context.sceneSkill().name());
-            skill.put("description", context.sceneSkill().description());
-            skill.put("handlingType", context.sceneSkill().handlingType());
-            skill.put("premiseType", context.sceneSkill().premiseType());
+            skill.put("investigationPrompt", context.sceneSkill().investigationPrompt());
+            skill.put("decisionPacketPrompt", context.sceneSkill().decisionPacketPrompt());
         }
         return node;
     }

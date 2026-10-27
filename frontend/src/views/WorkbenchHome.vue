@@ -37,7 +37,7 @@
             </el-form-item>
             <el-form-item label="业务场景">
               <el-select v-model="selectedSkillId" clearable filterable placeholder="选择业务场景（可选）" :loading="sceneSkillsLoading">
-                <el-option v-for="skill in sceneSkills" :key="skill.skillId" :label="`${skill.name}（${skill.premiseType}）`" :value="skill.skillId" />
+                <el-option v-for="skill in sceneSkills" :key="skill.skillId" :label="skill.name" :value="skill.skillId" />
               </el-select>
             </el-form-item>
             <el-form-item label="附件材料（可选）">
@@ -66,9 +66,7 @@
                     </el-radio-group>
                   </el-form-item>
                   <el-form-item label="业务场景">
-                    <el-select v-model="form.premiseType" filterable allow-create default-first-option>
-                      <el-option v-for="skill in sceneSkills" :key="skill.skillId" :label="`${skill.name}（${skill.premiseType}）`" :value="skill.premiseType" />
-                    </el-select>
+                    <el-select v-model="form.premiseType" filterable allow-create default-first-option placeholder="请选择或输入业务场景" />
                   </el-form-item>
                   <el-form-item label="处理对象">
                     <el-input v-model.trim="form.subjectKey" />

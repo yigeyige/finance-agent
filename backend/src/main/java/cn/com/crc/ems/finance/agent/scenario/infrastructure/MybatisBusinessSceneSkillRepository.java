@@ -66,18 +66,16 @@ public class MybatisBusinessSceneSkillRepository implements BusinessSceneSkillRe
     }
 
     private static BusinessSceneSkill toDomain(BusinessSceneSkillEntity entity) {
-        return new BusinessSceneSkill(PersistenceUuid.toDomain(entity.skillId), entity.name, entity.description,
-                entity.handlingType, entity.premiseType, entity.createdBy, entity.createdAt, entity.updatedBy,
-                entity.updatedAt);
+        return new BusinessSceneSkill(PersistenceUuid.toDomain(entity.skillId), entity.name, entity.investigationPrompt,
+                entity.decisionPacketPrompt, entity.createdBy, entity.createdAt, entity.updatedBy, entity.updatedAt);
     }
 
     private static BusinessSceneSkillEntity toEntity(BusinessSceneSkill skill) {
         BusinessSceneSkillEntity entity = new BusinessSceneSkillEntity();
         entity.skillId = PersistenceUuid.toStorage(skill.skillId());
         entity.name = skill.name();
-        entity.description = skill.description();
-        entity.handlingType = skill.handlingType();
-        entity.premiseType = skill.premiseType();
+        entity.investigationPrompt = skill.investigationPrompt();
+        entity.decisionPacketPrompt = skill.decisionPacketPrompt();
         entity.createdBy = skill.createdBy();
         entity.createdAt = skill.createdAt();
         entity.updatedBy = skill.updatedBy();

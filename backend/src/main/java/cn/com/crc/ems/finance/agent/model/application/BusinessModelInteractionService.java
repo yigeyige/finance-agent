@@ -177,8 +177,8 @@ public final class BusinessModelInteractionService {
             return null;
         }
         return taskBusinessSceneSkillRepository.findSkillIdByTaskId(taskId).map(skillId -> businessSceneSkillRepository
-                .findActiveById(skillId).map(skill -> new BusinessSceneSkillContext(skill.name(), skill.description(),
-                        skill.handlingType(), skill.premiseType()))
+                .findActiveById(skillId).map(skill -> new BusinessSceneSkillContext(skill.name(), skill.investigationPrompt(),
+                        skill.decisionPacketPrompt()))
                 .orElseThrow(() -> new IllegalStateException("任务关联的业务场景 Skill 已失效，请重新创建任务"))).orElse(null);
     }
 

@@ -73,8 +73,8 @@ export interface TaskDiagnosticResponse { taskId: string; taskStatus: TaskStatus
 
 /** 业务场景 Skill 的契约枚举与读写模型。 */
 export type BusinessHandlingType = 'INVESTIGATE' | 'ADJUST'
-export interface BusinessSceneSkill { skillId: string; name: string; description: string; handlingType: BusinessHandlingType; premiseType: string; updatedAt: string }
-export interface BusinessSceneSkillPayload { name: string; description: string; handlingType: BusinessHandlingType; premiseType: string }
+export interface BusinessSceneSkill { skillId: string; name: string; investigationPrompt: string; decisionPacketPrompt: string; updatedAt: string }
+export interface BusinessSceneSkillPayload { name: string; investigationPrompt: string; decisionPacketPrompt: string }
 
 /** EMS 结构快照形成的只读业务域目录，不包含实时业务数据。 */
 export interface EmsBusinessDomainKnowledge {
@@ -126,7 +126,7 @@ export interface TaskDraftRequest { title: string; originalQuestion: string; ini
 const TASK_RESPONSE_FIELDS = ['taskId', 'title', 'status', 'rowVersion', 'currentScopeRevisionId', 'createdAt', 'premiseId', 'scopeRevisionNo', 'scopeDigest']
 const PUBLIC_EVENT_FIELDS = ['taskId', 'userId', 'sequence', 'eventType', 'status', 'publicReason', 'resultReference', 'occurredAt']
 const IDENTITY_FIELDS = ['userId', 'authSubject', 'displayName', 'roles', 'permissions', 'testIdentity']
-const BUSINESS_SCENE_SKILL_FIELDS = ['skillId', 'name', 'description', 'handlingType', 'premiseType', 'updatedAt']
+const BUSINESS_SCENE_SKILL_FIELDS = ['skillId', 'name', 'investigationPrompt', 'decisionPacketPrompt', 'updatedAt']
 const EMS_BUSINESS_DOMAIN_KNOWLEDGE_FIELDS = ['code', 'name', 'summary', 'schemas', 'tableCount', 'keyTables', 'knowledgeBoundary', 'verificationHint']
 const MODEL_CONFIGURATION_FIELDS = ['configId', 'name', 'provider', 'apiUrl', 'modelName', 'reasoningEffort', 'enabled', 'apiKeyConfigured', 'updatedAt']
 const EMS_DATABASE_CONFIGURATION_FIELDS = ['configId', 'name', 'jdbcUrl', 'username', 'connectTimeoutSeconds', 'queryTimeoutSeconds', 'maxRows', 'enabled', 'passwordConfigured', 'updatedAt']
@@ -147,7 +147,7 @@ const BUSINESS_DRAFT_FIELDS = ['handlingType', 'premiseType', 'subjectKey', 'sta
 /** 校验业务场景 Skill 响应。 */
 export function parseBusinessSceneSkill(value: unknown): BusinessSceneSkill {
   const record = assertObjectFields(value, BUSINESS_SCENE_SKILL_FIELDS, '业务场景 Skill 响应')
-  return { skillId: requireString(record.skillId, 'Skill 标识'), name: requireString(record.name, 'Skill 名称'), description: requireString(record.description, 'Skill 说明'), handlingType: parseBusinessHandlingType(record.handlingType), premiseType: requireString(record.premiseType, '业务场景'), updatedAt: requireString(record.updatedAt, '更新时间') }
+  return { skillId: requireString(record.skillId, 'Skill 标识'), name: requireString(record.name, 'Skill 名称'), investigationPrompt: requireString(record.investigationPrompt, '调查提示词'), decisionPacketPrompt: requireString(record.decisionPacketPrompt, '决策包提示词'), updatedAt: requireString(record.updatedAt, '更新时间') }
 }
 
 /** 校验业务场景 Skill 列表响应。 */

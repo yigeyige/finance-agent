@@ -156,12 +156,13 @@ source: development-workplan
 |  128 | P0 自定义需求 | [20261025-require-versioned-business-scene-skill](20261025-强制场景Skill并冻结版本.md) | 强制选择业务场景 Skill 并冻结任务版本 | [20261025-强制场景Skill并冻结版本.md](20261025-强制场景Skill并冻结版本.md) | 进行中 | `20261024-business-decision-packet` |
 |  129 | P0 自定义需求 | [20261025-govern-model-attempt-evidence-context](20261025-治理模型调用与证据上下文.md) | 治理模型调用、证据状态与有界历史上下文 | [20261025-治理模型调用与证据上下文.md](20261025-治理模型调用与证据上下文.md) | 进行中 | `20261025-require-versioned-business-scene-skill` |
 |  130 | P0 自定义需求 | [20261025-analyze-evidence-businesspacket](20261025-基于全量证据生成业务决策包.md) | 基于全部有效证据分析并生成业务决策包 | [20261025-基于全量证据生成业务决策包.md](20261025-基于全量证据生成业务决策包.md) | 进行中 | `20261025-require-versioned-business-scene-skill`、`20261025-govern-model-attempt-evidence-context` |
+|  131 | P0 自定义需求 | [20261027-refine-business-scene-skill-fields](20261027-业务场景Skill字段调整.md) | 业务场景 Skill 字段调整（场景名称、调查提示词、决策包提示词） | [20261027-业务场景Skill字段调整.md](20261027-业务场景Skill字段调整.md) | 已完成 | 无 |
 
 ## 阶段统计
 
 | 阶段 |  数量 |
 |---|----:|
-| P0 | 110 |
+| P0 | 111 |
 | P1 |   9 |
 | P2 |  11 |
-| 合计 | 130 |
+| 合计 | 131 |

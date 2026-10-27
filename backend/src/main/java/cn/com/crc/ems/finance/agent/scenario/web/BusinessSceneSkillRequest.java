@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -13,13 +12,12 @@ import jakarta.validation.constraints.Size;
  *
  * @Version: 0.1.0
  * @Author: yigeyige99
- * @Date: 2026-10-11 21:28:41
+ * @Date: 2026-10-27 11:20:00
  */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record BusinessSceneSkillRequest(@NotBlank @Size(max = 100) String name,
-        @NotBlank @Size(max = 1000) String description,
-        @NotBlank @Pattern(regexp = "INVESTIGATE|ADJUST") String handlingType,
-        @NotBlank @Size(max = 100) String premiseType) {
+        @NotBlank @Size(max = 2000) String investigationPrompt,
+        @NotBlank @Size(max = 2000) String decisionPacketPrompt) {
 
     @JsonAnySetter
     public void rejectUnknown(String name, Object value) {

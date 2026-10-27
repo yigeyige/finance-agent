@@ -20,9 +20,8 @@ public class BusinessSceneSkillEntity {
     @TableId(value = "skill_id", type = IdType.ASSIGN_UUID)
     public String skillId;
     public String name;
-    public String description;
-    public String handlingType;
-    public String premiseType;
+    public String investigationPrompt;
+    public String decisionPacketPrompt;
     public UUID createdBy;
     public Instant createdAt;
     public UUID updatedBy;

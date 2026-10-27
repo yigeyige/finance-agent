@@ -30,7 +30,7 @@ class BusinessSceneSkillServiceTest {
         BusinessSceneSkillRepository repository = mock(BusinessSceneSkillRepository.class);
         BusinessSceneSkillService service = new BusinessSceneSkillService(repository, clock());
 
-        BusinessSceneSkill skill = service.create("人员变更处理", "核查人员变更后的权限", "INVESTIGATE", "人员变更", OPERATOR);
+        BusinessSceneSkill skill = service.create("人员变更处理", "核查人员变更后的权限", "生成决策包时核对权限", OPERATOR);
 
         assertThat(skill.name()).isEqualTo("人员变更处理");
         assertThat(skill.createdBy()).isEqualTo(OPERATOR);
@@ -42,16 +42,16 @@ class BusinessSceneSkillServiceTest {
     void revisesExistingActiveSkill() {
         BusinessSceneSkillRepository repository = mock(BusinessSceneSkillRepository.class);
         UUID skillId = UUID.randomUUID();
-        BusinessSceneSkill existing = BusinessSceneSkill.create(skillId, "人员变更处理", "旧说明", "INVESTIGATE", "人员变更",
+        BusinessSceneSkill existing = BusinessSceneSkill.create(skillId, "人员变更处理", "旧调查提示词", "旧决策包提示词",
                 OPERATOR, NOW.minusSeconds(60));
         when(repository.findActiveById(skillId)).thenReturn(Optional.of(existing));
         when(repository.update(any())).thenReturn(true);
         BusinessSceneSkillService service = new BusinessSceneSkillService(repository, clock());
 
-        BusinessSceneSkill revised = service.update(skillId, "人员调整处理", "新说明", "ADJUST", "人员调整", OPERATOR);
+        BusinessSceneSkill revised = service.update(skillId, "人员调整处理", "新调查提示词", "新决策包提示词", OPERATOR);
 
         assertThat(revised.name()).isEqualTo("人员调整处理");
-        assertThat(revised.handlingType()).isEqualTo("ADJUST");
+        assertThat(revised.investigationPrompt()).isEqualTo("新调查提示词");
         assertThat(revised.updatedAt()).isEqualTo(NOW);
         verify(repository).update(revised);
     }

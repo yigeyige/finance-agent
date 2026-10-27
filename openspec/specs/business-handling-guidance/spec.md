@@ -36,10 +36,10 @@
 - **THEN** 任务仍保持未确认范围状态，直到 OPERATOR 提交有效的前提与范围确认请求
 
 ### Requirement: Business scenario Skill management
-系统 SHALL 为 OPERATOR 提供业务场景 Skill 的列表、新增、编辑和删除能力。每个 Skill MUST 包含业务名称、业务说明、处理方式和业务场景；接口 MUST 校验输入字段，删除 MUST 仅对当前有效记录生效并保留操作审计。
+系统 SHALL 为 OPERATOR 提供业务场景 Skill 的列表、新增、编辑和删除能力。每个 Skill MUST 包含场景名称、调查提示词和决策包提示词；接口 MUST 校验输入字段，删除 MUST 仅对当前有效记录生效并保留操作审计。
 
 #### Scenario: Administrator creates or edits a business scenario Skill
-- **WHEN** OPERATOR 提交合法的业务名称、业务说明、处理方式和业务场景
+- **WHEN** OPERATOR 提交合法的场景名称、调查提示词和决策包提示词
 - **THEN** 系统保存 Skill 并返回最新内容，后续列表显示该 Skill
 
 #### Scenario: Administrator removes a business scenario Skill

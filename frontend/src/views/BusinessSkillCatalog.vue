@@ -15,16 +15,9 @@
         <div class="standard-table-panel skill-catalog-table">
           <el-table v-loading="loading" :data="skills" row-key="skillId" class="standard-data-table" border stripe
             empty-text="暂无业务场景">
-            <el-table-column prop="name" label="业务名称" min-width="180" show-overflow-tooltip />
-            <el-table-column label="处理方式" width="128">
-              <template slot-scope="scope">
-                <el-tag :type="scope.row.handlingType === 'ADJUST' ? 'warning' : 'success'" effect="plain">
-                  {{ handlingTypeLabel(scope.row.handlingType) }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="premiseType" label="业务场景" min-width="180" show-overflow-tooltip />
-            <el-table-column prop="description" label="业务说明" min-width="320" show-overflow-tooltip />
+            <el-table-column prop="name" label="场景名称" min-width="160" show-overflow-tooltip />
+            <el-table-column prop="investigationPrompt" label="调查提示词" min-width="320" show-overflow-tooltip />
+            <el-table-column prop="decisionPacketPrompt" label="决策包提示词" min-width="320" show-overflow-tooltip />
             <el-table-column label="更新时间" width="190">
               <template slot-scope="scope">{{ formatTime(scope.row.updatedAt) }}</template>
             </el-table-column>
@@ -40,24 +33,19 @@
       </section>
     </template>
 
-    <el-dialog custom-class="workbench-dialog" :title="editingId ? '编辑业务场景' : '新增业务场景'" :visible.sync="dialogVisible" width="560px"
+    <el-dialog custom-class="workbench-dialog" :title="editingId ? '编辑业务场景' : '新增业务场景'" :visible.sync="dialogVisible" width="720px"
       :close-on-click-modal="false" @closed="resetForm">
       <el-form :model="form" label-position="top" class="workbench-dialog-form">
-        <el-form-item label="业务名称" required>
+        <el-form-item label="场景名称" required>
           <el-input v-model.trim="form.name" maxlength="100" show-word-limit placeholder="例如：人员变更处理" />
         </el-form-item>
-        <el-form-item label="处理方式" required>
-          <el-radio-group v-model="form.handlingType">
-            <el-radio label="INVESTIGATE">调查核查</el-radio>
-            <el-radio label="ADJUST">业务调整</el-radio>
-          </el-radio-group>
+        <el-form-item label="调查提示词" required>
+          <el-input v-model.trim="form.investigationPrompt" type="textarea" :rows="8" maxlength="2000" show-word-limit
+            placeholder="说明该场景调查时需要的业务背景、关键表字段语义与查询注意事项" />
         </el-form-item>
-        <el-form-item label="业务场景" required>
-          <el-input v-model.trim="form.premiseType" maxlength="100" placeholder="例如：人员变更后权限处理" />
-        </el-form-item>
-        <el-form-item label="业务说明" required>
-          <el-input v-model.trim="form.description" type="textarea" :rows="4" maxlength="1000" show-word-limit
-            placeholder="说明该场景需要处理的业务内容" />
+        <el-form-item label="决策包提示词" required>
+          <el-input v-model.trim="form.decisionPacketPrompt" type="textarea" :rows="8" maxlength="2000" show-word-limit
+            placeholder="说明生成业务决策包时的结论、责任与后续处理要求" />
         </el-form-item>
       </el-form>
       <span slot="footer" class="workbench-dialog__actions">
@@ -72,7 +60,6 @@
 import Vue from 'vue'
 
 import {
-  BusinessHandlingType,
   BusinessSceneSkill,
   BusinessSceneSkillPayload,
   createBusinessSceneSkill,
@@ -83,16 +70,14 @@ import {
 
 interface SkillForm {
   name: string
-  description: string
-  handlingType: BusinessHandlingType
-  premiseType: string
+  investigationPrompt: string
+  decisionPacketPrompt: string
 }
 
 const emptyForm = (): SkillForm => ({
   name: '',
-  description: '',
-  handlingType: 'INVESTIGATE',
-  premiseType: '',
+  investigationPrompt: '',
+  decisionPacketPrompt: '',
 })
 
 /** 维护业务场景 Skill，供管理员集中新增、编辑与删除。 */
@@ -137,15 +122,14 @@ export default Vue.extend({
       this.editingId = skill.skillId
       this.form = {
         name: skill.name,
-        description: skill.description,
-        handlingType: skill.handlingType,
-        premiseType: skill.premiseType,
+        investigationPrompt: skill.investigationPrompt,
+        decisionPacketPrompt: skill.decisionPacketPrompt,
       }
       this.dialogVisible = true
     },
     async save() {
-      if (!this.form.name || !this.form.description || !this.form.premiseType) {
-        this.notify('请补齐业务名称、业务场景和业务说明', 'warning')
+      if (!this.form.name || !this.form.investigationPrompt || !this.form.decisionPacketPrompt) {
+        this.notify('请补齐场景名称、调查提示词和决策包提示词', 'warning')
         return
       }
       this.saving = true
@@ -183,9 +167,6 @@ export default Vue.extend({
     resetForm() {
       this.editingId = ''
       this.form = emptyForm()
-    },
-    handlingTypeLabel(type: BusinessHandlingType) {
-      return type === 'ADJUST' ? '业务调整' : '调查核查'
     },
     formatTime(value: string) {
       const date = new Date(value)
