@@ -111,6 +111,6 @@ class TaskStateTransitionServiceTest {
 
     private static InvestigationTask task(TaskStatus status, long rowVersion) {
         return new InvestigationTask(UUID.randomUUID(), "title", "question", UUID.randomUUID(), status,
-                UUID.randomUUID(), null, null, NOW, NOW, rowVersion, null, null, UUID.randomUUID());
+                UUID.randomUUID(), null, null, null, NOW, NOW, rowVersion, null, null, UUID.randomUUID());
     }
 }

@@ -49,7 +49,7 @@ public final class TaskIntakeController {
         actorUserId = trustedActor(actorUserId);
         var task = intakeService.createTask(new CreateTaskDraftCommand(request.title(), request.originalQuestion(),
                 request.initiatorUserId(), request.runtimeBundleId(), actorUserId, UtcTime.now(applicationClock),
-                request.businessSceneSkillId()));
+                request.businessSceneSkillId(), request.databaseConfigId()));
         return ResponseEntity.created(UriComponentsBuilder.fromPath("/api/v1/tasks/{taskId}")
                 .buildAndExpand(task.taskId()).toUri()).body(TaskIntakeResponse.task(task));
     }

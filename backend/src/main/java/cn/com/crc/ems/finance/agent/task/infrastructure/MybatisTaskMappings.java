@@ -36,7 +36,7 @@ final class MybatisTaskMappings {
 
     static InvestigationTask toDomain(InvestigationTaskEntity e) {
         return new InvestigationTask(PersistenceUuid.toDomain(e.taskId), e.title, e.originalQuestion, e.initiatorUserId,
-                TaskStatus.valueOf(e.status), e.runtimeBundleId, e.currentScopeRevisionId, e.currentStepId,
+                TaskStatus.valueOf(e.status), e.runtimeBundleId, e.databaseConfigId, e.currentScopeRevisionId, e.currentStepId,
                 e.createdAt, e.updatedAt, e.rowVersion, e.closedAt, e.createdBy, e.updatedBy);
     }
 
@@ -44,7 +44,7 @@ final class MybatisTaskMappings {
         InvestigationTaskEntity e = new InvestigationTaskEntity();
         e.taskId = PersistenceUuid.toStorage(d.taskId()); e.title = d.title(); e.originalQuestion = d.originalQuestion();
         e.initiatorUserId = d.initiatorUserId(); e.status = d.status().name(); e.runtimeBundleId = d.runtimeBundleId();
-        e.currentScopeRevisionId = d.currentScopeRevisionId(); e.currentStepId = d.currentStepId();
+        e.databaseConfigId = d.databaseConfigId(); e.currentScopeRevisionId = d.currentScopeRevisionId(); e.currentStepId = d.currentStepId();
         e.createdAt = d.createdAt(); e.updatedAt = d.updatedAt(); e.rowVersion = d.rowVersion(); e.closedAt = d.closedAt();
         e.createdBy = d.createdBy(); e.updatedBy = d.updatedBy(); return e;
     }

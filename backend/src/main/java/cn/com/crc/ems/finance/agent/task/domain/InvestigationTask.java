@@ -12,7 +12,7 @@ import java.util.UUID;
  * @Date: 2026-10-11 21:28:41
  */
 public record InvestigationTask(UUID taskId, String title, String originalQuestion, UUID initiatorUserId,
-        TaskStatus status, UUID runtimeBundleId, UUID currentScopeRevisionId, UUID currentStepId,
+        TaskStatus status, UUID runtimeBundleId, UUID databaseConfigId, UUID currentScopeRevisionId, UUID currentStepId,
         Instant createdAt, Instant updatedAt, long rowVersion, Instant closedAt, UUID createdBy, UUID updatedBy) {
 
     public InvestigationTask {

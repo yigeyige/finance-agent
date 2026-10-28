@@ -29,7 +29,7 @@ class MybatisTaskRepositoryContractTest {
     void taskUpdateUsesOptimisticRowVersionPredicate() {
         InvestigationTaskMapper mapper = org.mockito.Mockito.mock(InvestigationTaskMapper.class);
         InvestigationTask task = new InvestigationTask(UUID.randomUUID(), "title", "question", UUID.randomUUID(),
-                TaskStatus.READY, UUID.randomUUID(), null, null, Instant.now(), Instant.now(), 2, null, null, UUID.randomUUID());
+                TaskStatus.READY, UUID.randomUUID(), null, null, null, Instant.now(), Instant.now(), 2, null, null, UUID.randomUUID());
         when(mapper.update(any(), any(UpdateWrapper.class))).thenReturn(1);
 
         assertThat(new MybatisInvestigationTaskRepository(mapper).updateWithVersion(task, 1)).isTrue();

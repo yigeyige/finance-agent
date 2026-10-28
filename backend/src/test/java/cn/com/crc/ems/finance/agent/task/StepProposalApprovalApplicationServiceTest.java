@@ -250,7 +250,7 @@ class StepProposalApprovalApplicationServiceTest {
 
     private static InvestigationTask task(TaskStatus status, UUID scopeId, UUID stepId, long rowVersion) {
         return new InvestigationTask(UUID.randomUUID(), "title", "question", UUID.randomUUID(), status,
-                UUID.randomUUID(), scopeId, stepId, NOW, NOW, rowVersion, null, ACTOR, ACTOR);
+                UUID.randomUUID(), null, scopeId, stepId, NOW, NOW, rowVersion, null, ACTOR, ACTOR);
     }
 
     private static Clock clock() {

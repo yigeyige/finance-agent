@@ -1,10 +1,12 @@
 import { getJson, postJson, putJson } from './http'
-import { EmsDatabaseConnectionConfig, EmsDatabaseConnectionConfigPayload, parseEmsDatabaseConnectionConfig, parseEmsDatabaseConnectionConfigs } from '../api/generated'
+import { EmsDatabaseConnectionConfig, EmsDatabaseConnectionConfigPayload, EmsDatabaseInstance, parseEmsDatabaseConnectionConfig, parseEmsDatabaseConnectionConfigs, parseEmsDatabaseInstances } from '../api/generated'
 
-export type { EmsDatabaseConnectionConfig, EmsDatabaseConnectionConfigPayload }
+export type { EmsDatabaseConnectionConfig, EmsDatabaseConnectionConfigPayload, EmsDatabaseInstance }
 
 /** 获取管理员可维护的 EMS 数据库连接。 */
 export async function listEmsDatabaseConfigurations(): Promise<EmsDatabaseConnectionConfig[]> { return parseEmsDatabaseConnectionConfigs(await getJson<unknown>('/v1/ems-database-configurations')) }
+/** 获取启用数据库实例列表，供业务处理创建时选择。 */
+export async function listEnabledDatabaseInstances(): Promise<EmsDatabaseInstance[]> { return parseEmsDatabaseInstances(await getJson<unknown>('/v1/ems-database-configurations/enabled')) }
 /** 新增 EMS 数据库连接。 */
 export async function createEmsDatabaseConfiguration(payload: EmsDatabaseConnectionConfigPayload): Promise<EmsDatabaseConnectionConfig> { return parseEmsDatabaseConnectionConfig(await postJson<unknown, EmsDatabaseConnectionConfigPayload>('/v1/ems-database-configurations', payload)) }
 /** 更新 EMS 数据库连接，空密码表示保留原密码。 */

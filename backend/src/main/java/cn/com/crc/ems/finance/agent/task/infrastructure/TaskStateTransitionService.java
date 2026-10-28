@@ -83,7 +83,7 @@ public class TaskStateTransitionService {
         Instant closedAt = target == TaskStatus.CLOSED || target == TaskStatus.CANCELLED
                         ? occurredAt : current.closedAt();
         return new InvestigationTask(current.taskId(), current.title(), current.originalQuestion(),
-                current.initiatorUserId(), target, current.runtimeBundleId(),
+                current.initiatorUserId(), target, current.runtimeBundleId(), current.databaseConfigId(),
                 scopeRevisionId == null ? current.currentScopeRevisionId() : scopeRevisionId,
                 stepId == null ? current.currentStepId() : stepId, current.createdAt(), occurredAt,
                 current.rowVersion() + 1, closedAt,

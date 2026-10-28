@@ -108,7 +108,7 @@ class PacketDraftAssemblerTest {
 
     private static InvestigationTask task() {
         return new InvestigationTask(TASK_ID, "合成验证", "检查配置漂移", ACTOR_ID, TaskStatus.DRAFT_PACKET, BUNDLE_ID,
-                SCOPE_ID, null, NOW, NOW, 5, null, ACTOR_ID, ACTOR_ID);
+                null, SCOPE_ID, null, NOW, NOW, 5, null, ACTOR_ID, ACTOR_ID);
     }
 
     private static ScopeRevision scope() {

@@ -176,7 +176,7 @@ class TaskIntakeApplicationServiceTest {
 
     private static InvestigationTask task(TaskStatus status, UUID scopeRevisionId, long rowVersion) {
         return new InvestigationTask(UUID.randomUUID(), "title", "question", UUID.randomUUID(), status,
-                UUID.randomUUID(), scopeRevisionId, null, NOW, NOW, rowVersion, null, null, UUID.randomUUID());
+                UUID.randomUUID(), null, scopeRevisionId, null, NOW, NOW, rowVersion, null, null, UUID.randomUUID());
     }
 
     private static ScopeRevision scope(UUID scopeRevisionId, UUID taskId) {

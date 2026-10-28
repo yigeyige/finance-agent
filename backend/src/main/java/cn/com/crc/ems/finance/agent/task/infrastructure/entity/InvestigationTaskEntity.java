@@ -24,6 +24,7 @@ public class InvestigationTaskEntity {
     public UUID initiatorUserId;
     public String status;
     public UUID runtimeBundleId;
+    public UUID databaseConfigId;
     public UUID currentScopeRevisionId;
     public UUID currentStepId;
     public Instant createdAt;

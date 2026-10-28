@@ -120,7 +120,7 @@ class SyntheticEvidenceWorkerServiceTest {
 
     private static InvestigationTask task() {
         return new InvestigationTask(TASK_ID, "合成验证", "检查配置漂移", ACTOR_ID, TaskStatus.WAITING_STEP_APPROVAL,
-                UUID.randomUUID(), UUID.randomUUID(), STEP_ID, NOW, NOW, 1, null, ACTOR_ID, ACTOR_ID);
+                UUID.randomUUID(), null, UUID.randomUUID(), STEP_ID, NOW, NOW, 1, null, ACTOR_ID, ACTOR_ID);
     }
 
     private static StepApproval approval() {

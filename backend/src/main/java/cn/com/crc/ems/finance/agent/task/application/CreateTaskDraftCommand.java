@@ -12,11 +12,11 @@ import java.util.UUID;
  * @Date: 2026-10-11 21:28:41
  */
 public record CreateTaskDraftCommand(String title, String originalQuestion, UUID initiatorUserId,
-        UUID runtimeBundleId, UUID actorUserId, Instant occurredAt, UUID businessSceneSkillId) {
+        UUID runtimeBundleId, UUID actorUserId, Instant occurredAt, UUID businessSceneSkillId, UUID databaseConfigId) {
 
     public CreateTaskDraftCommand(String title, String originalQuestion, UUID initiatorUserId,
             UUID runtimeBundleId, UUID actorUserId, Instant occurredAt) {
-        this(title, originalQuestion, initiatorUserId, runtimeBundleId, actorUserId, occurredAt, null);
+        this(title, originalQuestion, initiatorUserId, runtimeBundleId, actorUserId, occurredAt, null, null);
     }
 
     public CreateTaskDraftCommand {

@@ -153,7 +153,7 @@ public class PacketPublicationService {
     private static InvestigationTask copyTask(InvestigationTask task, TaskStatus status, long rowVersion, Instant now,
             UUID actorUserId) {
         return new InvestigationTask(task.taskId(), task.title(), task.originalQuestion(), task.initiatorUserId(), status,
-                task.runtimeBundleId(), task.currentScopeRevisionId(), task.currentStepId(), task.createdAt(), now,
+                task.runtimeBundleId(), task.databaseConfigId(), task.currentScopeRevisionId(), task.currentStepId(), task.createdAt(), now,
                 rowVersion, task.closedAt(), task.createdBy(), actorUserId);
     }
 

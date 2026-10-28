@@ -92,7 +92,7 @@ public class TaskIntakeApplicationService {
         requireCommand(command);
         UUID taskId = UuidGenerator.newUuid();
         InvestigationTask task = new InvestigationTask(taskId, command.title(), command.originalQuestion(),
-                command.initiatorUserId(), TaskStatus.DRAFT, command.runtimeBundleId(), null, null,
+                command.initiatorUserId(), TaskStatus.DRAFT, command.runtimeBundleId(), command.databaseConfigId(), null, null,
                 command.occurredAt(), command.occurredAt(), 0, null, command.actorUserId(), command.actorUserId());
         taskRepository.insert(task);
         persistBusinessSceneSkill(command, taskId);

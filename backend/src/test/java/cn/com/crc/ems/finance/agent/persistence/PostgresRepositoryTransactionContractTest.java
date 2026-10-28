@@ -161,7 +161,7 @@ class PostgresRepositoryTransactionContractTest {
 
     private static InvestigationTask task(UUID taskId, TaskStatus status, long rowVersion) {
         return new InvestigationTask(taskId, "title", "question", UUID.randomUUID(), status, UUID.randomUUID(), null,
-                null, NOW, NOW, rowVersion, null, null, UUID.randomUUID());
+                null, null, NOW, NOW, rowVersion, null, null, UUID.randomUUID());
     }
 
     private static TaskLease lease(UUID taskId) {

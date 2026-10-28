@@ -94,6 +94,8 @@ export interface ModelConnectionConfigPayload { name: string; provider: string; 
 /** EMS MySQL 连接安全视图；密码仅允许通过写入载荷传入。 */
 export interface EmsDatabaseConnectionConfig { configId: string; name: string; jdbcUrl: string; username: string; connectTimeoutSeconds: number; queryTimeoutSeconds: number; maxRows: number; enabled: boolean; passwordConfigured: boolean; updatedAt: string }
 export interface EmsDatabaseConnectionConfigPayload { name: string; jdbcUrl: string; username: string; password?: string; connectTimeoutSeconds: number; queryTimeoutSeconds: number; maxRows: number }
+/** 供业务处理选择的启用数据库实例只读视图。 */
+export interface EmsDatabaseInstance { configId: string; name: string }
 
 /** 数据探索仅返回已启用数据源的结构元数据与受限查询结果。 */
 export interface EmsDatabaseTableMetadata { schema: string; table: string; comment: string }
@@ -120,7 +122,7 @@ export interface DraftEvidence { schema: string; table: string; purpose: string;
 export interface BusinessHandlingDraft { subjectKey: string; statement: string; sourceDescription: string; systemCode: string; objectKey: string; startDate: string; endDate: string; investigationAreas: string[]; dataUse: string; recommendedGoal: string; alternativeGoals: string[]; reason: string; conclusion: string; evidence: DraftEvidence[] }
 export interface BusinessGuidanceRequest { message?: string; currentDraft?: BusinessHandlingDraft }
 export interface BusinessGuidanceResponse { reply: string; draft: BusinessHandlingDraft; metadata: ModelCallMetadata }
-export interface TaskDraftRequest { title: string; originalQuestion: string; initiatorUserId: string; runtimeBundleId: string; businessSceneSkillId?: string }
+export interface TaskDraftRequest { title: string; originalQuestion: string; initiatorUserId: string; runtimeBundleId: string; businessSceneSkillId?: string; databaseConfigId?: string }
 
 const TASK_RESPONSE_FIELDS = ['taskId', 'title', 'status', 'rowVersion', 'currentScopeRevisionId', 'createdAt', 'premiseId', 'scopeRevisionNo', 'scopeDigest']
 const PUBLIC_EVENT_FIELDS = ['taskId', 'userId', 'sequence', 'eventType', 'status', 'publicReason', 'resultReference', 'occurredAt']
@@ -194,6 +196,14 @@ export function parseEmsDatabaseConnectionConfig(value: unknown): EmsDatabaseCon
 /** 校验 EMS 数据库连接列表响应。 */
 export function parseEmsDatabaseConnectionConfigs(value: unknown): EmsDatabaseConnectionConfig[] {
   return requireArray(value, 'EMS 数据库连接列表').map(parseEmsDatabaseConnectionConfig)
+}
+
+/** 校验启用数据库实例列表响应。 */
+export function parseEmsDatabaseInstances(value: unknown): EmsDatabaseInstance[] {
+  return requireArray(value, '启用数据库实例列表').map((item) => {
+    const record = assertObjectFields(item, ['configId', 'name'], '启用数据库实例')
+    return { configId: requireString(record.configId, '实例标识'), name: requireString(record.name, '实例名称') }
+  })
 }
 
 /** 校验可展示的 EMS 表结构元数据。 */

@@ -39,6 +39,9 @@ public class EmsDatabaseConnectionConfigService {
     public List<EmsDatabaseConnectionConfig> list() { return repository.findAll(); }
 
     @Transactional(readOnly = true)
+    public List<EmsDatabaseConnectionConfig> listEnabled() { return repository.listEnabled(); }
+
+    @Transactional(readOnly = true)
     public EmsDatabaseConnectionConfig requireEnabled() {
         return repository.listEnabled().stream().findFirst()
                 .orElseThrow(() -> new IllegalStateException("请先在 EMS 数据库配置中启用一个连接"));

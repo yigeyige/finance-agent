@@ -84,7 +84,7 @@ class TaskIntakeControllerTest {
         UUID taskId = UUID.randomUUID();
         UUID scopeId = UUID.randomUUID();
         InvestigationTask task = new InvestigationTask(taskId, "审批配置调查", "请检查审批配置", ACTOR,
-                TaskStatus.READY, UUID.randomUUID(), scopeId, null, NOW, NOW, 2, null, ACTOR, ACTOR);
+                TaskStatus.READY, UUID.randomUUID(), null, scopeId, null, NOW, NOW, 2, null, ACTOR, ACTOR);
         ScopeRevision revision = new ScopeRevision(scopeId, taskId, 1, "FIN-SYN",
                 new VersionedJson("scope-v1", "{\"employeeKey\":\"EMP-SYN-001\"}"),
                 new VersionedJson("scope-v1", "{\"from\":\"2026-01-01T00:00:00Z\"}"),
@@ -117,6 +117,6 @@ class TaskIntakeControllerTest {
 
     private static InvestigationTask task() {
         return new InvestigationTask(UUID.randomUUID(), "审批配置调查", "请检查审批配置", ACTOR, TaskStatus.DRAFT,
-                UUID.randomUUID(), null, null, NOW, NOW, 0, null, ACTOR, ACTOR);
+                UUID.randomUUID(), null, null, null, NOW, NOW, 0, null, ACTOR, ACTOR);
     }
 }

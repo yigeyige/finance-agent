@@ -104,7 +104,7 @@ class StepProposalControllerTest {
     }
 
     private static InvestigationTask task(UUID taskId, TaskStatus status, UUID scopeId, UUID stepId) {
-        return new InvestigationTask(taskId, "title", "question", ACTOR, status, UUID.randomUUID(), scopeId, stepId,
+        return new InvestigationTask(taskId, "title", "question", ACTOR, status, UUID.randomUUID(), null, scopeId, stepId,
                 NOW, NOW, 2, null, ACTOR, ACTOR);
     }
 }

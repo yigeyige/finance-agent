@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,11 +50,15 @@ public class EmsDatabaseAssistanceService {
         this.executor = executor;
     }
 
-    /** 无启用连接、不需查询或任一受控失败时静默降级，不影响原有模型指导；每个关键阶段回传进度文案。 */
+    /** 无启用连接、任务未选择实例、不需查询或任一受控失败时静默降级，不影响原有模型指导；每个关键阶段回传进度文案。 */
     public List<EmsDatabaseEvidence> collect(BusinessModelClient modelClient, BusinessGuidanceContext context,
-            Consumer<String> progress) {
+            UUID databaseConfigId, Consumer<String> progress) {
+        if (databaseConfigId == null) {
+            LOGGER.info("任务未选择数据库实例，跳过 EMS 辅助查询");
+            return List.of();
+        }
         try {
-            EmsDatabaseConnectionConfig config = configService.requireEnabled();
+            EmsDatabaseConnectionConfig config = configService.resolveEnabled(databaseConfigId);
         List<EmsDatabaseTableMetadata> catalog = coarseFilter(executor.listAllowedTables(config));
         LOGGER.info("EMS 辅助查询：候选表 {} 张", catalog.size());
         if (catalog.isEmpty()) {

@@ -131,7 +131,7 @@ public final class BusinessModelInteractionService {
         BusinessGuidanceContext base = new BusinessGuidanceContext(task.taskId(), task.title(), task.originalQuestion(),
                 feedback, currentDraft, findSceneSkill(taskId), attachments);
         List<EmsDatabaseEvidence> evidence = emsDatabaseAssistanceService == null ? List.of()
-                : emsDatabaseAssistanceService.collect(modelClient, base, progress);
+                : emsDatabaseAssistanceService.collect(modelClient, base, task.databaseConfigId(), progress);
         progress.accept("正在生成业务处理初稿");
         BusinessModelResult<BusinessGuidanceSuggestion> result = modelClient.guideBusinessHandling(
                 new BusinessGuidanceContext(task.taskId(), task.title(), task.originalQuestion(), feedback, currentDraft,

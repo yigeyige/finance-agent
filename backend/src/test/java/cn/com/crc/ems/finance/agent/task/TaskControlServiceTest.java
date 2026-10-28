@@ -71,6 +71,6 @@ class TaskControlServiceTest {
     private static InvestigationTask task() {
         UUID user = UUID.randomUUID();
         return new InvestigationTask(UUID.randomUUID(), "title", "question", user, TaskStatus.RUNNING_STEP,
-                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), NOW, NOW, 1, null, user, user);
+                UUID.randomUUID(), null, UUID.randomUUID(), UUID.randomUUID(), NOW, NOW, 1, null, user, user);
     }
 }

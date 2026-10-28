@@ -66,7 +66,7 @@ class TaskDiagnosticServiceTest {
 
     private static InvestigationTask task(TaskStatus status) {
         return new InvestigationTask(TASK_ID, "title", "question", UUID.randomUUID(), status, UUID.randomUUID(),
-                UUID.randomUUID(), null, NOW, NOW, 1, null, UUID.randomUUID(), UUID.randomUUID());
+                null, UUID.randomUUID(), null, NOW, NOW, 1, null, UUID.randomUUID(), UUID.randomUUID());
     }
 
     private static ToolInvocation invocation(String errorCode) {

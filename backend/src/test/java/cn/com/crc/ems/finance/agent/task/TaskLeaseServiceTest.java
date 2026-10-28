@@ -92,7 +92,7 @@ class TaskLeaseServiceTest {
 
     private static InvestigationTask task(UUID taskId, UUID stepId) {
         return new InvestigationTask(taskId, "title", "question", UUID.randomUUID(), TaskStatus.WAITING_STEP_APPROVAL,
-                UUID.randomUUID(), UUID.randomUUID(), stepId, NOW, NOW, 1, null, null, null);
+                UUID.randomUUID(), null, UUID.randomUUID(), stepId, NOW, NOW, 1, null, null, null);
     }
 
     private static cn.com.crc.ems.finance.agent.task.domain.TaskLease newLease(UUID taskId, Instant expiresAt) {

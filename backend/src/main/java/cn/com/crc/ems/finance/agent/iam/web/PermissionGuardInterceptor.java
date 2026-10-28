@@ -67,6 +67,9 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
         if (path.startsWith("/api/v1/model-configurations") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权维护大模型配置");
         }
+        if (path.startsWith("/api/v1/ems-database-configurations/enabled")) {
+            return true;
+        }
         if (path.startsWith("/api/v1/ems-database-configurations") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权维护 EMS 数据库配置");
         }
