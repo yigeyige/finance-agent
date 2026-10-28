@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://finance-agent/model-runtime-summary/1.0.0",
+  "x-contract-version": "1.0.0",
+  "title": "工作台模型运行摘要",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "mode",
+    "modelName"
+  ],
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "LIVE",
+        "STUB"
+      ]
+    },
+    "modelName": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 200
+    }
+  }
+}

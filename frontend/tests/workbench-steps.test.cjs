@@ -4,7 +4,7 @@ const assert = require('node:assert/strict')
 const loadVueScript = require('./load-vue-script.cjs')
 
 /** 准备可控的决策包 API，页面生命周期仍使用真实 Vue。 */
-function fixture(generate, update = async () => ({ taskId: 'test-task' })) {
+function fixture(generate, update = async () => ({ taskId: 'test-task' }), runtime = async () => ({ mode: 'LIVE', modelName: 'test-model' })) {
   const Workbench = loadVueScript('../src/views/WorkbenchHome.vue', {
     '../components/WorkbenchChat.vue': {},
     '../services/business-workflow': { DEFAULT_RUNTIME_BUNDLE_ID: 'test-bundle' },
@@ -12,7 +12,7 @@ function fixture(generate, update = async () => ({ taskId: 'test-task' })) {
     '../services/business-skill-api': { listBusinessSceneSkills: async () => [] },
     '../services/ems-database-config-api': { listEnabledDatabaseInstances: async () => [] },
     '../services/task-api': { isStaleError: () => false, updateTask: update },
-    '../services/model-api': { generateBusinessDecisionPacket: generate, getBusinessEvidenceAccums: async () => [] },
+    '../services/model-api': { generateBusinessDecisionPacket: generate, getBusinessEvidenceAccums: async () => [], getModelRuntimeSummary: runtime },
   })
   const vm = new Workbench()
   vm.task = { taskId: 'test-task' }
@@ -76,4 +76,27 @@ test('任务信息保存失败保留原成果，成功保存后要求重新生�
   assert.equal(failure.decisionPacket.revision, 1)
   assert.equal(failure.errorMessage, '保存失败')
   failure.$destroy()
+})
+
+test('模型响应记录最近调用元数据，清空草稿时移除且不累加为任务消耗', () => {
+  const vm = fixture(async () => ({}))
+  vm.applyGuidance({ draft: { subjectKey: 'test-subject' }, metadata: { mode: 'LIVE', modelName: 'actual-model', tokens: 125, latencyMillis: 500 } })
+  assert.equal(vm.lastModelMetadata.tokens, 125)
+  vm.applyGuidance({ draft: { subjectKey: 'test-subject' }, metadata: { mode: 'LIVE', modelName: 'other-model', tokens: 70, latencyMillis: 300 } })
+  assert.equal(vm.lastModelMetadata.tokens, 70)
+  assert.equal(vm.lastModelMetadata.modelName, 'other-model')
+  vm.resetDraft()
+  assert.equal(vm.lastModelMetadata, null)
+  vm.$destroy()
+})
+
+test('运行摘要读取失败不阻断业务流程，也不伪造模型名', async () => {
+  const vm = fixture(async () => ({}), undefined, async () => { throw Error('摘要不可用') })
+  await vm.$nextTick()
+  await vm.loadRuntimeModel()
+  assert.equal(vm.runtimeModel, null)
+  assert.equal(vm.runtimeModelLoading, false)
+  assert.equal(vm.errorMessage, '')
+  assert.equal(vm.activeStep, 1)
+  vm.$destroy()
 })

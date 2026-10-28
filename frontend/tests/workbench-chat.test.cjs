@@ -49,3 +49,37 @@ test('新消息与同数量替换的模型回复都滚动到最新内容', async
   assert.equal(history.scrollTop, 720)
   vm.$destroy()
 })
+
+test('空闲时无等待状态，模型与最近调用统计分开说明来源', () => {
+  const vm = new Chat({ propsData: { messages: [], runtimeModel: { mode: 'LIVE', modelName: 'current-model' },
+    metadata: { mode: 'LIVE', modelName: 'last-model', tokens: 1234, latencyMillis: 1250 } } })
+  assert.equal(vm.statusText, '')
+  assert.equal(vm.modelText, 'current-model')
+  assert.equal(vm.usageText, '最近调用 1,234 Token · 1.3 秒')
+  assert.match(vm.usageDescription, /last-model/)
+  vm.$destroy()
+})
+
+test('未调用不伪造 Token，无启用模型与模拟模型都有明确说明', () => {
+  const vm = new Chat({ propsData: { messages: [], runtimeModel: { mode: 'LIVE', modelName: null } } })
+  assert.equal(vm.modelText, '未启用模型')
+  assert.equal(vm.usageText, '')
+  vm.runtimeModel = { mode: 'STUB', modelName: '本地模拟模型' }
+  assert.equal(vm.modelText, '本地模拟模型（模拟）')
+  vm.$destroy()
+})
+
+test('聊天按实际顶部位置填充视口，高屏不再受720像素上限约束', () => {
+  const vm = new Chat({ propsData: { messages: [] } })
+  const oldWindow = global.window
+  global.window = { innerHeight: 1440 }
+  vm.$el = { getBoundingClientRect: () => ({ top: 128 }) }
+  vm.fitViewport()
+  assert.equal(vm.availableHeight, 1296)
+  global.window.innerHeight = 900
+  vm.$el = { getBoundingClientRect: () => ({ top: 170 }) }
+  vm.fitViewport()
+  assert.equal(vm.availableHeight, 714)
+  global.window = oldWindow
+  vm.$destroy()
+})

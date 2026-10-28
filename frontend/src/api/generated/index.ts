@@ -116,6 +116,15 @@ export interface TaskDecisionPacket { revision: number; conclusion: string; evid
 /** 业务方案修订与受控模型协作的契约模型。 */
 export interface StepProposalRevisionPayload { goal: string }
 export interface ModelCallMetadata { mode: 'LIVE' | 'STUB'; modelName: string; inputDigest: string; outputDigest: string; tokens: number; latencyMillis: number; reasoningEffort?: string }
+export interface ModelRuntimeSummary { mode: 'LIVE' | 'STUB'; modelName: string | null }
+/** 校验运行模型公开摘要，拒绝配置地址、密钥等额外字段。 */
+export function parseModelRuntimeSummary(value: unknown): ModelRuntimeSummary {
+  const record = assertObjectFields(value, ['mode', 'modelName'], '模型运行摘要')
+  const mode = record.mode
+  if (mode !== 'LIVE' && mode !== 'STUB') throw new Error('模型运行模式无效')
+  if (!Object.prototype.hasOwnProperty.call(record, 'modelName')) throw new Error('缺少模型名称字段')
+  return { mode, modelName: record.modelName === null ? null : requireString(record.modelName, '模型名称') }
+}
 export interface ModelPlanResponse { recommendedGoal: string; alternativeGoals: string[]; reason: string; metadata: ModelCallMetadata }
 export interface ModelEvidenceAnalysisResponse { summary: string; riskLevel: 'LOW' | 'MEDIUM' | 'HIGH'; riskExplanation: string; recommendations: string[]; metadata: ModelCallMetadata }
 export interface DraftEvidence { schema: string; table: string; purpose: string; columns: string[]; rows: string[][] }

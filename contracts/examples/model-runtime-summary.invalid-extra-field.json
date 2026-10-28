@@ -1,0 +1,5 @@
+{
+  "mode": "LIVE",
+  "modelName": "test-model",
+  "apiUrl": "https://example.test/private"
+}

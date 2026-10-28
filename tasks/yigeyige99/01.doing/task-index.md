@@ -10,7 +10,7 @@ source: development-workplan
 
 # 财务共享智能运维 Agent 开发顺序任务索引
 
-> 索引共收录 138 份独立 task：P0 118 项、P1 9 项、P2 11 项。本索引依据任务卡“前置条件”进行拓扑排序；同一依赖层级按照 BOOT、DATA、RUN、TOOL、HAR、UI、QA、P1、P2 排列。
+> 索引共收录 139 份独立 task：P0 119 项、P1 9 项、P2 11 项。本索引依据任务卡“前置条件”进行拓扑排序；同一依赖层级按照 BOOT、DATA、RUN、TOOL、HAR、UI、QA、P1、P2 排列。
 
 ## 使用说明
 
@@ -163,6 +163,7 @@ source: development-workplan
 |  138 | P0 自定义需求 | [20261028-finalize-business-packet-revisions](20261028-决策包修订与任务锁定.md) | 保存修订并锁定信息 | [20261028-决策包修订与任务锁定.md](20261028-决策包修订与任务锁定.md) | 进行中 | `20261028-capture-business-evidence-lineage`、`20261028-analyze-frozen-business-evidence` |
 |  139 | P0 自定义需求 | [20261028-present-internal-business-packets](20261028-内部决策包展示与权限.md) | 决策包页面展示（权限暂缓） | [20261028-内部决策包展示与权限.md](20261028-内部决策包展示与权限.md) | 进行中 | `20261028-finalize-business-packet-revisions` |
 |  141 | P0 自定义需求 | [20261029-refine-three-step-workbench](../03.achieved/20261029-业务处理三步向导与聊天优化.md) | 业务处理三步向导与聊天优化 | [20261029-业务处理三步向导与聊天优化.md](../03.achieved/20261029-业务处理三步向导与聊天优化.md) | 已完成 | 无 |
+|  142 | P0 自定义需求 | [20261029-refine-chat-viewport-metadata](../03.achieved/20261029-聊天视口与模型信息优化.md) | 聊天视口与模型信息优化 | [20261029-聊天视口与模型信息优化.md](../03.achieved/20261029-聊天视口与模型信息优化.md) | 已完成 | `20261029-refine-three-step-workbench` |
 
 > 2026-10-28：用户删除原开发顺序 128—130 的三个旧提案，现由 136—139 四个新切片替代；历史顺序号不复用。四个新任务仅完成规划，实施项均未勾选，按依赖顺序推进。
 
@@ -176,7 +177,7 @@ source: development-workplan
 
 | 阶段 |  数量 |
 |---|----:|
-| P0 | 118 |
+| P0 | 119 |
 | P1 |   9 |
 | P2 |  11 |
-| 合计 | 138 |
+| 合计 | 139 |

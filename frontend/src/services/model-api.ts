@@ -1,11 +1,16 @@
 /** 调用后端受控模型交互接口，只接收结构化业务建议和非敏感元数据。 */
-import { BusinessDecisionPacketResponse, BusinessEvidenceAccumResponse, BusinessGuidanceRequest, BusinessGuidanceResponse, BusinessHandlingDraft, ModelEvidenceAnalysisResponse, ModelPlanResponse, parseBusinessDecisionPacket, parseBusinessEvidenceAccums, parseBusinessGuidance, parseModelEvidenceAnalysis, parseModelPlan } from '../api/generated'
+import { BusinessDecisionPacketResponse, BusinessEvidenceAccumResponse, BusinessGuidanceRequest, BusinessGuidanceResponse, BusinessHandlingDraft, ModelEvidenceAnalysisResponse, ModelPlanResponse, ModelRuntimeSummary, parseModelRuntimeSummary, parseBusinessDecisionPacket, parseBusinessEvidenceAccums, parseBusinessGuidance, parseModelEvidenceAnalysis, parseModelPlan } from '../api/generated'
 import { getJson, postForm, postJson } from './http'
 
 export type { BusinessDecisionPacketResponse, BusinessEvidenceAccumResponse, BusinessGuidanceResponse, BusinessHandlingDraft, ModelEvidenceAnalysisResponse, ModelPlanResponse }
 
 /** 模型调用最长等待时间，覆盖后端选表、多轮只读查询与初稿生成的总耗时上限，避免链路被前端超时截断。 */
 const MODEL_TIMEOUT = 600_000
+
+/** 查询工作台可见的模型模式与名称，不读取管理员连接详情。 */
+export async function getModelRuntimeSummary(): Promise<ModelRuntimeSummary> {
+  return parseModelRuntimeSummary(await getJson<unknown>('/v1/model-runtime'))
+}
 
 /** 请求模型根据当前任务和已确认范围生成调查方案。 */
 export async function generateModelPlan(taskId: string): Promise<ModelPlanResponse> {

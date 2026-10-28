@@ -33,3 +33,9 @@ Windows PowerShell 可执行：
 ```
 
 脚本不启动应用，不访问数据库或外部服务；它会同时验证 OpenAPI 基本结构、schema 元数据以及 `*.valid.json` / `*.invalid.json` 样例。
+
+## 工作台模型运行摘要
+
+OpenAPI 1.4.0 新增 `GET /api/v1/model-runtime`，仅允许 OPERATOR 与继承该角色能力的平台管理员读取。响应遵循 `model-runtime-summary-1.0.0.schema.json`，只包含 `mode` 与可空的 `modelName`；不返回配置地址或凭据。
+
+聊天顶部的“最近调用”复用建议响应的 `metadata.tokens` 与 `metadata.latencyMillis`，仅代表最近一次建议生成调用，不包含选表、查询规划、失败请求或决策包等其他调用消耗，也不作为任务累计计费数据。
