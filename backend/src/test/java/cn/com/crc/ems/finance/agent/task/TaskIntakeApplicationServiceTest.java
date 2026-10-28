@@ -69,7 +69,7 @@ class TaskIntakeApplicationServiceTest {
         when(tasks.findByIdForUpdate(task.taskId())).thenReturn(Optional.of(task));
         TaskIntakeApplicationService service = service(tasks, premises, scopes, audit, mock(TaskStateTransitionService.class));
 
-        TaskPremise premise = service.addPremise(new AddTaskPremiseCommand(task.taskId(), "OPERATOR_PROVIDED",
+        TaskPremise premise = service.addPremise(new AddTaskPremiseCommand(task.taskId(),
                 "EMP-SYN-001", "已离职", UUID.randomUUID(), "运维人员输入", NOW));
 
         assertThat(premise.independentlyVerified()).isFalse();

@@ -37,5 +37,5 @@ The system SHALL expose `scripts/verify-contracts.py` and a Windows PowerShell w
 - **THEN** 新增请求模型的 `*.valid.json` 样例全部通过
 
 #### Scenario: Invalid extension requests are rejected
-- **WHEN** 新增请求样例包含契约外字段或不支持的处理类型
+- **WHEN** 新增请求样例包含契约外字段或非法枚举值
 - **THEN** 校验以确定性错误失败，而不会把样例视为有效

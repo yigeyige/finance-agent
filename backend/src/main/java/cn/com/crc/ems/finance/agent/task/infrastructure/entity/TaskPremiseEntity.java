@@ -20,7 +20,6 @@ public class TaskPremiseEntity {
     @TableId(value = "premise_id", type = IdType.ASSIGN_UUID)
     public String premiseId;
     public UUID taskId;
-    public String premiseType;
     public String subjectKey;
     public String statement;
     public UUID providedBy;

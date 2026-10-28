@@ -11,12 +11,11 @@ import java.util.UUID;
  * @Author: yigeyige99
  * @Date: 2026-10-11 21:28:41
  */
-public record AddTaskPremiseCommand(UUID taskId, String premiseType, String subjectKey, String statement,
+public record AddTaskPremiseCommand(UUID taskId, String subjectKey, String statement,
         UUID providedBy, String sourceDescription, Instant occurredAt) {
 
     public AddTaskPremiseCommand {
         requireId(taskId, "taskId");
-        requireText(premiseType, "premiseType");
         requireText(subjectKey, "subjectKey");
         requireText(statement, "statement");
         requireId(providedBy, "providedBy");

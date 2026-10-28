@@ -134,14 +134,13 @@ public class TaskIntakeApplicationService {
         if (task.status() == TaskStatus.CLOSED || task.status() == TaskStatus.CANCELLED) {
             throw new InvalidTaskTransitionException("terminal task cannot accept premises");
         }
-        TaskPremise premise = new TaskPremise(UuidGenerator.newUuid(), task.taskId(), command.premiseType(),
+        TaskPremise premise = new TaskPremise(UuidGenerator.newUuid(), task.taskId(),
                 command.subjectKey(), command.statement(), command.providedBy(), command.sourceDescription(),
                 command.occurredAt(), false, command.providedBy(), command.occurredAt(), command.providedBy(),
                 command.occurredAt());
         premiseRepository.insert(premise);
         auditEventAppender.append(UuidGenerator.newUuid(), task.taskId(), command.providedBy(), "TASK_PREMISE_ADDED",
                 "task_premise", premise.premiseId().toString(), command.occurredAt(), payload -> {
-                    payload.put("premiseType", premise.premiseType());
                     payload.put("subjectKeyDigest", Sha256Digest.hex(premise.subjectKey()));
                     payload.put("statementDigest", Sha256Digest.hex(premise.statement()));
                     payload.put("sourceDigest", Sha256Digest.hex(premise.sourceDescription()));

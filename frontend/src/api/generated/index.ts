@@ -72,7 +72,6 @@ export interface TaskDiagnosticLease { status: 'NONE' | 'ACTIVE' | 'EXPIRED'; he
 export interface TaskDiagnosticResponse { taskId: string; taskStatus: TaskStatus; currentStep: TaskDiagnosticStep | null; lease: TaskDiagnosticLease; approvalValid: boolean; pauseReason: string | null; lastErrorCode: string | null; manualReconciliationRequired: boolean; recoveryActions: string[] }
 
 /** 业务场景 Skill 的契约枚举与读写模型。 */
-export type BusinessHandlingType = 'INVESTIGATE' | 'ADJUST'
 export interface BusinessSceneSkill { skillId: string; name: string; investigationPrompt: string; decisionPacketPrompt: string; updatedAt: string }
 export interface BusinessSceneSkillPayload { name: string; investigationPrompt: string; decisionPacketPrompt: string }
 
@@ -100,13 +99,13 @@ export interface EmsDatabaseConnectionConfigPayload { name: string; jdbcUrl: str
 export interface EmsDatabaseTableMetadata { schema: string; table: string; comment: string }
 export interface EmsDatabaseColumnMetadata { name: string; type: string; comment: string }
 export interface DataExplorationCatalog { dataSourceName: string; maxRows: number; tables: EmsDatabaseTableMetadata[] }
-export interface DataExplorationQueryRequest { sql: string }
+export interface DataExplorationQueryRequest { sql: string; configId?: string }
 export interface DataExplorationQueryResult { columns: string[]; rows: Array<Array<string | null>>; rowCount: number; elapsedMillis: number }
 
 /** 任务列表与只读详情的契约模型。 */
 export interface TaskListItem { taskId: string; title: string; status: string; initiatorUserId: string; createdAt: string }
 export interface TaskListPage { items: TaskListItem[]; total: number; page: number; pageSize: number }
-export interface TaskPremise { premiseType: string; subjectKey: string; statement: string; sourceDescription: string }
+export interface TaskPremise { subjectKey: string; statement: string; sourceDescription: string }
 export interface TaskScope { systemCode: string; objectSelector: string; effectiveTimeRange: string; revisionNo: number }
 export interface TaskPlan { sequenceNo: number; goal: string; recommended: boolean; status: string }
 export interface TaskDetail { taskId: string; title: string; description: string; status: string; initiatorUserId: string; createdAt: string; premises: TaskPremise[]; scope: TaskScope | null; plans: TaskPlan[]; conclusion: string; evidence: DraftEvidence[]; decisionPacket: TaskDecisionPacket | null }
@@ -118,7 +117,7 @@ export interface ModelCallMetadata { mode: 'LIVE' | 'STUB'; modelName: string; i
 export interface ModelPlanResponse { recommendedGoal: string; alternativeGoals: string[]; reason: string; metadata: ModelCallMetadata }
 export interface ModelEvidenceAnalysisResponse { summary: string; riskLevel: 'LOW' | 'MEDIUM' | 'HIGH'; riskExplanation: string; recommendations: string[]; metadata: ModelCallMetadata }
 export interface DraftEvidence { schema: string; table: string; purpose: string; columns: string[]; rows: string[][] }
-export interface BusinessHandlingDraft { handlingType: BusinessHandlingType; premiseType: string; subjectKey: string; statement: string; sourceDescription: string; systemCode: string; objectKey: string; startDate: string; endDate: string; investigationAreas: string[]; dataUse: string; recommendedGoal: string; alternativeGoals: string[]; reason: string; conclusion: string; evidence: DraftEvidence[] }
+export interface BusinessHandlingDraft { subjectKey: string; statement: string; sourceDescription: string; systemCode: string; objectKey: string; startDate: string; endDate: string; investigationAreas: string[]; dataUse: string; recommendedGoal: string; alternativeGoals: string[]; reason: string; conclusion: string; evidence: DraftEvidence[] }
 export interface BusinessGuidanceRequest { message?: string; currentDraft?: BusinessHandlingDraft }
 export interface BusinessGuidanceResponse { reply: string; draft: BusinessHandlingDraft; metadata: ModelCallMetadata }
 export interface TaskDraftRequest { title: string; originalQuestion: string; initiatorUserId: string; runtimeBundleId: string; businessSceneSkillId?: string }
@@ -137,12 +136,12 @@ const DATA_EXPLORATION_QUERY_RESULT_FIELDS = ['columns', 'rows', 'rowCount', 'el
 const TASK_LIST_ITEM_FIELDS = ['taskId', 'title', 'status', 'initiatorUserId', 'createdAt']
 const TASK_LIST_PAGE_FIELDS = ['items', 'total', 'page', 'pageSize']
 const TASK_DETAIL_FIELDS = ['taskId', 'title', 'description', 'status', 'initiatorUserId', 'createdAt', 'premises', 'scope', 'plans', 'conclusion', 'evidence', 'decisionPacket']
-const TASK_PREMISE_FIELDS = ['premiseType', 'subjectKey', 'statement', 'sourceDescription']
+const TASK_PREMISE_FIELDS = ['subjectKey', 'statement', 'sourceDescription']
 const TASK_SCOPE_FIELDS = ['systemCode', 'objectSelector', 'effectiveTimeRange', 'revisionNo']
 const TASK_PLAN_FIELDS = ['sequenceNo', 'goal', 'recommended', 'status']
 const STEP_VIEW_FIELDS = ['stepId', 'sequenceNo', 'goal', 'recommended', 'status']
 const MODEL_METADATA_FIELDS = ['mode', 'modelName', 'inputDigest', 'outputDigest', 'tokens', 'latencyMillis', 'reasoningEffort']
-const BUSINESS_DRAFT_FIELDS = ['handlingType', 'premiseType', 'subjectKey', 'statement', 'sourceDescription', 'systemCode', 'objectKey', 'startDate', 'endDate', 'investigationAreas', 'dataUse', 'recommendedGoal', 'alternativeGoals', 'reason', 'conclusion', 'evidence']
+const BUSINESS_DRAFT_FIELDS = ['subjectKey', 'statement', 'sourceDescription', 'systemCode', 'objectKey', 'startDate', 'endDate', 'investigationAreas', 'dataUse', 'recommendedGoal', 'alternativeGoals', 'reason', 'conclusion', 'evidence']
 
 /** 校验业务场景 Skill 响应。 */
 export function parseBusinessSceneSkill(value: unknown): BusinessSceneSkill {
@@ -407,16 +406,10 @@ function requireStringArray(value: unknown, label: string): string[] {
   return requireArray(value, label).map((item) => requireString(item, label))
 }
 
-/** 收窄业务处理类型。 */
-function parseBusinessHandlingType(value: unknown): BusinessHandlingType {
-  if (value === 'INVESTIGATE' || value === 'ADJUST') return value
-  throw new Error('处理方式格式无法识别，请联系管理员同步接口契约')
-}
-
 /** 校验任务前提。 */
 function parseTaskPremise(value: unknown): TaskPremise {
   const record = assertObjectFields(value, TASK_PREMISE_FIELDS, '任务前提')
-  return { premiseType: requireString(record.premiseType, '业务场景'), subjectKey: requireString(record.subjectKey, '处理对象'), statement: requireString(record.statement, '已知情况'), sourceDescription: requireString(record.sourceDescription, '信息来源') }
+  return { subjectKey: requireString(record.subjectKey, '处理对象'), statement: requireString(record.statement, '已知情况'), sourceDescription: requireString(record.sourceDescription, '信息来源') }
 }
 
 /** 校验任务范围。 */
@@ -442,7 +435,7 @@ function parseModelCallMetadata(value: unknown): ModelCallMetadata {
 /** 校验模型业务处理草稿。 */
 function parseBusinessHandlingDraft(value: unknown): BusinessHandlingDraft {
   const record = assertObjectFields(value, BUSINESS_DRAFT_FIELDS, '业务处理草稿')
-  return { handlingType: parseBusinessHandlingType(record.handlingType), premiseType: requireString(record.premiseType, '业务场景'), subjectKey: requireString(record.subjectKey, '处理对象'), statement: requireString(record.statement, '已知情况'), sourceDescription: requireString(record.sourceDescription, '信息来源'), systemCode: requireString(record.systemCode, '处理系统'), objectKey: requireString(record.objectKey, '对象标识'), startDate: requireString(record.startDate, '开始日期'), endDate: requireString(record.endDate, '结束日期'), investigationAreas: requireStringArray(record.investigationAreas, '处理内容'), dataUse: requireString(record.dataUse, '数据使用方式'), recommendedGoal: requireString(record.recommendedGoal, '推荐方案'), alternativeGoals: requireStringArray(record.alternativeGoals, '备选方案'), reason: requireString(record.reason, '推荐理由'), conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence) }
+  return { subjectKey: requireString(record.subjectKey, '处理对象'), statement: requireString(record.statement, '已知情况'), sourceDescription: requireString(record.sourceDescription, '信息来源'), systemCode: requireString(record.systemCode, '处理系统'), objectKey: requireString(record.objectKey, '对象标识'), startDate: requireString(record.startDate, '开始日期'), endDate: requireString(record.endDate, '结束日期'), investigationAreas: requireStringArray(record.investigationAreas, '处理内容'), dataUse: requireString(record.dataUse, '数据使用方式'), recommendedGoal: requireString(record.recommendedGoal, '推荐方案'), alternativeGoals: requireStringArray(record.alternativeGoals, '备选方案'), reason: requireString(record.reason, '推荐理由'), conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence) }
 }
 
 /** 校验单条关联证据。 */

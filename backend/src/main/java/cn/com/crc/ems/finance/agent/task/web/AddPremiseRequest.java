@@ -15,8 +15,8 @@ import jakarta.validation.constraints.Size;
  * @Date: 2026-10-11 21:28:41
  */
 @JsonIgnoreProperties(ignoreUnknown = false)
-public record AddPremiseRequest(@NotBlank @Size(max = 50) String premiseType,
-        @NotBlank @Size(max = 200) String subjectKey, @NotBlank @Size(max = 2000) String statement,
+public record AddPremiseRequest(@NotBlank @Size(max = 200) String subjectKey,
+        @NotBlank @Size(max = 2000) String statement,
         @NotBlank @Size(max = 2000) String sourceDescription) {
 
     @JsonAnySetter

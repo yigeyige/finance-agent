@@ -157,12 +157,14 @@ source: development-workplan
 |  129 | P0 自定义需求 | [20261025-govern-model-attempt-evidence-context](20261025-治理模型调用与证据上下文.md) | 治理模型调用、证据状态与有界历史上下文 | [20261025-治理模型调用与证据上下文.md](20261025-治理模型调用与证据上下文.md) | 进行中 | `20261025-require-versioned-business-scene-skill` |
 |  130 | P0 自定义需求 | [20261025-analyze-evidence-businesspacket](20261025-基于全量证据生成业务决策包.md) | 基于全部有效证据分析并生成业务决策包 | [20261025-基于全量证据生成业务决策包.md](20261025-基于全量证据生成业务决策包.md) | 进行中 | `20261025-require-versioned-business-scene-skill`、`20261025-govern-model-attempt-evidence-context` |
 |  131 | P0 自定义需求 | [20261027-refine-business-scene-skill-fields](20261027-业务场景Skill字段调整.md) | 业务场景 Skill 字段调整（场景名称、调查提示词、决策包提示词） | [20261027-业务场景Skill字段调整.md](20261027-业务场景Skill字段调整.md) | 已完成 | 无 |
+|  132 | P0 自定义需求 | [20261027-support-multiple-database-instances](20261027-数据库实例多实例配置.md) | 数据库实例多实例配置与数据探索切换 | [20261027-数据库实例多实例配置.md](20261027-数据库实例多实例配置.md) | 已完成 | 无 |
+|  133 | P0 自定义需求 | [20261027-separate-scene-skill-prompts](20261027-业务场景提示词分开注入.md) | 业务场景提示词分开注入并移除处理方式/业务场景 | [20261027-业务场景提示词分开注入.md](20261027-业务场景提示词分开注入.md) | 已完成 | 无 |
 
 ## 阶段统计
 
 | 阶段 |  数量 |
 |---|----:|
-| P0 | 111 |
+| P0 | 113 |
 | P1 |   9 |
 | P2 |  11 |
-| 合计 | 131 |
+| 合计 | 133 |

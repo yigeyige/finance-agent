@@ -19,21 +19,18 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @Author: yigeyige99
  * @Date: 2026-10-08 21:10:00
  */
-public record BusinessHandlingDraft(String handlingType, String premiseType, String subjectKey, String statement,
+public record BusinessHandlingDraft(String subjectKey, String statement,
         String sourceDescription, String systemCode, String objectKey, String startDate, String endDate,
         List<String> investigationAreas, String dataUse, String recommendedGoal, List<String> alternativeGoals,
         String reason, String conclusion, List<EmsDatabaseEvidence> evidence) {
 
-    private static final Set<String> FIELDS = Set.of("handlingType", "premiseType", "subjectKey", "statement",
+    private static final Set<String> FIELDS = Set.of("subjectKey", "statement",
             "sourceDescription", "systemCode", "objectKey", "startDate", "endDate", "investigationAreas",
             "dataUse", "recommendedGoal", "alternativeGoals", "reason", "conclusion", "evidence");
-    private static final Set<String> HANDLING_TYPES = Set.of("INVESTIGATE", "ADJUST");
     private static final Set<String> AREAS = Set.of("APPROVAL", "ROLE", "ACCOUNTING", "CONFIG");
     private static final Set<String> DATA_USES = Set.of("MINIMUM", "ANALYSIS");
 
     public BusinessHandlingDraft {
-        requireEnum(handlingType, HANDLING_TYPES, "handlingType");
-        requireText(premiseType, "premiseType", 100);
         requireText(subjectKey, "subjectKey", 200);
         requireText(statement, "statement", 2000);
         requireText(sourceDescription, "sourceDescription", 500);
@@ -84,8 +81,7 @@ public record BusinessHandlingDraft(String handlingType, String premiseType, Str
         List<String> alternatives = textArray(value.get("alternativeGoals"), "alternativeGoals", 0, 5);
         List<EmsDatabaseEvidence> evidence = evidenceArray(value.get("evidence"));
         try {
-            return new BusinessHandlingDraft(text(value, "handlingType", 20), text(value, "premiseType", 100),
-                    text(value, "subjectKey", 200), text(value, "statement", 2000),
+            return new BusinessHandlingDraft(text(value, "subjectKey", 200), text(value, "statement", 2000),
                     text(value, "sourceDescription", 500), text(value, "systemCode", 100),
                     text(value, "objectKey", 200), text(value, "startDate", 10), text(value, "endDate", 10),
                     areas, text(value, "dataUse", 20), text(value, "recommendedGoal", 2000), alternatives,
@@ -137,8 +133,6 @@ public record BusinessHandlingDraft(String handlingType, String premiseType, Str
      */
     public ObjectNode toJson() {
         ObjectNode node = JsonNodeFactory.instance.objectNode();
-        node.put("handlingType", handlingType);
-        node.put("premiseType", premiseType);
         node.put("subjectKey", subjectKey);
         node.put("statement", statement);
         node.put("sourceDescription", sourceDescription);

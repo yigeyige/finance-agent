@@ -113,8 +113,8 @@ public class TaskDetailService {
             List<Premise> premises, Scope scope, List<PlanStep> plans, String conclusion, @JsonRawValue JsonNode evidence,
             DecisionPacket decisionPacket) { }
     public record DecisionPacket(int revision, String conclusion, @JsonRawValue JsonNode evidence) { }
-    public record Premise(String premiseType, String subjectKey, String statement, String sourceDescription) {
-        static Premise from(TaskPremise value) { return new Premise(value.premiseType(), value.subjectKey(), value.statement(), value.sourceDescription()); }
+    public record Premise(String subjectKey, String statement, String sourceDescription) {
+        static Premise from(TaskPremise value) { return new Premise(value.subjectKey(), value.statement(), value.sourceDescription()); }
     }
     public record Scope(String systemCode, String objectSelector, String effectiveTimeRange, int revisionNo) {
         static Scope from(ScopeRevision value) { return value == null ? null : new Scope(value.systemCode(), value.objectSelector().canonical().value(), value.effectiveTimeRange().canonical().value(), value.revisionNo()); }

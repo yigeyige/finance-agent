@@ -67,7 +67,7 @@ class BusinessModelClientTest {
                 "需要调整离职人员仍生效的审批权限", "改为业务调整并优先处理审批权限", initial.value().draft()));
 
         assertThat(initial.metadata().mode()).isEqualTo("STUB");
-        assertThat(initial.value().draft().handlingType()).isEqualTo("ADJUST");
+        assertThat(initial.value().draft().recommendedGoal()).contains("梳理调整影响范围");
         assertThat(initial.value().draft().investigationAreas()).containsExactly("APPROVAL", "ROLE");
         assertThat(revised.value().reply()).contains("更新");
         assertThat(revised.value().draft().recommendedGoal()).contains("管理员意见");
@@ -84,7 +84,6 @@ class BusinessModelClientTest {
                 List.of(new BusinessGuidanceAttachment("交接.md", "交接材料，待人工核验。", false))));
 
         assertThat(withAttachment.metadata().inputDigest()).isNotEqualTo(withoutAttachment.metadata().inputDigest());
-        assertThat(withAttachment.value().draft().handlingType()).isEqualTo("ADJUST");
     }
 
     @Test

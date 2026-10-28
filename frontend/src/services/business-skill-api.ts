@@ -1,7 +1,7 @@
 import { deleteJson, getJson, postJson, putJson } from './http'
-import { BusinessHandlingType, BusinessSceneSkill, BusinessSceneSkillPayload, parseBusinessSceneSkill, parseBusinessSceneSkills } from '../api/generated'
+import { BusinessSceneSkill, BusinessSceneSkillPayload, parseBusinessSceneSkill, parseBusinessSceneSkills } from '../api/generated'
 
-export type { BusinessHandlingType, BusinessSceneSkill, BusinessSceneSkillPayload }
+export type { BusinessSceneSkill, BusinessSceneSkillPayload }
 
 /** 查询全部可维护的业务场景 Skill。 */
 export async function listBusinessSceneSkills(): Promise<BusinessSceneSkill[]> {

@@ -11,7 +11,7 @@ import java.util.UUID;
  * @Author: yigeyige99
  * @Date: 2026-10-11 21:28:41
  */
-public record TaskPremise(UUID premiseId, UUID taskId, String premiseType, String subjectKey,
+public record TaskPremise(UUID premiseId, UUID taskId, String subjectKey,
         String statement, UUID providedBy, String sourceDescription, Instant providedAt,
         boolean independentlyVerified, UUID createdBy, Instant createdAt, UUID updatedBy, Instant updatedAt) {
 
@@ -20,7 +20,7 @@ public record TaskPremise(UUID premiseId, UUID taskId, String premiseType, Strin
                 || createdAt == null || updatedAt == null) {
             throw new IllegalArgumentException("premise identity and timestamps are required");
         }
-        if (blank(premiseType) || blank(subjectKey) || blank(statement) || blank(sourceDescription)) {
+        if (blank(subjectKey) || blank(statement) || blank(sourceDescription)) {
             throw new IllegalArgumentException("premise text fields must not be blank");
         }
     }

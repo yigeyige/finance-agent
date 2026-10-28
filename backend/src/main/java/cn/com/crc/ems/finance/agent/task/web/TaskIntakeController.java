@@ -60,7 +60,7 @@ public final class TaskIntakeController {
             @RequestHeader("Idempotency-Key") String idempotencyKey) {
         requireIdempotencyKey(idempotencyKey);
         actorUserId = trustedActor(actorUserId);
-        var premise = intakeService.addPremise(new AddTaskPremiseCommand(taskId, request.premiseType(),
+        var premise = intakeService.addPremise(new AddTaskPremiseCommand(taskId,
                 request.subjectKey(), request.statement(), actorUserId, request.sourceDescription(),
                 UtcTime.now(applicationClock)));
         var task = intakeService.findTask(taskId);

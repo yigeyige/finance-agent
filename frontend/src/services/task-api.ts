@@ -2,7 +2,7 @@ import { parseTaskResponse, TaskDraftRequest, TaskResponse } from '../api/genera
 import { ApiError, postJson } from './http'
 
 export type CreateTaskPayload = TaskDraftRequest
-export interface AddPremisePayload { premiseType: string; subjectKey: string; statement: string; sourceDescription: string }
+export interface AddPremisePayload { subjectKey: string; statement: string; sourceDescription: string }
 export interface ConfirmScopePayload { systemCode: string; objectSelector: unknown; effectiveTimeRange: unknown; includedPaths: unknown; excludedPaths: unknown; allowedReadFields: unknown; allowedRetainFields: unknown; allowedModelFields: unknown; schemaVersion: string }
 
 /** 创建任务草稿并校验后端响应。 */

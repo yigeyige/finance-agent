@@ -105,9 +105,8 @@ public final class StubBusinessModelClient implements BusinessModelClient {
     private static BusinessHandlingDraft initialDraft(BusinessGuidanceContext context) {
         boolean adjust = context.description().contains("调整") || context.description().contains("修改")
                 || context.title().contains("调整");
-        String handlingType = adjust ? "ADJUST" : "INVESTIGATE";
         String action = adjust ? "梳理调整影响范围并形成可执行处理方案" : "核对已授权范围内的现状并形成可复核结论";
-        return new BusinessHandlingDraft(handlingType, adjust ? "业务调整" : "业务核查", "待管理员确认的业务对象",
+        return new BusinessHandlingDraft("待管理员确认的业务对象",
                 context.description(), "管理员填写的业务说明", "FIN-SYN", "待管理员确认的系统对象", "2026-01-01",
                 "2026-12-31", List.of("APPROVAL", "ROLE"), "MINIMUM", action,
                 List.of("复核对象关联关系和责任归属", "核对时间范围内的变更及待处理事项"),
@@ -117,11 +116,8 @@ public final class StubBusinessModelClient implements BusinessModelClient {
 
     private static BusinessHandlingDraft revisedDraft(BusinessGuidanceContext context) {
         BusinessHandlingDraft current = context.currentDraft();
-        boolean adjust = context.feedback().contains("调整") || context.feedback().contains("修改")
-                || current.handlingType().equals("ADJUST");
         String goal = current.recommendedGoal() + "；已纳入管理员意见：" + context.feedback();
-        return new BusinessHandlingDraft(adjust ? "ADJUST" : "INVESTIGATE", current.premiseType(),
-                current.subjectKey(), current.statement(), current.sourceDescription(), current.systemCode(),
+        return new BusinessHandlingDraft(current.subjectKey(), current.statement(), current.sourceDescription(), current.systemCode(),
                 current.objectKey(), current.startDate(), current.endDate(), current.investigationAreas(),
                 current.dataUse(), goal.length() > 2000 ? goal.substring(0, 2000) : goal,
                 current.alternativeGoals(), "本地模拟模型已根据管理员的本次意见更新初稿，请再次核对。",
@@ -137,7 +133,6 @@ public final class StubBusinessModelClient implements BusinessModelClient {
             ObjectNode skill = node.putObject("sceneSkill");
             skill.put("name", context.sceneSkill().name());
             skill.put("investigationPrompt", context.sceneSkill().investigationPrompt());
-            skill.put("decisionPacketPrompt", context.sceneSkill().decisionPacketPrompt());
         }
         if (context.feedback() != null) {
             node.put("feedback", context.feedback());

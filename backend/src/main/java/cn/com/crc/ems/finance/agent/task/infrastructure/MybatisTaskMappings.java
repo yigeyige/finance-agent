@@ -70,12 +70,12 @@ final class MybatisTaskMappings {
     }
 
     static TaskPremise toDomain(TaskPremiseEntity e) {
-        return new TaskPremise(PersistenceUuid.toDomain(e.premiseId), e.taskId, e.premiseType, e.subjectKey, e.statement, e.providedBy,
+        return new TaskPremise(PersistenceUuid.toDomain(e.premiseId), e.taskId, e.subjectKey, e.statement, e.providedBy,
                 e.sourceDescription, e.providedAt, Boolean.TRUE.equals(e.independentlyVerified), e.createdBy, e.createdAt, e.updatedBy, e.updatedAt);
     }
 
     static TaskPremiseEntity toEntity(TaskPremise d) {
-        TaskPremiseEntity e = new TaskPremiseEntity(); e.premiseId = PersistenceUuid.toStorage(d.premiseId()); e.taskId = d.taskId(); e.premiseType = d.premiseType();
+        TaskPremiseEntity e = new TaskPremiseEntity(); e.premiseId = PersistenceUuid.toStorage(d.premiseId()); e.taskId = d.taskId();
         e.subjectKey = d.subjectKey(); e.statement = d.statement(); e.providedBy = d.providedBy(); e.sourceDescription = d.sourceDescription();
         e.providedAt = d.providedAt(); e.independentlyVerified = d.independentlyVerified(); e.createdBy = d.createdBy(); e.createdAt = d.createdAt();
         e.updatedBy = d.updatedBy(); e.updatedAt = d.updatedAt(); return e;

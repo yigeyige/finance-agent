@@ -20,7 +20,7 @@
 
 ### Requirement: Operational premise provenance
 
-系统 SHALL 将运维人员提供的前提作为独立记录保存，包含前提类型、主体标识、原文陈述、提供人、来源说明和独立核实标志；前提不得被改写为源系统已核实事实。
+系统 SHALL 将运维人员提供的前提作为独立记录保存，包含主体标识、原文陈述、提供人、来源说明和独立核实标志；前提不得被改写为源系统已核实事实。
 
 #### Scenario: Store an operational premise
 

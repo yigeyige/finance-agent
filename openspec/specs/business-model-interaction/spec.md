@@ -75,7 +75,7 @@
 - **THEN** 页面不显示推理强度字段，且不把缺失值替换为推理内容或错误提示
 
 ### Requirement: Guidance call uses the task-linked business scenario Skill
-系统 SHALL 在业务处理初稿和会话修订调用时，仅从任务关联的当前有效业务场景 Skill 中读取名称、调查提示词和决策包提示词，并作为受控 `sceneSkill` 上下文投影给模型。系统 MUST NOT 接受浏览器直接提交的 Skill 内容作为模型上下文。
+系统 SHALL 在业务处理初稿和会话修订调用时，仅从任务关联的当前有效业务场景 Skill 中读取名称和调查提示词，并作为受控 `sceneSkill` 上下文投影给模型。系统 MUST NOT 接受浏览器直接提交的 Skill 内容作为模型上下文。
 
 #### Scenario: Task-linked Skill guides a draft
 - **WHEN** 任务关联一个当前有效的业务场景 Skill 且 OPERATOR 请求业务处理初稿或会话修订
