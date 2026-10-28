@@ -11,15 +11,12 @@ import java.util.UUID;
  * @Author: yigeyige99
  * @Date: 2026-10-11 21:28:41
  */
-public record AddTaskPremiseCommand(UUID taskId, String subjectKey, String statement,
-        UUID providedBy, String sourceDescription, Instant occurredAt) {
+public record AddTaskPremiseCommand(UUID taskId, String subjectKey, UUID providedBy, Instant occurredAt) {
 
     public AddTaskPremiseCommand {
         requireId(taskId, "taskId");
         requireText(subjectKey, "subjectKey");
-        requireText(statement, "statement");
         requireId(providedBy, "providedBy");
-        requireText(sourceDescription, "sourceDescription");
         if (occurredAt == null) {
             throw new IllegalArgumentException("occurredAt is required");
         }

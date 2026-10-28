@@ -70,7 +70,7 @@ class TaskIntakeApplicationServiceTest {
         TaskIntakeApplicationService service = service(tasks, premises, scopes, audit, mock(TaskStateTransitionService.class));
 
         TaskPremise premise = service.addPremise(new AddTaskPremiseCommand(task.taskId(),
-                "EMP-SYN-001", "已离职", UUID.randomUUID(), "运维人员输入", NOW));
+                "EMP-SYN-001", UUID.randomUUID(), NOW));
 
         assertThat(premise.independentlyVerified()).isFalse();
         verify(premises).insert(premise);
@@ -93,8 +93,8 @@ class TaskIntakeApplicationServiceTest {
                 result(waiting), result(ready));
         TaskIntakeApplicationService service = service(tasks, premises, scopes, audit, state);
 
-        ScopeConfirmationResult result = service.confirmScope(new ConfirmScopeCommand(draft.taskId(), "FIN-SYN",
-                "{\"module\":\"approval\"}", "{\"from\":\"2026-01-01\"}", "[\"workflow\"]", "[]",
+        ScopeConfirmationResult result = service.confirmScope(new ConfirmScopeCommand(draft.taskId(),
+                "{\"module\":\"approval\"}", "[]",
                 "[\"workflow.id\"]", "[\"workflow.id\"]", "[\"workflow.id\"]", "scope-v1",
                 UUID.randomUUID(), NOW));
 
@@ -114,8 +114,8 @@ class TaskIntakeApplicationServiceTest {
         when(tasks.findByIdForUpdate(task.taskId())).thenReturn(Optional.of(task));
         TaskIntakeApplicationService service = service(tasks, premises, scopes, audit, mock(TaskStateTransitionService.class));
 
-        assertThatThrownBy(() -> service.confirmScope(new ConfirmScopeCommand(task.taskId(), "FIN-SYN", "[]",
-                "{}", "[]", "[]", "[]", "[]", "[]", "scope-v1", UUID.randomUUID(), NOW)))
+        assertThatThrownBy(() -> service.confirmScope(new ConfirmScopeCommand(task.taskId(), "[]",
+                "[]", "[]", "[]", "[]", "scope-v1", UUID.randomUUID(), NOW)))
                 .isInstanceOf(IllegalArgumentException.class);
         org.mockito.Mockito.verify(scopes, org.mockito.Mockito.never()).insert(any());
     }
@@ -155,8 +155,8 @@ class TaskIntakeApplicationServiceTest {
         TaskIntakeApplicationService service = new TaskIntakeApplicationService(tasks, premises, scopes, state, audit,
                 approvals, drafts);
 
-        service.confirmScope(new ConfirmScopeCommand(current.taskId(), "FIN-SYN", "{\"module\":\"approval\"}",
-                "{}", "[]", "[]", "[]", "[]", "[]", "scope-v1", UUID.randomUUID(), NOW));
+        service.confirmScope(new ConfirmScopeCommand(current.taskId(), "{\"module\":\"approval\"}",
+                "[]", "[]", "[]", "[]", "scope-v1", UUID.randomUUID(), NOW));
 
         verify(approvals).markStaleByScopeRevision(eq(current.taskId()), eq(oldScopeId), any(UUID.class), eq(NOW));
         verify(drafts).markStaleByScopeRevision(eq(current.taskId()), eq(oldScopeId), any(UUID.class), eq(NOW));
@@ -180,9 +180,7 @@ class TaskIntakeApplicationServiceTest {
     }
 
     private static ScopeRevision scope(UUID scopeRevisionId, UUID taskId) {
-        return new ScopeRevision(scopeRevisionId, taskId, 1, "FIN-SYN", new cn.com.crc.ems.finance.agent.task.domain.VersionedJson("scope-v1", "{}"),
-                new cn.com.crc.ems.finance.agent.task.domain.VersionedJson("scope-v1", "{}"),
-                new cn.com.crc.ems.finance.agent.task.domain.VersionedJson("scope-v1", "[]"),
+        return new ScopeRevision(scopeRevisionId, taskId, 1, new cn.com.crc.ems.finance.agent.task.domain.VersionedJson("scope-v1", "{}"),
                 new cn.com.crc.ems.finance.agent.task.domain.VersionedJson("scope-v1", "[]"),
                 new cn.com.crc.ems.finance.agent.task.domain.VersionedJson("scope-v1", "[]"),
                 new cn.com.crc.ems.finance.agent.task.domain.VersionedJson("scope-v1", "[]"),

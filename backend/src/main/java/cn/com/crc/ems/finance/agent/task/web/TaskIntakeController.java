@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,7 @@ import cn.com.crc.ems.finance.agent.task.application.ConfirmScopeCommand;
 import cn.com.crc.ems.finance.agent.task.application.CreateTaskDraftCommand;
 import cn.com.crc.ems.finance.agent.task.application.ScopeConfirmationResult;
 import cn.com.crc.ems.finance.agent.task.application.TaskIntakeApplicationService;
+import cn.com.crc.ems.finance.agent.task.application.UpdateTaskCommand;
 
 /**
  *
@@ -54,6 +56,15 @@ public final class TaskIntakeController {
                 .buildAndExpand(task.taskId()).toUri()).body(TaskIntakeResponse.task(task));
     }
 
+    @PutMapping("/{taskId}")
+    public TaskIntakeResponse updateTask(@PathVariable UUID taskId, @Valid @RequestBody UpdateTaskRequest request,
+            @RequestHeader(value = "X-Actor-User-Id", required = false) UUID actorUserId) {
+        actorUserId = trustedActor(actorUserId);
+        var task = intakeService.updateTask(new UpdateTaskCommand(taskId, request.originalQuestion(),
+                request.businessSceneSkillId(), request.databaseConfigId(), actorUserId, UtcTime.now(applicationClock)));
+        return TaskIntakeResponse.task(task);
+    }
+
     @PostMapping("/{taskId}/premises")
     public ResponseEntity<TaskIntakeResponse> addPremise(@PathVariable UUID taskId,
             @Valid @RequestBody AddPremiseRequest request, @RequestHeader(value = "X-Actor-User-Id", required = false) UUID actorUserId,
@@ -61,8 +72,7 @@ public final class TaskIntakeController {
         requireIdempotencyKey(idempotencyKey);
         actorUserId = trustedActor(actorUserId);
         var premise = intakeService.addPremise(new AddTaskPremiseCommand(taskId,
-                request.subjectKey(), request.statement(), actorUserId, request.sourceDescription(),
-                UtcTime.now(applicationClock)));
+                request.subjectKey(), actorUserId, UtcTime.now(applicationClock)));
         var task = intakeService.findTask(taskId);
         return ResponseEntity.status(201).body(TaskIntakeResponse.premise(task, premise));
     }
@@ -74,8 +84,7 @@ public final class TaskIntakeController {
         requireIdempotencyKey(idempotencyKey);
         actorUserId = trustedActor(actorUserId);
         ScopeConfirmationResult result = intakeService.confirmScope(new ConfirmScopeCommand(taskId,
-                request.systemCode(), request.objectSelector().toString(), request.effectiveTimeRange().toString(),
-                request.includedPaths().toString(), request.excludedPaths().toString(),
+                request.objectSelector().toString(), request.excludedPaths().toString(),
                 request.allowedReadFields().toString(), request.allowedRetainFields().toString(),
                 request.allowedModelFields().toString(), request.schemaVersion(), actorUserId,
                 UtcTime.now(applicationClock)));

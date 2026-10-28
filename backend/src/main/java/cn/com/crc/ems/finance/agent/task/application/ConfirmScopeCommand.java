@@ -11,17 +11,13 @@ import java.util.UUID;
  * @Author: yigeyige99
  * @Date: 2026-10-11 21:28:41
  */
-public record ConfirmScopeCommand(UUID taskId, String systemCode, String objectSelector,
-        String effectiveTimeRange, String includedPaths, String excludedPaths, String allowedReadFields,
-        String allowedRetainFields, String allowedModelFields, String schemaVersion, UUID confirmedBy,
-        Instant occurredAt) {
+public record ConfirmScopeCommand(UUID taskId, String objectSelector, String excludedPaths,
+        String allowedReadFields, String allowedRetainFields, String allowedModelFields, String schemaVersion,
+        UUID confirmedBy, Instant occurredAt) {
 
     public ConfirmScopeCommand {
         requireId(taskId, "taskId");
-        requireText(systemCode, "systemCode");
         requireText(objectSelector, "objectSelector");
-        requireText(effectiveTimeRange, "effectiveTimeRange");
-        requireText(includedPaths, "includedPaths");
         requireText(excludedPaths, "excludedPaths");
         requireText(allowedReadFields, "allowedReadFields");
         requireText(allowedRetainFields, "allowedRetainFields");

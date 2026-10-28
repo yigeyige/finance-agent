@@ -7,11 +7,7 @@ import { ConfirmScopePayload } from './task-api'
 export const DEFAULT_RUNTIME_BUNDLE_ID = '00000000-0000-4000-8000-000000000010'
 
 export interface BusinessScopeForm {
-  systemCode: string
   objectKey: string
-  dateRange: string[]
-  investigationAreas: string[]
-  dataUse: 'MINIMUM' | 'ANALYSIS'
 }
 
 export interface PacketBusinessSummary {
@@ -49,18 +45,12 @@ const AREA_DEFINITIONS: Record<string, { path: string; fields: string[]; goal: s
 
 /** 根据业务范围生成后端严格的范围确认请求。 */
 export function buildScopePayload(form: BusinessScopeForm): ConfirmScopePayload {
-  const definitions = form.investigationAreas.map((area) => AREA_DEFINITIONS[area]).filter(Boolean)
-  const allFields = Array.from(new Set(definitions.flatMap((item) => item.fields)))
-  const retainedFields = allFields.filter((field) => field.endsWith('.id') || field.endsWith('.code') || field.endsWith('.key'))
   return {
-    systemCode: form.systemCode,
     objectSelector: { businessObject: form.objectKey },
-    effectiveTimeRange: { from: form.dateRange[0], to: form.dateRange[1] },
-    includedPaths: definitions.map((item) => item.path),
     excludedPaths: [],
-    allowedReadFields: allFields,
-    allowedRetainFields: retainedFields,
-    allowedModelFields: form.dataUse === 'ANALYSIS' ? allFields : retainedFields,
+    allowedReadFields: [],
+    allowedRetainFields: [],
+    allowedModelFields: [],
     schemaVersion: 'scope-v1',
   }
 }

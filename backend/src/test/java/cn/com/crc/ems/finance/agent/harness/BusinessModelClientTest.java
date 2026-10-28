@@ -68,7 +68,7 @@ class BusinessModelClientTest {
 
         assertThat(initial.metadata().mode()).isEqualTo("STUB");
         assertThat(initial.value().draft().recommendedGoal()).contains("梳理调整影响范围");
-        assertThat(initial.value().draft().investigationAreas()).containsExactly("APPROVAL", "ROLE");
+        assertThat(initial.value().draft().subjectKey()).isEqualTo("待管理员确认的业务对象");
         assertThat(revised.value().reply()).contains("更新");
         assertThat(revised.value().draft().recommendedGoal()).contains("管理员意见");
     }
@@ -135,8 +135,7 @@ class BusinessModelClientTest {
 
     private static ModelPlanContext planContext() {
         return new ModelPlanContext(UUID.randomUUID(), "离职人员配置核查", "是否仍有有效配置", UUID.randomUUID(),
-                "FIN-SYN", "{\"businessObject\":\"E001\"}",
-                "{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"}", "[\"workflow.approvals\"]");
+                "{\"businessObject\":\"E001\"}");
     }
 
     private static EvidenceAnalysisContext evidenceContext() {

@@ -192,8 +192,7 @@ public final class BusinessModelInteractionService {
         var scope = scopeRepository.findById(task.currentScopeRevisionId())
                 .orElseThrow(() -> new IllegalStateException("当前调查范围不存在或已失效"));
         return modelClient.generatePlan(new ModelPlanContext(task.taskId(), task.title(), task.originalQuestion(),
-                scope.scopeRevisionId(), scope.systemCode(), scope.objectSelector().canonical().value(),
-                scope.effectiveTimeRange().canonical().value(), scope.includedPaths().canonical().value()));
+                scope.scopeRevisionId(), scope.objectSelector().canonical().value()));
     }
 
     /** 从当前任务的脱敏证据统计和判断陈述生成模型分析。 */

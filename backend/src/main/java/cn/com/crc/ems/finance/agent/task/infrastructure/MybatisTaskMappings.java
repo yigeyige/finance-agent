@@ -50,9 +50,8 @@ final class MybatisTaskMappings {
     }
 
     static ScopeRevision toDomain(ScopeRevisionEntity e) {
-        return new ScopeRevision(PersistenceUuid.toDomain(e.scopeRevisionId), e.taskId, e.revisionNo, e.systemCode,
-                json(e.objectSelector, e.schemaVersion), json(e.effectiveTimeRange, e.schemaVersion),
-                json(e.includedPaths, e.schemaVersion), json(e.excludedPaths, e.schemaVersion),
+        return new ScopeRevision(PersistenceUuid.toDomain(e.scopeRevisionId), e.taskId, e.revisionNo,
+                json(e.objectSelector, e.schemaVersion), json(e.excludedPaths, e.schemaVersion),
                 json(e.allowedReadFields, e.schemaVersion), json(e.allowedRetainFields, e.schemaVersion),
                 json(e.allowedModelFields, e.schemaVersion), e.confirmedBy, e.confirmedAt, e.scopeDigest,
                 e.schemaVersion, e.createdBy, e.createdAt, e.updatedBy, e.updatedAt);
@@ -60,9 +59,8 @@ final class MybatisTaskMappings {
 
     static ScopeRevisionEntity toEntity(ScopeRevision d) {
         ScopeRevisionEntity e = new ScopeRevisionEntity();
-        e.scopeRevisionId = PersistenceUuid.toStorage(d.scopeRevisionId()); e.taskId = d.taskId(); e.revisionNo = d.revisionNo(); e.systemCode = d.systemCode();
-        e.objectSelector = d.objectSelector().json(); e.effectiveTimeRange = d.effectiveTimeRange().json();
-        e.includedPaths = d.includedPaths().json(); e.excludedPaths = d.excludedPaths().json();
+        e.scopeRevisionId = PersistenceUuid.toStorage(d.scopeRevisionId()); e.taskId = d.taskId(); e.revisionNo = d.revisionNo();
+        e.objectSelector = d.objectSelector().json(); e.excludedPaths = d.excludedPaths().json();
         e.allowedReadFields = d.allowedReadFields().json(); e.allowedRetainFields = d.allowedRetainFields().json();
         e.allowedModelFields = d.allowedModelFields().json(); e.confirmedBy = d.confirmedBy(); e.confirmedAt = d.confirmedAt();
         e.scopeDigest = d.scopeDigest(); e.schemaVersion = d.schemaVersion(); e.createdBy = d.createdBy(); e.createdAt = d.createdAt();
@@ -70,13 +68,13 @@ final class MybatisTaskMappings {
     }
 
     static TaskPremise toDomain(TaskPremiseEntity e) {
-        return new TaskPremise(PersistenceUuid.toDomain(e.premiseId), e.taskId, e.subjectKey, e.statement, e.providedBy,
-                e.sourceDescription, e.providedAt, Boolean.TRUE.equals(e.independentlyVerified), e.createdBy, e.createdAt, e.updatedBy, e.updatedAt);
+        return new TaskPremise(PersistenceUuid.toDomain(e.premiseId), e.taskId, e.subjectKey, e.providedBy,
+                e.providedAt, Boolean.TRUE.equals(e.independentlyVerified), e.createdBy, e.createdAt, e.updatedBy, e.updatedAt);
     }
 
     static TaskPremiseEntity toEntity(TaskPremise d) {
         TaskPremiseEntity e = new TaskPremiseEntity(); e.premiseId = PersistenceUuid.toStorage(d.premiseId()); e.taskId = d.taskId();
-        e.subjectKey = d.subjectKey(); e.statement = d.statement(); e.providedBy = d.providedBy(); e.sourceDescription = d.sourceDescription();
+        e.subjectKey = d.subjectKey(); e.providedBy = d.providedBy();
         e.providedAt = d.providedAt(); e.independentlyVerified = d.independentlyVerified(); e.createdBy = d.createdBy(); e.createdAt = d.createdAt();
         e.updatedBy = d.updatedBy(); e.updatedAt = d.updatedAt(); return e;
     }

@@ -1,13 +1,20 @@
 import { parseTaskResponse, TaskDraftRequest, TaskResponse } from '../api/generated'
-import { ApiError, postJson } from './http'
+import { ApiError, postJson, putJson } from './http'
 
 export type CreateTaskPayload = TaskDraftRequest
-export interface AddPremisePayload { subjectKey: string; statement: string; sourceDescription: string }
-export interface ConfirmScopePayload { systemCode: string; objectSelector: unknown; effectiveTimeRange: unknown; includedPaths: unknown; excludedPaths: unknown; allowedReadFields: unknown; allowedRetainFields: unknown; allowedModelFields: unknown; schemaVersion: string }
+export interface AddPremisePayload { subjectKey: string }
+export interface ConfirmScopePayload { objectSelector: unknown; excludedPaths: unknown; allowedReadFields: unknown; allowedRetainFields: unknown; allowedModelFields: unknown; schemaVersion: string }
+export interface UpdateTaskPayload { originalQuestion: string; businessSceneSkillId?: string; databaseConfigId?: string }
 
 /** 创建任务草稿并校验后端响应。 */
 export async function createTask(payload: CreateTaskPayload): Promise<TaskResponse> {
   const response = await postJson<unknown, CreateTaskPayload>('/v1/tasks', withSceneSkill(payload), undefined, { idempotencyKey: createIdempotencyKey() })
+  return parseTaskResponse(response)
+}
+
+/** 更新任务基础信息（业务说明、业务场景 Skill、数据库实例）。 */
+export async function updateTask(taskId: string, payload: UpdateTaskPayload): Promise<TaskResponse> {
+  const response = await putJson<unknown, UpdateTaskPayload>(`/v1/tasks/${taskId}`, payload)
   return parseTaskResponse(response)
 }
 

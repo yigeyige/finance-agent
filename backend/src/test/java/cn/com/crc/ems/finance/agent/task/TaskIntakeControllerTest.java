@@ -85,10 +85,8 @@ class TaskIntakeControllerTest {
         UUID scopeId = UUID.randomUUID();
         InvestigationTask task = new InvestigationTask(taskId, "审批配置调查", "请检查审批配置", ACTOR,
                 TaskStatus.READY, UUID.randomUUID(), null, scopeId, null, NOW, NOW, 2, null, ACTOR, ACTOR);
-        ScopeRevision revision = new ScopeRevision(scopeId, taskId, 1, "FIN-SYN",
+        ScopeRevision revision = new ScopeRevision(scopeId, taskId, 1,
                 new VersionedJson("scope-v1", "{\"employeeKey\":\"EMP-SYN-001\"}"),
-                new VersionedJson("scope-v1", "{\"from\":\"2026-01-01T00:00:00Z\"}"),
-                new VersionedJson("scope-v1", "[\"workflow.reference\"]"),
                 new VersionedJson("scope-v1", "[\"credential.secret\"]"),
                 new VersionedJson("scope-v1", "[\"reference.id\"]"),
                 new VersionedJson("scope-v1", "[\"reference.id\"]"),

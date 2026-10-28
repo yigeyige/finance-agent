@@ -113,8 +113,8 @@ class PacketDraftAssemblerTest {
 
     private static ScopeRevision scope() {
         VersionedJson document = new VersionedJson("scope-v1", "{}");
-        return new ScopeRevision(SCOPE_ID, TASK_ID, 1, "synthetic", document, document, document, document, document,
-                document, document, ACTOR_ID, NOW, "a".repeat(64), "scope-v1", ACTOR_ID, NOW, ACTOR_ID, NOW);
+        return new ScopeRevision(SCOPE_ID, TASK_ID, 1, document, document, document, document, document,
+                ACTOR_ID, NOW, "a".repeat(64), "scope-v1", ACTOR_ID, NOW, ACTOR_ID, NOW);
     }
 
     private static RuntimeBundle bundle() {

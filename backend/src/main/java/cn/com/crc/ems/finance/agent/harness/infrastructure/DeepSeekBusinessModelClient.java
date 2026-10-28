@@ -235,10 +235,7 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         ObjectNode node = JsonNodeFactory.instance.objectNode();
         node.put("title", context.title());
         node.put("question", context.question());
-        node.put("systemCode", context.systemCode());
         node.set("objectSelector", CanonicalJsonCodec.parse(context.objectSelector()));
-        node.set("effectiveTimeRange", CanonicalJsonCodec.parse(context.effectiveTimeRange()));
-        node.set("includedPaths", CanonicalJsonCodec.parse(context.includedPaths()));
         return node;
     }
 

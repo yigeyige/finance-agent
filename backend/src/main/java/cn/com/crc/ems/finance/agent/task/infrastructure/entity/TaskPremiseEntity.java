@@ -21,9 +21,7 @@ public class TaskPremiseEntity {
     public String premiseId;
     public UUID taskId;
     public String subjectKey;
-    public String statement;
     public UUID providedBy;
-    public String sourceDescription;
     public Instant providedAt;
     public Boolean independentlyVerified;
     public UUID createdBy;

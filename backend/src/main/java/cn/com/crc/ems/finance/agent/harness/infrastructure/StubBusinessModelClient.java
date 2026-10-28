@@ -95,10 +95,7 @@ public final class StubBusinessModelClient implements BusinessModelClient {
         node.put("scopeRevisionId", context.scopeRevisionId().toString());
         node.put("title", context.title());
         node.put("question", context.question());
-        node.put("systemCode", context.systemCode());
         node.set("objectSelector", CanonicalJsonCodec.parse(context.objectSelector()));
-        node.set("effectiveTimeRange", CanonicalJsonCodec.parse(context.effectiveTimeRange()));
-        node.set("includedPaths", CanonicalJsonCodec.parse(context.includedPaths()));
         return node;
     }
 
@@ -106,9 +103,7 @@ public final class StubBusinessModelClient implements BusinessModelClient {
         boolean adjust = context.description().contains("调整") || context.description().contains("修改")
                 || context.title().contains("调整");
         String action = adjust ? "梳理调整影响范围并形成可执行处理方案" : "核对已授权范围内的现状并形成可复核结论";
-        return new BusinessHandlingDraft("待管理员确认的业务对象",
-                context.description(), "管理员填写的业务说明", "FIN-SYN", "待管理员确认的系统对象", "2026-01-01",
-                "2026-12-31", List.of("APPROVAL", "ROLE"), "MINIMUM", action,
+        return new BusinessHandlingDraft("待管理员确认的业务对象", "待管理员确认的系统对象", action,
                 List.of("复核对象关联关系和责任归属", "核对时间范围内的变更及待处理事项"),
                 "本地模拟模型已根据业务说明形成初稿，管理员确认后才会写入业务范围。",
                 "本地模拟模型未查询 EMS 数据库，暂无检查结论。", List.of());
@@ -117,11 +112,9 @@ public final class StubBusinessModelClient implements BusinessModelClient {
     private static BusinessHandlingDraft revisedDraft(BusinessGuidanceContext context) {
         BusinessHandlingDraft current = context.currentDraft();
         String goal = current.recommendedGoal() + "；已纳入管理员意见：" + context.feedback();
-        return new BusinessHandlingDraft(current.subjectKey(), current.statement(), current.sourceDescription(), current.systemCode(),
-                current.objectKey(), current.startDate(), current.endDate(), current.investigationAreas(),
-                current.dataUse(), goal.length() > 2000 ? goal.substring(0, 2000) : goal,
-                current.alternativeGoals(), "本地模拟模型已根据管理员的本次意见更新初稿，请再次核对。",
-                current.conclusion(), current.evidence());
+        return new BusinessHandlingDraft(current.subjectKey(), current.objectKey(),
+                goal.length() > 2000 ? goal.substring(0, 2000) : goal, current.alternativeGoals(),
+                "本地模拟模型已根据管理员的本次意见更新初稿，请再次核对。", current.conclusion(), current.evidence());
     }
 
     private static ObjectNode contextJson(BusinessGuidanceContext context) {

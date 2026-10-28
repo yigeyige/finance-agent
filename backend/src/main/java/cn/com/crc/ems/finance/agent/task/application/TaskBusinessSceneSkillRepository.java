@@ -19,4 +19,7 @@ public interface TaskBusinessSceneSkillRepository {
 
     /** 在创建任务时写入一次不可变的场景选择。 */
     void insert(UUID taskId, UUID skillId, UUID operatorId, Instant createdAt);
+
+    /** 更新任务时删除旧关联，供后续重新插入。 */
+    void deleteByTaskId(UUID taskId);
 }

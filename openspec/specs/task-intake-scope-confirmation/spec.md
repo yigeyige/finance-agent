@@ -18,9 +18,13 @@
 - **WHEN** 标题、原始问题、操作者或 runtime bundle 缺失/为空
 - **THEN** 请求在持久化前失败且不创建任务或审计事件
 
+#### Scenario: Update task basic information
+- **WHEN** OPERATOR 修改业务说明、业务场景 Skill 或数据库实例
+- **THEN** 系统更新任务对应字段并返回最新任务视图，且未确认范围时仍保持可继续创建流程
+
 ### Requirement: Operational premise provenance
 
-系统 SHALL 将运维人员提供的前提作为独立记录保存，包含主体标识、原文陈述、提供人、来源说明和独立核实标志；前提不得被改写为源系统已核实事实。
+系统 SHALL 将运维人员提供的前提作为独立记录保存，包含主体标识、提供人和独立核实标志；前提不得被改写为源系统已核实事实。
 
 #### Scenario: Store an operational premise
 
@@ -34,7 +38,7 @@
 
 ### Requirement: Confirmed immutable scope revision
 
-系统 SHALL 只通过结构化确认请求创建不可变 `ScopeRevision`，分别保存对象、生效时间、包含/排除路径及读取、留存、送模字段权限，并计算 revision 摘要。
+系统 SHALL 只通过结构化确认请求创建不可变 `ScopeRevision`，保存对象、排除路径及读取、留存、送模字段权限，并计算 revision 摘要。
 
 #### Scenario: Confirm scope and enter ready state
 

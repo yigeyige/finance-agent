@@ -11,7 +11,7 @@ import java.util.UUID;
  * @Date: 2026-10-11 21:28:41
  */
 public record ModelPlanContext(UUID taskId, String title, String question, UUID scopeRevisionId,
-        String systemCode, String objectSelector, String effectiveTimeRange, String includedPaths) {
+        String objectSelector) {
 
     public ModelPlanContext {
         if (taskId == null || scopeRevisionId == null) {
@@ -19,10 +19,7 @@ public record ModelPlanContext(UUID taskId, String title, String question, UUID 
         }
         requireText(title, "title", 300);
         requireText(question, "question", 8000);
-        requireText(systemCode, "systemCode", 200);
         requireJson(objectSelector, "objectSelector");
-        requireJson(effectiveTimeRange, "effectiveTimeRange");
-        requireJson(includedPaths, "includedPaths");
     }
 
     private static void requireText(String value, String field, int maxLength) {

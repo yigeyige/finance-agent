@@ -127,6 +127,32 @@ public class TaskIntakeApplicationService {
     }
 
     @Transactional
+    public InvestigationTask updateTask(UpdateTaskCommand command) {
+        InvestigationTask current = taskRepository.findByIdForUpdate(command.taskId())
+                .orElseThrow(() -> new RepositoryEntityNotFoundException("investigation task not found"));
+        InvestigationTask updated = new InvestigationTask(current.taskId(), current.title(), command.originalQuestion(),
+                current.initiatorUserId(), current.status(), current.runtimeBundleId(), command.databaseConfigId(),
+                current.currentScopeRevisionId(), current.currentStepId(), current.createdAt(), command.occurredAt(),
+                current.rowVersion(), current.closedAt(), current.createdBy(), command.actorUserId());
+        taskRepository.updateWithVersionOrThrow(updated, current.rowVersion());
+        if (taskBusinessSceneSkillRepository != null) {
+            taskBusinessSceneSkillRepository.deleteByTaskId(command.taskId());
+            if (command.businessSceneSkillId() != null) {
+                if (businessSceneSkillRepository == null
+                        || businessSceneSkillRepository.findActiveById(command.businessSceneSkillId()).isEmpty()) {
+                    throw new IllegalArgumentException("业务场景 Skill 不存在或已失效");
+                }
+                taskBusinessSceneSkillRepository.insert(command.taskId(), command.businessSceneSkillId(),
+                        command.actorUserId(), command.occurredAt());
+            }
+        }
+        auditEventAppender.append(UuidGenerator.newUuid(), command.taskId(), command.actorUserId(), "TASK_UPDATED",
+                "task", command.taskId().toString(), command.occurredAt(),
+                payload -> payload.put("originalQuestionDigest", Sha256Digest.hex(command.originalQuestion())));
+        return updated;
+    }
+
+    @Transactional
     public TaskPremise addPremise(AddTaskPremiseCommand command) {
         requireCommand(command);
         InvestigationTask task = taskRepository.findByIdForUpdate(command.taskId())
@@ -135,15 +161,12 @@ public class TaskIntakeApplicationService {
             throw new InvalidTaskTransitionException("terminal task cannot accept premises");
         }
         TaskPremise premise = new TaskPremise(UuidGenerator.newUuid(), task.taskId(),
-                command.subjectKey(), command.statement(), command.providedBy(), command.sourceDescription(),
-                command.occurredAt(), false, command.providedBy(), command.occurredAt(), command.providedBy(),
-                command.occurredAt());
+                command.subjectKey(), command.providedBy(), command.occurredAt(), false, command.providedBy(),
+                command.occurredAt(), command.providedBy(), command.occurredAt());
         premiseRepository.insert(premise);
         auditEventAppender.append(UuidGenerator.newUuid(), task.taskId(), command.providedBy(), "TASK_PREMISE_ADDED",
                 "task_premise", premise.premiseId().toString(), command.occurredAt(), payload -> {
                     payload.put("subjectKeyDigest", Sha256Digest.hex(premise.subjectKey()));
-                    payload.put("statementDigest", Sha256Digest.hex(premise.statement()));
-                    payload.put("sourceDigest", Sha256Digest.hex(premise.sourceDescription()));
                     payload.put("independentlyVerified", false);
                 });
         return premise;
@@ -169,9 +192,7 @@ public class TaskIntakeApplicationService {
         int revisionNo = scopeRevisionRepository.findLatestByTaskId(current.taskId())
                 .map(existing -> existing.revisionNo() + 1).orElse(1);
         ScopeRevision revision = new ScopeRevision(UuidGenerator.newUuid(), current.taskId(), revisionNo,
-                command.systemCode(), new VersionedJson(command.schemaVersion(), command.objectSelector()),
-                new VersionedJson(command.schemaVersion(), command.effectiveTimeRange()),
-                new VersionedJson(command.schemaVersion(), command.includedPaths()),
+                new VersionedJson(command.schemaVersion(), command.objectSelector()),
                 new VersionedJson(command.schemaVersion(), command.excludedPaths()),
                 new VersionedJson(command.schemaVersion(), command.allowedReadFields()),
                 new VersionedJson(command.schemaVersion(), command.allowedRetainFields()),
@@ -219,11 +240,8 @@ public class TaskIntakeApplicationService {
 
     private static String scopeDigest(ConfirmScopeCommand command, int revisionNo) {
         ObjectNode payload = JsonCodec.mapper().createObjectNode();
-        payload.put("systemCode", command.systemCode());
         payload.put("revisionNo", revisionNo);
         payload.set("objectSelector", parse(command.objectSelector()));
-        payload.set("effectiveTimeRange", parse(command.effectiveTimeRange()));
-        payload.set("includedPaths", parse(command.includedPaths()));
         payload.set("excludedPaths", parse(command.excludedPaths()));
         payload.set("allowedReadFields", parse(command.allowedReadFields()));
         payload.set("allowedRetainFields", parse(command.allowedRetainFields()));

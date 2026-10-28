@@ -44,4 +44,9 @@ public class MybatisTaskBusinessSceneSkillRepository implements TaskBusinessScen
         entity.createdAt = createdAt;
         mapper.insert(entity);
     }
+
+    @Override
+    public void deleteByTaskId(UUID taskId) {
+        mapper.delete(new QueryWrapper<TaskBusinessSceneSkillEntity>().eq("task_id", PersistenceUuid.toStorage(taskId)));
+    }
 }

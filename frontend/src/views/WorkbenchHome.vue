@@ -67,37 +67,20 @@
                   <el-form-item label="处理对象">
                     <el-input v-model.trim="form.subjectKey" />
                   </el-form-item>
-                  <el-form-item label="处理系统">
-                    <el-select v-model="form.systemCode">
-                      <el-option label="财务共享合成验证系统" value="FIN-SYN" />
+                  <el-form-item label="业务说明">
+                    <el-input v-model.trim="form.question" type="textarea" :rows="3" />
+                  </el-form-item>
+                  <el-form-item label="业务场景 Skill">
+                    <el-select v-model="selectedSkillId" clearable filterable :loading="sceneSkillsLoading">
+                      <el-option v-for="skill in sceneSkills" :key="skill.skillId" :label="skill.name" :value="skill.skillId" />
                     </el-select>
                   </el-form-item>
-                  <el-form-item label="已知情况">
-                    <el-input v-model.trim="form.statement" type="textarea" :rows="2" />
+                  <el-form-item label="数据库实例">
+                    <el-select v-model="selectedDatabaseConfigId" clearable>
+                      <el-option v-for="instance in databaseInstances" :key="instance.configId" :label="instance.name" :value="instance.configId" />
+                    </el-select>
                   </el-form-item>
-                  <el-form-item label="信息来源">
-                    <el-input v-model.trim="form.sourceDescription" />
-                  </el-form-item>
-                  <el-row :gutter="16">
-                    <el-col :span="12">
-                      <el-form-item label="开始日期">
-                        <el-input v-model.trim="form.startDate" />
-                      </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                      <el-form-item label="结束日期">
-                        <el-input v-model.trim="form.endDate" />
-                      </el-form-item>
-                    </el-col>
-                  </el-row>
-                  <el-form-item label="处理内容">
-                    <el-checkbox-group v-model="form.investigationAreas">
-                      <el-checkbox label="APPROVAL">审批流程</el-checkbox>
-                      <el-checkbox label="ROLE">角色权限</el-checkbox>
-                      <el-checkbox label="ACCOUNTING">会计配置</el-checkbox>
-                      <el-checkbox label="CONFIG">系统配置引用</el-checkbox>
-                    </el-checkbox-group>
-                  </el-form-item>
+                  <el-button type="primary" :loading="saving" @click="saveTaskInfo">保存任务信息</el-button>
                 </el-form>
               </section>
 
@@ -168,19 +151,18 @@ import { getCurrentIdentity } from '../services/identity'
 import { BusinessDecisionPacketResponse, BusinessEvidenceAccumResponse, BusinessGuidanceResponse, generateBusinessDecisionPacket, generateBusinessGuidance, getBusinessEvidenceAccums, getGuidanceProgress, reviseBusinessGuidance } from '../services/model-api'
 import { BusinessSceneSkill, listBusinessSceneSkills } from '../services/business-skill-api'
 import { EmsDatabaseInstance, listEnabledDatabaseInstances } from '../services/ems-database-config-api'
-import { createTask, isStaleError } from '../services/task-api'
-interface Form { title: string; question: string; subjectKey: string; statement: string; sourceDescription: string; systemCode: 'FIN-SYN'; startDate: string; endDate: string; investigationAreas: Array<'APPROVAL' | 'ROLE' | 'ACCOUNTING' | 'CONFIG'>; dataUse: 'MINIMUM' }
+import { createTask, isStaleError, updateTask } from '../services/task-api'
+interface Form { title: string; question: string; subjectKey: string }
 interface Chat { id: string; role: 'operator' | 'model'; content: string }
 interface AttachmentFile { name: string; size?: number; raw?: File }
-const AREAS: Record<string, string> = { APPROVAL: '审批流程', ROLE: '角色权限', ACCOUNTING: '会计配置', CONFIG: '系统配置引用' }
 const ATTACHMENT_EXTENSIONS = ['txt', 'md', 'csv', 'json', 'xls', 'xlsx']
 /** 生成每次新建业务处理所需的独立默认表单，避免复用上一份草稿引用。 */
-const createInitialForm = (): Form => ({ title: '', question: '', subjectKey: '', statement: '', sourceDescription: '', systemCode: 'FIN-SYN', startDate: '2026-01-01', endDate: '2026-12-31', investigationAreas: ['APPROVAL'], dataUse: 'MINIMUM' })
+const createInitialForm = (): Form => ({ title: '', question: '', subjectKey: '' })
 /** 仅接受后端可受控分析的文本附件，避免浏览器选择无效格式。 */
 const isSupportedAttachment = (file: AttachmentFile): boolean => { const extension = file.name.split('.').pop()?.toLowerCase(); return Boolean(file.raw) && file.size !== 0 && file.size !== undefined && file.size <= 1024 * 1024 && Boolean(extension && ATTACHMENT_EXTENSIONS.includes(extension)) }
 export default Vue.extend({ name: 'WorkbenchHome', data() { return { activeStep: 0, saving: false, modelLoading: false, chatLoading: false, task: null as TaskResponse | null, guidance: null as BusinessGuidanceResponse | null, chatMessage: '', chatMessages: [] as Chat[], attachmentFiles: [] as AttachmentFile[], sceneSkills: [] as BusinessSceneSkill[], selectedSkillId: '', sceneSkillsLoading: false, databaseInstances: [] as EmsDatabaseInstance[], selectedDatabaseConfigId: '', progressStage: '', progressTimer: null as ReturnType<typeof setInterval> | null, errorMessage: '', accumulatedEvidence: [] as BusinessEvidenceAccumResponse[], decisionPacket: null as BusinessDecisionPacketResponse | null, packetLoading: false, form: createInitialForm() } }, created() { void this.loadSceneSkills(); void this.loadDatabaseInstances() }, /** 组件销毁前清理进度轮询定时器，避免离开页面产生僵尸请求。 */ beforeDestroy() { this.stopProgressPolling() }, computed: {
   /** 返回当前任务的业务处理状态文案。 */ taskStatusLabel(): string { return this.task ? '处理中' : '未开始' },
-  /** 将已选处理内容转换为概览中的中文标签。 */ areaLabels(): string { return this.form.investigationAreas.map(x => AREAS[x]).filter(Boolean).join('、') || '待模型分析' },
+  /** 展示当前任务的处理对象概要。 */ areaLabels(): string { return this.form.subjectKey || '待模型分析' },
 }, watch: { /** 仅响应显式新建入口的草稿标识，普通导航继续保留当前向导状态。 */ '$route.query.draft'(): void { this.resetDraft() } }, methods: {
   /** 在无进行中写请求时清空本地草稿和待分析附件，不删除已创建的后端任务。 */ resetDraft(): void { if (this.saving || this.modelLoading || this.chatLoading) return; this.activeStep = 0; this.task = null; this.guidance = null; this.chatMessage = ''; this.chatMessages = []; this.attachmentFiles = []; this.selectedSkillId = ''; this.progressStage = ''; this.stopProgressPolling(); this.errorMessage = ''; this.accumulatedEvidence = []; this.decisionPacket = null; this.form = createInitialForm() },
   /** 加载业务场景 Skill 列表供第一步选择，失败时保留空列表并提示。 */ async loadSceneSkills(): Promise<void> { this.sceneSkillsLoading = true; this.errorMessage = ''; try { this.sceneSkills = await listBusinessSceneSkills() } catch (error: unknown) { this.sceneSkills = []; this.errorMessage = error instanceof Error ? error.message : '业务场景列表暂时无法读取' } finally { this.sceneSkillsLoading = false } },
@@ -190,12 +172,13 @@ export default Vue.extend({ name: 'WorkbenchHome', data() { return { activeStep:
   /** 创建任务后请求模型初稿；附件仅在本次初稿调用中提交。 */ async createTaskDraft(): Promise<void> { const identity = getCurrentIdentity(); if (!identity || !this.form.title || !this.form.question) { this.errorMessage = '请填写业务标题和业务说明'; return } await this.execute(async () => { this.task = await createTask({ title: this.form.title, originalQuestion: this.form.question, initiatorUserId: identity.userId, runtimeBundleId: DEFAULT_RUNTIME_BUNDLE_ID, businessSceneSkillId: this.selectedSkillId || undefined, databaseConfigId: this.selectedDatabaseConfigId || undefined }); this.activeStep = 1 }); await this.requestGuidance() },
   /** 发送当前任务与受控本地附件以获取可编辑初稿，失败时保留附件供重试。 */ async requestGuidance(): Promise<void> { if (!this.task) return; this.errorMessage = ''; this.progressStage = '正在准备模型分析'; this.modelLoading = true; this.startProgressPolling(); try { const response = await generateBusinessGuidance(this.task.taskId, this.attachmentFiles.map(file => file.raw).filter((file): file is File => Boolean(file))); this.applyGuidance(response); this.chatMessages = [{ id: `m-${Date.now()}`, role: 'model', content: response.reply }] } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '模型暂时无法生成初稿' } finally { this.stopProgressPolling(); this.modelLoading = false } },
   /** 向模型发送管理员修改意见并以返回草稿更新界面。 */ async reviseGuidance(): Promise<void> { if (!this.task || !this.guidance || !this.chatMessage.trim()) return; this.errorMessage = ''; const message = this.chatMessage.trim(); this.chatLoading = true; this.chatMessage = ''; this.chatMessages.push({ id: `o-${Date.now()}`, role: 'operator', content: message }); try { const response = await reviseBusinessGuidance(this.task.taskId, message, this.guidance.draft); this.applyGuidance(response); this.chatMessages.push({ id: `m-${Date.now()}`, role: 'model', content: response.reply }) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '模型暂时无法修改方案' } finally { this.chatLoading = false } },
-  /** 将受控模型初稿回填为可由管理员继续调整的业务表单。 */ applyGuidance(response: BusinessGuidanceResponse): void { const draft = response.draft; this.guidance = response; this.form.subjectKey = draft.objectKey || draft.subjectKey; this.form.statement = draft.statement; this.form.sourceDescription = draft.sourceDescription; this.form.systemCode = draft.systemCode; this.form.startDate = draft.startDate; this.form.endDate = draft.endDate; this.form.investigationAreas = draft.investigationAreas; void this.loadEvidenceAccums() },
+  /** 将受控模型初稿回填为可由管理员继续调整的业务表单。 */ applyGuidance(response: BusinessGuidanceResponse): void { const draft = response.draft; this.guidance = response; this.form.subjectKey = draft.objectKey || draft.subjectKey; void this.loadEvidenceAccums() },
   /** 把二维证据行转换为 el-table 可用的对象数组。 */ evidenceRowObjects(item: DraftEvidence): Array<Record<string, string>> { return item.rows.map((row) => { const record: Record<string, string> = {}; row.forEach((cell, index) => { record[String(index)] = cell }); return record }) },
   /** 加载任务证据工作区的跨轮累积证据，供证据面板展示过程。 */ async loadEvidenceAccums(): Promise<void> { if (!this.task) return; try { this.accumulatedEvidence = await getBusinessEvidenceAccums(this.task.taskId) } catch (error: unknown) { this.accumulatedEvidence = [] } },
   /** 生成业务决策包并展示去重后的结论与证据。 */ async generateDecisionPacket(): Promise<void> { if (!this.task) return; this.packetLoading = true; this.errorMessage = ''; try { this.decisionPacket = await generateBusinessDecisionPacket(this.task.taskId) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '业务决策包生成失败' } finally { this.packetLoading = false } },
   /** 在模型调用期间轮询后端阶段进度并更新加载文案。 */ startProgressPolling(): void { this.stopProgressPolling(); if (!this.task) return; const taskId = this.task.taskId; this.progressTimer = setInterval(async () => { try { const progress = await getGuidanceProgress(taskId); if (progress.stage) this.progressStage = progress.stage } catch (error: unknown) { /* 进度轮询失败不打断主流程，保留上一阶段文案 */ } }, 800) },
   /** 停止阶段进度轮询并释放定时器。 */ stopProgressPolling(): void { if (this.progressTimer) { clearInterval(this.progressTimer); this.progressTimer = null } },
+  /** 保存第二步可编辑的任务基础信息。 */ async saveTaskInfo(): Promise<void> { if (!this.task) return; await this.execute(async () => { this.task = await updateTask(this.task!.taskId, { originalQuestion: this.form.question, businessSceneSkillId: this.selectedSkillId || undefined, databaseConfigId: this.selectedDatabaseConfigId || undefined }); this.$message.success('任务信息已保存') }) },
   /** 串行执行任务写操作并将可识别异常转换为页面错误文案。 */ async execute(action: () => Promise<void>): Promise<void> { if (this.saving) return; this.saving = true; this.errorMessage = ''; try { await action() } catch (error: unknown) { this.errorMessage = isStaleError(error) ? '当前范围已发生变化，请刷新后重新确认' : error instanceof Error ? error.message : '请求未完成，请稍后重试' } finally { this.saving = false } },
 } })
 </script>
