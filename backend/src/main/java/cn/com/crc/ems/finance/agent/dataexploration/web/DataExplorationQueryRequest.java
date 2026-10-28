@@ -1,5 +1,7 @@
 package cn.com.crc.ems.finance.agent.dataexploration.web;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.validation.constraints.NotBlank;
@@ -14,4 +16,4 @@ import jakarta.validation.constraints.Size;
  * @Date: 2026-10-16 15:30:00
  */
 @JsonIgnoreProperties(ignoreUnknown = false)
-public record DataExplorationQueryRequest(@NotBlank @Size(max = 4000) String sql) { }
+public record DataExplorationQueryRequest(@NotBlank @Size(max = 4000) String sql, UUID configId) { }

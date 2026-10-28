@@ -1,6 +1,6 @@
 <template>
   <section class="evidence-page list-page entry-page">
-    <div class="page-heading entry-page-heading"><h2>EMS数据库配置</h2></div>
+    <div class="page-heading entry-page-heading"><h2>数据库实例</h2></div>
     <el-alert title="仅用于业务处理模型的受控只读分析。系统代码拦截非 SELECT、多语句、写入、DDL 和危险语法；数据库账号仍应只授予业务库 SELECT 权限。" type="warning" :closable="false" show-icon />
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
     <section class="entry-content-card">
@@ -28,8 +28,8 @@ export default Vue.extend({ name: 'EmsDatabaseConfiguration', data: () => ({ ite
   /** 打开新增表单。 */ openCreate(): void { this.editing = ''; this.form = blank(); this.dialogVisible = true },
   /** 打开编辑表单，密码不回填。 */ openEdit(item: EmsDatabaseConnectionConfig): void { this.editing = item.configId; this.form = { name: item.name, jdbcUrl: item.jdbcUrl, username: item.username, password: '', connectTimeoutSeconds: item.connectTimeoutSeconds, queryTimeoutSeconds: item.queryTimeoutSeconds, maxRows: item.maxRows }; this.dialogVisible = true },
   /** 保存连接配置。 */ async save(): Promise<void> { if (!this.form.name || !this.form.jdbcUrl || !this.form.username || (!this.editing && !this.form.password)) { this.$message.warning('请填写名称、JDBC 地址、账号和数据库密码'); return } this.saving = true; try { if (this.editing) await updateEmsDatabaseConfiguration(this.editing, this.form); else await createEmsDatabaseConfiguration(this.form); this.dialogVisible = false; await this.load(); this.$message.success('EMS 数据库配置已保存') } catch (error: unknown) { this.$message.error(error instanceof Error ? error.message : 'EMS 数据库配置保存失败') } finally { this.saving = false } },
-  /** 启用唯一的 EMS 数据源。 */ async enable(item: EmsDatabaseConnectionConfig): Promise<void> { try { await enableEmsDatabaseConfiguration(item.configId); await this.load(); this.$message.success('已启用 EMS 数据库连接') } catch (error: unknown) { this.$message.error(error instanceof Error ? error.message : '启用失败') } },
-  /** 停用当前 EMS 数据源。 */ async disable(item: EmsDatabaseConnectionConfig): Promise<void> { try { await this.$confirm(`停用“${item.name}”后，业务处理模型将不再查询 EMS 数据。`, '确认停用 EMS 数据库', { confirmButtonText: '确认停用', cancelButtonText: '取消', type: 'warning' }); await disableEmsDatabaseConfiguration(item.configId); await this.load(); this.$message.success('已停用 EMS 数据库连接') } catch (error: unknown) { if (error === 'cancel' || error === 'close') return; this.$message.error(error instanceof Error ? error.message : '停用失败') } },
+  /** 启用一个数据库实例。 */ async enable(item: EmsDatabaseConnectionConfig): Promise<void> { try { await enableEmsDatabaseConfiguration(item.configId); await this.load(); this.$message.success('已启用数据库实例') } catch (error: unknown) { this.$message.error(error instanceof Error ? error.message : '启用失败') } },
+  /** 停用当前数据库实例。 */ async disable(item: EmsDatabaseConnectionConfig): Promise<void> { try { await this.$confirm(`停用“${item.name}”后，该实例将不再被数据探索和业务处理模型使用。`, '确认停用数据库实例', { confirmButtonText: '确认停用', cancelButtonText: '取消', type: 'warning' }); await disableEmsDatabaseConfiguration(item.configId); await this.load(); this.$message.success('已停用数据库实例') } catch (error: unknown) { if (error === 'cancel' || error === 'close') return; this.$message.error(error instanceof Error ? error.message : '停用失败') } },
   /** 仅执行固定 SELECT 1 连通性测试。 */ async test(item: EmsDatabaseConnectionConfig): Promise<void> { try { await testEmsDatabaseConfiguration(item.configId); this.$message.success('EMS 数据库连接测试通过') } catch (error: unknown) { this.$message.error(error instanceof Error ? error.message : 'EMS 数据库连接测试失败') } },
 } })
 </script>

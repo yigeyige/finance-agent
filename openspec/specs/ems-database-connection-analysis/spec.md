@@ -8,7 +8,7 @@
 
 ### Requirement: Managed EMS database configuration
 
-系统 SHALL 允许具有 `PLATFORM_ADMIN` 角色的身份维护 EMS MySQL 数据库连接配置，并且最多启用一条配置。密码 MUST 使用应用密钥加密保存，任何响应、日志和模型上下文 MUST NOT 返回密码或密文。未配置或长度不足的加密主密钥时，系统 MUST 拒绝保存并返回安全、可操作的配置不可用错误，MUST NOT 将其映射为业务状态冲突。
+系统 SHALL 允许具有 `PLATFORM_ADMIN` 角色的身份维护 EMS MySQL 数据库连接配置，并且允许同时启用多条配置。密码 MUST 使用应用密钥加密保存，任何响应、日志和模型上下文 MUST NOT 返回密码或密文。未配置或长度不足的加密主密钥时，系统 MUST 拒绝保存并返回安全、可操作的配置不可用错误，MUST NOT 将其映射为业务状态冲突。
 
 #### Scenario: Administrator tests a connection
 
@@ -60,9 +60,9 @@
 
 ### Requirement: Workbench configuration entry
 
-前端 SHALL 在“大模型配置”下提供受权限保护的“EMS数据库配置”入口，供平台管理员管理和测试连接。
+前端 SHALL 在“大模型配置”下提供受权限保护的“数据库实例”入口，供平台管理员管理和测试连接。
 
 #### Scenario: Administrator opens configuration page
 
-- **WHEN** 平台管理员点击侧栏中的 EMS 数据库配置
+- **WHEN** 平台管理员点击侧栏中的数据库实例
 - **THEN** 页面展示受控配置表单、状态、启停和测试操作，密码字段不回填

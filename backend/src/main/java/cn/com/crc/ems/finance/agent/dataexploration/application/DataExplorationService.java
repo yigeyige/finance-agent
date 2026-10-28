@@ -2,6 +2,7 @@ package cn.com.crc.ems.finance.agent.dataexploration.application;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -41,11 +42,11 @@ public class DataExplorationService {
      * @return: 数据源名称、行数限制和表目录
      * @author: yigeyige99
      */
-    public DataExplorationCatalog catalog() {
+    public DataExplorationCatalog catalog(UUID configId) {
         try {
-            var config = configService.requireEnabled();
+            var config = configService.resolveEnabled(configId);
             return new DataExplorationCatalog(config.name(), config.maxRows(), executor.listAllowedTables(config));
-        } catch (IllegalStateException exception) {
+        } catch (IllegalStateException | IllegalArgumentException exception) {
             throw unavailable();
         }
     }
@@ -58,13 +59,13 @@ public class DataExplorationService {
      * @return: 字段结构列表
      * @author: yigeyige99
      */
-    public List<EmsDatabaseColumnMetadata> columns(String schema, String table) {
+    public List<EmsDatabaseColumnMetadata> columns(UUID configId, String schema, String table) {
         if (!ALLOWED_SCHEMAS.contains(schema) || table == null || !table.matches("[A-Za-z0-9_]{1,128}")) {
             throw new IllegalArgumentException("请求的 EMS 表不合法");
         }
         try {
-            return executor.listColumns(configService.requireEnabled(), schema, table);
-        } catch (IllegalStateException exception) {
+            return executor.listColumns(configService.resolveEnabled(configId), schema, table);
+        } catch (IllegalStateException | IllegalArgumentException exception) {
             throw unavailable();
         }
     }
@@ -76,15 +77,15 @@ public class DataExplorationService {
      * @return: 受限查询结果和耗时
      * @author: yigeyige99
      */
-    public DataExplorationQueryResult query(String sql) {
+    public DataExplorationQueryResult query(UUID configId, String sql) {
         String guardedSql = sqlGuard.validate(sql);
         try {
-            var config = configService.requireEnabled();
+            var config = configService.resolveEnabled(configId);
             long started = System.nanoTime();
             var result = executor.execute(config, guardedSql);
             long elapsedMillis = java.time.Duration.ofNanos(System.nanoTime() - started).toMillis();
             return new DataExplorationQueryResult(result.columns(), result.rows(), result.rows().size(), elapsedMillis);
-        } catch (IllegalStateException exception) {
+        } catch (IllegalStateException | IllegalArgumentException exception) {
             throw unavailable();
         }
     }

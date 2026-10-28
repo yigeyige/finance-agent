@@ -40,7 +40,22 @@ public class EmsDatabaseConnectionConfigService {
 
     @Transactional(readOnly = true)
     public EmsDatabaseConnectionConfig requireEnabled() {
-        return repository.findEnabled().orElseThrow(() -> new IllegalStateException("请先在 EMS 数据库配置中启用一个连接"));
+        return repository.listEnabled().stream().findFirst()
+                .orElseThrow(() -> new IllegalStateException("请先在 EMS 数据库配置中启用一个连接"));
+    }
+
+    /** 解析数据探索指定实例；未指定时回退到第一个启用实例。 */
+    @Transactional(readOnly = true)
+    public EmsDatabaseConnectionConfig resolveEnabled(UUID configId) {
+        if (configId == null) {
+            return requireEnabled();
+        }
+        EmsDatabaseConnectionConfig config = repository.findById(configId)
+                .orElseThrow(() -> new IllegalArgumentException("EMS 数据库配置不存在"));
+        if (!config.enabled()) {
+            throw new IllegalArgumentException("所选 EMS 数据库实例未启用");
+        }
+        return config;
     }
 
     @Transactional
@@ -60,7 +75,6 @@ public class EmsDatabaseConnectionConfigService {
         EmsDatabaseConnectionConfig current = repository.findById(configId)
                 .orElseThrow(() -> new IllegalArgumentException("EMS 数据库配置不存在"));
         var now = UtcTime.now(clock);
-        repository.disableAll(operator, now);
         repository.update(copy(current, true, operator, now));
     }
 

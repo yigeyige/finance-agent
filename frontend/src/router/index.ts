@@ -41,7 +41,7 @@ const router = new Router({
     },
     {
       path: '/ems-database-configurations', name: 'ems-database-configurations', component: EmsDatabaseConfiguration,
-      meta: { title: 'EMS数据库配置', permission: 'CONFIG_MANAGE' },
+      meta: { title: '数据库实例', permission: 'CONFIG_MANAGE' },
     },
     {
       path: '/data-exploration', name: 'data-exploration', component: DataExploration,

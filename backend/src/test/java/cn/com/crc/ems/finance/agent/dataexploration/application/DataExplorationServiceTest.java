@@ -29,13 +29,13 @@ class DataExplorationServiceTest {
         EmsDatabaseConnectionConfigService configService = mock(EmsDatabaseConnectionConfigService.class);
         EmsDatabaseQueryExecutor executor = mock(EmsDatabaseQueryExecutor.class);
         EmsDatabaseConnectionConfig config = config();
-        when(configService.requireEnabled()).thenReturn(config);
+        when(configService.resolveEnabled(null)).thenReturn(config);
         when(executor.listAllowedTables(config)).thenReturn(List.of(new EmsDatabaseTableMetadata("basedata", "sys_emp", "员工")));
         when(executor.listColumns(config, "basedata", "sys_emp")).thenReturn(List.of(new EmsDatabaseColumnMetadata("emp_id", "varchar(36)", "员工标识")));
         DataExplorationService service = new DataExplorationService(configService, executor, new EmsReadOnlySqlGuard());
 
-        assertThat(service.catalog().dataSourceName()).isEqualTo("本地 EMS");
-        assertThat(service.columns("basedata", "sys_emp")).extracting(EmsDatabaseColumnMetadata::name).containsExactly("emp_id");
+        assertThat(service.catalog(null).dataSourceName()).isEqualTo("本地 EMS");
+        assertThat(service.columns(null, "basedata", "sys_emp")).extracting(EmsDatabaseColumnMetadata::name).containsExactly("emp_id");
 
         verify(executor).listAllowedTables(config);
         verify(executor).listColumns(config, "basedata", "sys_emp");
@@ -47,11 +47,11 @@ class DataExplorationServiceTest {
         EmsDatabaseQueryExecutor executor = mock(EmsDatabaseQueryExecutor.class);
         EmsDatabaseConnectionConfig config = config();
         String sql = "SELECT emp_id FROM basedata.sys_emp LIMIT 20";
-        when(configService.requireEnabled()).thenReturn(config);
+        when(configService.resolveEnabled(null)).thenReturn(config);
         when(executor.execute(config, sql)).thenReturn(new EmsDatabaseQueryResult(List.of("emp_id"), List.of(List.of("E-1"))));
         DataExplorationService service = new DataExplorationService(configService, executor, new EmsReadOnlySqlGuard());
 
-        DataExplorationQueryResult result = service.query(sql);
+        DataExplorationQueryResult result = service.query(null, sql);
 
         assertThat(result.rowCount()).isEqualTo(1);
         assertThat(result.columns()).containsExactly("emp_id");
@@ -63,18 +63,18 @@ class DataExplorationServiceTest {
         DataExplorationService service = new DataExplorationService(mock(EmsDatabaseConnectionConfigService.class),
                 mock(EmsDatabaseQueryExecutor.class), new EmsReadOnlySqlGuard());
 
-        assertThatThrownBy(() -> service.columns("information_schema", "tables"))
+        assertThatThrownBy(() -> service.columns(null, "information_schema", "tables"))
                 .isInstanceOf(IllegalArgumentException.class).hasMessage("请求的 EMS 表不合法");
     }
 
     @Test
     void hidesMissingEnabledConnectionBehindSafeUnavailableError() {
         EmsDatabaseConnectionConfigService configService = mock(EmsDatabaseConnectionConfigService.class);
-        when(configService.requireEnabled()).thenThrow(new IllegalStateException("connection details"));
+        when(configService.resolveEnabled(null)).thenThrow(new IllegalStateException("connection details"));
         DataExplorationService service = new DataExplorationService(configService, mock(EmsDatabaseQueryExecutor.class),
                 new EmsReadOnlySqlGuard());
 
-        assertThatThrownBy(service::catalog).isInstanceOf(DomainException.class)
+        assertThatThrownBy(() -> service.catalog(null)).isInstanceOf(DomainException.class)
                 .hasMessage("数据探索暂时不可用，请检查 EMS 数据库连接");
     }
 
