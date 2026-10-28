@@ -1,3 +1,4 @@
+<!-- 工作台应用外壳：统一顶栏标题、可信身份与左侧导航。 -->
 <template>
   <div>
     <el-container v-if="!isLoginRoute" class="workbench-shell">
@@ -39,8 +40,7 @@
     <el-container>
       <el-header class="workbench-header">
         <div>
-          <p class="eyebrow">财务共享智能运维 Agent</p>
-          <h1>运维工作台</h1>
+          <h1>财务智能运维Agent</h1>
         </div>
         <div class="identity-tools">
           <el-dropdown v-if="identity" trigger="click" @command="handleUserCommand">
