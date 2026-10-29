@@ -1,10 +1,10 @@
 <!-- 模型协作聊天面板：只管理消息展示、输入事件与滚动，不直接调用业务接口。 -->
 <template>
-  <section class="workbench-chat" :style="availableHeight ? { height: `${availableHeight}px` } : null" aria-label="模型协作对话">
+  <section class="workbench-chat" :style="availableHeight ? { height: `${availableHeight}px` } : null" aria-label="模型聊天对话">
     <header class="workbench-chat__header">
       <span class="workbench-chat__avatar" aria-hidden="true">助</span>
       <div class="workbench-chat__heading">
-        <div class="workbench-chat__title-row"><h3>模型协作</h3><span v-if="statusText" class="workbench-chat__status" role="status"><i class="el-icon-loading" aria-hidden="true"></i>{{ statusText }}</span></div>
+        <div class="workbench-chat__title-row"><h3>模型聊天</h3><span v-if="statusText" class="workbench-chat__status" role="status"><i class="el-icon-loading" aria-hidden="true"></i>{{ statusText }}</span></div>
         <div class="workbench-chat__metadata"><span class="workbench-chat__model" :title="modelText">当前模型：{{ modelText }}</span><span v-if="usageText" :title="usageDescription">{{ usageText }}</span></div>
       </div>
     </header>
@@ -26,7 +26,7 @@
     </div>
 
     <footer class="workbench-chat__composer">
-      <el-input :value="value" type="textarea" :rows="2" :disabled="!enabled || loading || analyzing" aria-label="模型协作输入" placeholder="补充信息，或说说希望如何调整方案" @input="updateValue" @keydown.native.ctrl.enter.prevent="sendMessage" />
+      <el-input :value="value" type="textarea" :rows="2" :disabled="!enabled || loading || analyzing" aria-label="模型聊天输入" placeholder="补充信息，或说说希望如何调整方案" @input="updateValue" @keydown.native.ctrl.enter.prevent="sendMessage" />
       <el-button type="primary" :loading="loading" :disabled="!canSend" @click="sendMessage">发送</el-button>
     </footer>
   </section>
@@ -173,7 +173,7 @@ export default Vue.extend({
 .workbench-chat__message--operator .workbench-chat__message-avatar { background: #e7eaf0; color: #596579; }
 .workbench-chat__message--operator .workbench-chat__bubble { border-color: #ebd3ad; border-radius: 14px 2px 14px 14px; background: #f9ecd8; color: #654d30; }
 .workbench-chat__reply { display: flex; gap: 8px; align-items: center; color: #957449; font-size: 14px; }
-.workbench-chat__composer { display: flex; align-items: flex-end; gap: 10px; flex: 0 0 auto; padding: 12px 14px; border-top: 1px solid #eee5d9; background: #fffdf9; }
+.workbench-chat__composer { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; padding: 12px 14px; border-top: 1px solid #eee5d9; background: #fffdf9; }
 .workbench-chat__composer .el-textarea { flex: 1; min-width: 0; }
 .workbench-chat__composer > .el-button { flex: 0 0 auto; margin: 0; }
 .workbench-chat__composer ::v-deep textarea { border-color: #e1d6c6; border-radius: 8px; resize: vertical; min-height: 60px; max-height: 120px; font-size: 14px; line-height: 1.7; }

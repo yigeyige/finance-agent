@@ -2,17 +2,13 @@
 <template>
   <section class="task-workbench">
     <div class="page-heading entry-page-heading"><h2>业务处理</h2></div>
-    <!-- 已创建任务展示摘要，输入阶段不渲染等待分区。 -->
-    <div v-if="task" class="task-overview-bar">
-        <span class="task-overview-field">
-          <label class="task-overview-label">标题</label>
-          <span class="task-overview-value">{{ task.title }}</span>
-        </span>
-        <span class="task-overview-field">
-          <label class="task-overview-label">内容</label>
-          <span class="task-overview-value">{{ areaLabels }}</span>
-        </span>
-        <el-tag size="small" class="task-overview-status">{{ taskStatusLabel }}</el-tag>
+    <!-- 顶部步骤条：与任务信息分区一致的三步骤风格，替代原任务标题/内容摘要。 -->
+    <div class="workflow-steps-bar">
+      <el-steps :active="activeStep" simple>
+        <el-step title="业务说明" />
+        <el-step title="模型协作" />
+        <el-step title="决策包" />
+      </el-steps>
     </div>
 
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
@@ -20,12 +16,6 @@
     <el-row :gutter="16" class="workbench-columns">
       <el-col :span="16" class="workbench-primary">
         <el-card shadow="never" class="form-card guided-workflow">
-          <el-steps :active="activeStep" simple>
-            <el-step title="业务说明" />
-            <el-step title="模型协作" />
-            <el-step title="决策包" />
-          </el-steps>
-
           <!-- 第一步：填写业务标题与说明，选择可选附件后开始模型分析。 -->
           <el-form v-if="activeStep === 0" :model="form" label-position="top" class="task-form task-intake-form">
             <el-form-item label="业务标题" class="task-intake-form__wide">
@@ -57,7 +47,10 @@
           <template v-else-if="activeStep === 1">
             <div class="handling-workspace">
               <section class="handling-form-panel">
-                <h4>任务信息</h4>
+                <div class="handling-form-panel__heading">
+                  <h4>任务信息</h4>
+                  <el-button size="small" type="primary" :loading="saving" :disabled="modelLoading || chatLoading || packetLoading" @click="saveTaskInfo">保存任务</el-button>
+                </div>
                 <p v-if="modelLoading" class="model-progress">
                   <i class="el-icon-loading"></i>
                   {{ progressStage || '模型正在整理初稿，请稍候' }}
@@ -79,7 +72,6 @@
                       <el-option v-for="instance in databaseInstances" :key="instance.configId" :label="instance.name" :value="instance.configId" />
                     </el-select>
                   </el-form-item>
-                  <el-button type="primary" :loading="saving" :disabled="chatLoading || packetLoading" @click="saveTaskInfo">保存任务信息</el-button>
                 </el-form>
                 <el-button v-if="!guidance && !modelLoading" :disabled="saving" @click="requestGuidance">重新开始模型分析</el-button>
               </section>
@@ -148,10 +140,7 @@ const ATTACHMENT_EXTENSIONS = ['txt', 'md', 'csv', 'json', 'xls', 'xlsx']
 const createInitialForm = (): Form => ({ title: '', question: '', subjectKey: '' })
 /** 仅接受后端可受控分析的文本附件，避免浏览器选择无效格式。 */
 const isSupportedAttachment = (file: AttachmentFile): boolean => { const extension = file.name.split('.').pop()?.toLowerCase(); return Boolean(file.raw) && file.size !== 0 && file.size !== undefined && file.size <= 1024 * 1024 && Boolean(extension && ATTACHMENT_EXTENSIONS.includes(extension)) }
-export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }, data() { return { runtimeModel: null as ModelRuntimeSummary | null, runtimeModelLoading: false, lastModelMetadata: null as ModelCallMetadata | null, activeStep: 0, saving: false, modelLoading: false, chatLoading: false, task: null as TaskResponse | null, guidance: null as BusinessGuidanceResponse | null, chatMessage: '', chatMessages: [] as Chat[], attachmentFiles: [] as AttachmentFile[], sceneSkills: [] as BusinessSceneSkill[], selectedSkillId: '', sceneSkillsLoading: false, databaseInstances: [] as EmsDatabaseInstance[], selectedDatabaseConfigId: '', progressStage: '', progressTimer: null as ReturnType<typeof setInterval> | null, errorMessage: '', accumulatedEvidence: [] as BusinessEvidenceAccumResponse[], decisionPacket: null as BusinessDecisionPacketResponse | null, packetLoading: false, form: createInitialForm() } }, created() { void this.loadSceneSkills(); void this.loadDatabaseInstances(); void this.loadRuntimeModel() }, /** 返回缓存页时刷新当前启用的模型摘要。 */ activated() { void this.loadRuntimeModel() }, /** 组件销毁前清理进度轮询定时器，避免离开页面产生僵尸请求。 */ beforeDestroy() { this.stopProgressPolling() }, computed: {
-  /** 返回当前任务的业务处理状态文案。 */ taskStatusLabel(): string { return this.task ? '处理中' : '未开始' },
-  /** 展示当前任务的处理对象概要。 */ areaLabels(): string { return this.form.subjectKey || '待模型分析' },
-}, watch: { /** 仅响应显式新建入口的草稿标识，普通导航继续保留当前向导状态。 */ '$route.query.draft'(): void { this.resetDraft() } }, methods: {
+export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }, data() { return { runtimeModel: null as ModelRuntimeSummary | null, runtimeModelLoading: false, lastModelMetadata: null as ModelCallMetadata | null, activeStep: 0, saving: false, modelLoading: false, chatLoading: false, task: null as TaskResponse | null, guidance: null as BusinessGuidanceResponse | null, chatMessage: '', chatMessages: [] as Chat[], attachmentFiles: [] as AttachmentFile[], sceneSkills: [] as BusinessSceneSkill[], selectedSkillId: '', sceneSkillsLoading: false, databaseInstances: [] as EmsDatabaseInstance[], selectedDatabaseConfigId: '', progressStage: '', progressTimer: null as ReturnType<typeof setInterval> | null, errorMessage: '', accumulatedEvidence: [] as BusinessEvidenceAccumResponse[], decisionPacket: null as BusinessDecisionPacketResponse | null, packetLoading: false, form: createInitialForm() } }, created() { void this.loadSceneSkills(); void this.loadDatabaseInstances(); void this.loadRuntimeModel() }, /** 返回缓存页时刷新当前启用的模型摘要。 */ activated() { void this.loadRuntimeModel() }, /** 组件销毁前清理进度轮询定时器，避免离开页面产生僵尸请求。 */ beforeDestroy() { this.stopProgressPolling() }, watch: { /** 仅响应显式新建入口的草稿标识，普通导航继续保留当前向导状态。 */ '$route.query.draft'(): void { this.resetDraft() } }, methods: {
   /** 在无进行中写请求时清空本地草稿和待分析附件，不删除已创建的后端任务。 */ resetDraft(): void { if (this.saving || this.modelLoading || this.chatLoading || this.packetLoading) return; this.activeStep = 0; this.task = null; this.guidance = null; this.chatMessage = ''; this.chatMessages = []; this.attachmentFiles = []; this.selectedSkillId = ''; this.progressStage = ''; this.stopProgressPolling(); this.errorMessage = ''; this.accumulatedEvidence = []; this.decisionPacket = null; this.lastModelMetadata = null; this.form = createInitialForm() },
   /** 读取安全运行摘要，失败不阻断业务表单，也不访问管理员配置列表。 */ async loadRuntimeModel(): Promise<void> { if (this.runtimeModelLoading) return; this.runtimeModelLoading = true; try { this.runtimeModel = await getModelRuntimeSummary() } catch { this.runtimeModel = null } finally { this.runtimeModelLoading = false } },
   /** 加载业务场景 Skill 列表供第一步选择，失败时保留空列表并提示。 */ async loadSceneSkills(): Promise<void> { this.sceneSkillsLoading = true; this.errorMessage = ''; try { this.sceneSkills = await listBusinessSceneSkills() } catch (error: unknown) { this.sceneSkills = []; this.errorMessage = error instanceof Error ? error.message : '业务场景列表暂时无法读取' } finally { this.sceneSkillsLoading = false } },

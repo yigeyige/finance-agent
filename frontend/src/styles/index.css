@@ -336,14 +336,10 @@ body,
   padding-top: 6px;
 }
 
-/* 顶部业务处理概览：仅平铺展示标题与内容，替代原"业务处理向导"标题。 */
-.task-overview-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 24px;
+/* 顶部步骤条：与任务信息分区一致的三步骤风格，替代原任务标题/内容摘要。 */
+.workflow-steps-bar {
   margin-bottom: 14px;
-  padding: 12px 18px;
+  padding: 10px 16px;
   border: 1px solid #e7dfd4;
   border-top: 3px solid #dd7a13;
   border-radius: 12px;
@@ -351,34 +347,8 @@ body,
   box-shadow: 0 6px 16px rgba(83, 70, 48, 0.05);
 }
 
-.task-overview-field {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  min-width: 0;
-}
-
-.task-overview-label {
-  flex-shrink: 0;
-  color: #817b73;
-  font-size: 13px;
-}
-
-.task-overview-value {
-  min-width: 0;
-  color: #2e2c29;
-  font-size: 15px;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.task-overview-status {
-  margin-left: auto;
-}
-
-.task-overview-empty {
-  color: #817b73;
-  font-size: 14px;
+.workflow-steps-bar .el-steps {
+  margin: 0;
 }
 
 /* 收紧业务处理表单与面板的纵向间距，降低整页高度。 */
@@ -404,10 +374,6 @@ body,
   border-top-color: #dd7a13;
   border-radius: 14px;
   box-shadow: 0 8px 20px rgba(83, 70, 48, 0.06);
-}
-
-.guided-workflow .el-steps {
-  margin-bottom: 10px;
 }
 
 /* 压缩步骤条自身上下内边距，减少灰色条带占高。 */
@@ -662,9 +628,24 @@ body,
 }
 
 /* 统一分区标题边距，避免浏览器默认 h4 留白过大。 */
-.handling-form-panel > h4,
 .guidance-result-panel > h4 {
   margin: 0 0 10px;
+  color: #172033;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* 任务信息分区标题与保存按钮同行，标题靠左、操作靠右上角。 */
+.handling-form-panel__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.handling-form-panel__heading h4 {
+  margin: 0;
   color: #172033;
   font-size: 15px;
   font-weight: 600;
