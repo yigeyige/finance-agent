@@ -1,3 +1,4 @@
+<!-- 业务工作区页面，复用公共表格与弹窗交互，保持既有业务流程。 -->
 <template>
   <section class="evidence-page list-page skill-catalog entry-page">
     <div class="page-heading entry-page-heading">
@@ -13,12 +14,12 @@
           <el-button type="primary" @click="openCreateDialog">新增业务场景</el-button>
         </div>
         <div class="standard-table-panel skill-catalog-table">
-          <el-table v-loading="loading" :data="skills" row-key="skillId" class="standard-data-table" border stripe
+          <el-table v-workbench-table="'BusinessSkillCatalog-1'" v-loading="loading" :data="skills" row-key="skillId" class="standard-data-table" border stripe
             empty-text="暂无业务场景">
             <el-table-column prop="name" label="场景名称" min-width="160" show-overflow-tooltip />
             <el-table-column prop="investigationPrompt" label="调查提示词" min-width="320" show-overflow-tooltip />
             <el-table-column prop="decisionPacketPrompt" label="决策包提示词" min-width="320" show-overflow-tooltip />
-            <el-table-column label="更新时间" width="190">
+            <el-table-column show-overflow-tooltip label="更新时间" width="190">
               <template slot-scope="scope">{{ formatTime(scope.row.updatedAt) }}</template>
             </el-table-column>
             <el-table-column label="操作" width="190" align="center">
@@ -33,7 +34,7 @@
       </section>
     </template>
 
-    <el-dialog custom-class="workbench-dialog" :title="editingId ? '编辑业务场景' : '新增业务场景'" :visible.sync="dialogVisible" width="720px"
+    <el-dialog v-workbench-dialog custom-class="workbench-dialog" :title="editingId ? '编辑业务场景' : '新增业务场景'" :visible.sync="dialogVisible" width="720px"
       :close-on-click-modal="false" @closed="resetForm">
       <el-form :model="form" label-position="top" class="workbench-dialog-form">
         <el-form-item label="场景名称" required>

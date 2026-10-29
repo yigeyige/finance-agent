@@ -96,8 +96,8 @@
                     <p class="evidence-meta">第 {{ round.roundNo }} 轮</p>
                     <div v-for="(item, ei) in round.evidence" :key="`${round.roundNo}-${ei}`" class="evidence-item">
                       <p class="evidence-meta">{{ item.schema }}.{{ item.table }} · {{ item.purpose }}</p>
-                      <el-table :data="evidenceRowObjects(item)" border size="mini">
-                        <el-table-column v-for="(col, ci) in item.columns" :key="ci" :prop="String(ci)" :label="col" />
+                      <el-table v-workbench-table="'WorkbenchHome-1:' + item.schema + '.' + item.table" :data="evidenceRowObjects(item)" border size="mini">
+                        <el-table-column show-overflow-tooltip min-width="160" v-for="(col, ci) in item.columns" :key="ci" :prop="String(ci)" :label="col" />
                       </el-table>
                     </div>
                   </div>
@@ -115,8 +115,8 @@
             <p class="evidence-meta">推荐方案：{{ decisionPacket.content.recommendedGoal || '暂无' }}</p>
             <div v-for="(item, ei) in decisionPacket.content.evidence" :key="ei" class="evidence-item">
               <p class="evidence-meta">{{ item.schema }}.{{ item.table }} · {{ item.purpose }}</p>
-              <el-table :data="evidenceRowObjects(item)" border size="mini">
-                <el-table-column v-for="(col, ci) in item.columns" :key="ci" :prop="String(ci)" :label="col" />
+              <el-table v-workbench-table="'WorkbenchHome-2:' + item.schema + '.' + item.table" :data="evidenceRowObjects(item)" border size="mini">
+                <el-table-column show-overflow-tooltip min-width="160" v-for="(col, ci) in item.columns" :key="ci" :prop="String(ci)" :label="col" />
               </el-table>
             </div>
           </section>

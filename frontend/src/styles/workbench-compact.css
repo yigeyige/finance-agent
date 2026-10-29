@@ -1,0 +1,330 @@
+/* 工作台右侧的紧凑布局与交互样式；不覆盖品牌、菜单及左侧栏规则。 */
+.workbench-shell > .el-container {
+  min-width: 0;
+}
+
+.workbench-shell .workbench-header {
+  height: 64px !important;
+  min-height: 64px;
+  padding: 8px 16px;
+  gap: 12px;
+}
+
+.workbench-header h1 {
+  font-size: 20px;
+}
+
+.workbench-shell .workbench-content {
+  min-width: 0;
+  padding: 14px 16px;
+}
+
+.workbench-shell .workbench-content .entry-page,
+.workbench-shell .workbench-content .task-workbench,
+.workbench-shell .workbench-content .task-list-page {
+  max-width: none;
+  padding-top: 0;
+}
+
+.workbench-content .page-heading,
+.workbench-content .entry-page-heading {
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.workbench-content .page-heading h2 {
+  font-size: 20px;
+  line-height: 30px;
+}
+
+.workbench-content .entry-content-card,
+.workbench-content .el-card {
+  border-color: #e7dfd4;
+  border-radius: 10px;
+  background: #fffdf9;
+  box-shadow: 0 3px 12px rgba(83, 70, 48, 0.04);
+}
+
+.workbench-content .el-card__header {
+  padding: 12px 16px;
+  border-color: #e8e1d8;
+}
+
+.workbench-content .el-card__body,
+.workbench-content .entry-content-toolbar {
+  padding: 12px 16px;
+}
+
+.workbench-content .entry-content-toolbar {
+  min-height: 52px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.workbench-content .task-list-section + .task-list-section {
+  margin-top: 16px;
+}
+
+.workbench-content .task-list-section-heading {
+  margin-bottom: 10px;
+}
+
+.workbench-content .task-list-section-heading h3 {
+  font-size: 17px;
+}
+
+.workbench-content .task-list-toolbar {
+  flex-wrap: wrap;
+  gap: 0 12px;
+  padding: 12px 16px 2px;
+  border-radius: 10px;
+}
+
+.workbench-content .task-list-toolbar .el-form-item {
+  margin-bottom: 10px;
+}
+
+.workbench-content .task-list-filter-actions {
+  padding-bottom: 10px;
+}
+
+.workbench-content .task-list-pagination {
+  margin: 12px 16px;
+}
+
+.workbench-content .standard-table-panel {
+  min-width: 0;
+  border-color: #e7dfd4;
+  border-radius: 10px;
+}
+
+/* Element UI 2.0 使用 th/td，没有 el-table__cell 类；保持其内部滚动结构。 */
+.workbench-content .el-table {
+  width: 100%;
+  min-width: 0;
+  color: #3f4652;
+}
+
+.workbench-content .el-table th {
+  height: 42px;
+  padding: 6px 0;
+  color: #686056;
+  background: #f7f3ec;
+  font-weight: 600;
+}
+
+.workbench-content .el-table td {
+  height: 46px;
+  padding: 6px 0;
+}
+
+.workbench-content .el-table .cell {
+  line-height: 24px;
+}
+
+.workbench-content .el-table__body-wrapper {
+  overflow-x: auto;
+}
+
+.workbench-content .el-table__empty-block {
+  min-height: 112px;
+}
+
+.workbench-content .detail-section,
+.workbench-content .knowledge-card,
+.workbench-content .knowledge-alert {
+  margin-top: 12px;
+}
+
+.workbench-content .section-heading {
+  margin: 18px 0 12px;
+  padding-bottom: 8px;
+}
+
+.workbench-content .description-grid {
+  margin-bottom: 14px;
+}
+
+.workbench-content .description-grid dt,
+.workbench-content .description-grid dd,
+.workbench-content .readonly-detail-list dt,
+.workbench-content .readonly-detail-list dd {
+  padding: 10px 12px;
+}
+
+.workbench-content .packet-page .page-description,
+.workbench-content .packet-page .finding-list p,
+.workbench-content .conclusion-text {
+  max-width: 100ch;
+  overflow-wrap: anywhere;
+}
+
+.workbench-content .step-intro,
+.workbench-content .model-stage,
+.workbench-content .next-action-panel,
+.workbench-content .publish-confirmation {
+  padding: 14px 16px;
+  gap: 12px;
+}
+
+.workbench-content .step-intro {
+  margin-bottom: 14px;
+}
+
+.workbench-content .model-stage,
+.workbench-content .technical-details,
+.workbench-content .finding-list {
+  margin-top: 14px;
+  margin-bottom: 14px;
+}
+
+.workbench-content .task-form,
+.workbench-content .execution-panel,
+.workbench-content .review-form,
+.workbench-content .business-confirmation-form {
+  margin-top: 14px;
+}
+
+.workbench-content .knowledge-domain-content {
+  padding-bottom: 12px;
+}
+
+.workbench-content .data-exploration-shell {
+  min-height: 560px;
+}
+
+.workbench-content .data-exploration-catalog {
+  padding: 14px;
+}
+
+.workbench-content .data-exploration-workspace {
+  padding: 14px 16px;
+}
+
+.workbench-content .catalog-search {
+  margin-top: 12px;
+}
+
+.workbench-content .query-controls {
+  margin: 10px 0;
+}
+
+.workbench-content .query-tabs {
+  flex-wrap: wrap;
+}
+
+.workbench-content .query-tab-list {
+  min-width: 180px;
+}
+
+/* 三个业务表单弹窗独立滚动正文，页脚及窗口控件保持可见。 */
+.workbench-dialog.workbench-dialog-interactive {
+  display: flex;
+  flex-direction: column;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
+  border-radius: 10px;
+}
+
+.workbench-dialog-interactive .el-dialog__header {
+  flex: 0 0 auto;
+  min-height: 54px;
+  padding: 16px 142px 16px 18px;
+  cursor: move;
+  touch-action: none;
+}
+
+.workbench-dialog-interactive .el-dialog__title {
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+
+.workbench-dialog-interactive .el-dialog__headerbtn {
+  top: 18px;
+  right: 18px;
+}
+
+.workbench-dialog-interactive .el-dialog__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 18px 4px;
+  overscroll-behavior: contain;
+}
+
+.workbench-dialog-interactive .el-dialog__footer {
+  flex: 0 0 auto;
+  padding: 12px 28px 12px 18px;
+}
+
+.workbench-dialog-interactive .el-form-item {
+  margin-bottom: 14px;
+}
+
+.workbench-dialog-maximize {
+  position: absolute;
+  top: 12px;
+  right: 48px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #766451;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.workbench-dialog-maximize:hover {
+  background: #f6ead8;
+  color: #a85c13;
+}
+
+.workbench-dialog-resize {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: linear-gradient(135deg, transparent 50%, #b6a58d 51%, #b6a58d 57%, transparent 58%, transparent 69%, #b6a58d 70%, #b6a58d 76%, transparent 77%) center / 14px 14px no-repeat;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.workbench-dialog-resize[hidden] {
+  display: none;
+}
+
+.workbench-dialog-interactive :focus-visible {
+  outline: 2px solid #c87422;
+  outline-offset: -2px;
+}
+
+.workbench-dialog-interactive.is-manipulating {
+  user-select: none;
+}
+
+@media (max-width: 800px) {
+  .workbench-shell .workbench-content {
+    padding: 12px;
+  }
+
+  .workbench-shell .workbench-header {
+    height: auto !important;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .workbench-content .entry-content-toolbar,
+  .workbench-content .task-list-toolbar {
+    align-items: stretch;
+  }
+
+  .workbench-content .el-pagination {
+    white-space: normal;
+    line-height: 32px;
+  }
+}

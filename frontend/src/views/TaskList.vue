@@ -28,17 +28,17 @@
           <span>共 {{ total }} 项</span>
         </div>
         <div class="standard-table-panel task-list-table-panel">
-          <el-table v-loading="loading" :data="tasks" row-key="taskId" class="standard-data-table" border stripe
+          <el-table v-workbench-table="'TaskList-1'" v-loading="loading" :data="tasks" row-key="taskId" class="standard-data-table" border stripe
             @row-dblclick="openDetail"
             empty-text="暂无任务">
             <el-table-column prop="title" label="业务标题" min-width="320" show-overflow-tooltip />
-            <el-table-column label="处理状态" width="168">
+            <el-table-column show-overflow-tooltip label="处理状态" width="168">
               <template slot-scope="scope">
                 <el-tag :type="statusTagType(scope.row.status)" effect="plain">{{ statusLabel(scope.row.status) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="initiatorUserId" label="发起人标识" min-width="210" show-overflow-tooltip />
-            <el-table-column label="创建时间" width="190">
+            <el-table-column show-overflow-tooltip label="创建时间" width="190">
               <template slot-scope="scope">{{ formatTime(scope.row.createdAt) }}</template>
             </el-table-column>
           </el-table>

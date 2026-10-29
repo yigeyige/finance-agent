@@ -1,3 +1,4 @@
+<!-- 业务工作区页面，复用公共表格与弹窗交互，保持既有业务流程。 -->
 <template>
   <section class="evidence-page list-page entry-page">
     <div class="page-heading entry-page-heading"><h2>大模型配置</h2></div>
@@ -9,19 +10,19 @@
           <el-button type="primary" @click="openCreate">新增模型</el-button>
         </div>
         <div class="standard-table-panel model-config-table">
-          <el-table v-loading="loading" :data="items" row-key="configId" class="standard-data-table" border stripe empty-text="暂无大模型配置">
-            <el-table-column prop="name" label="配置名称" min-width="140" />
-            <el-table-column prop="provider" label="提供方" width="120" />
-            <el-table-column prop="modelName" label="模型名称" min-width="140" />
-            <el-table-column prop="reasoningEffort" label="推理强度" width="120"><template slot-scope="scope">{{ scope.row.reasoningEffort || '默认' }}</template></el-table-column>
-            <el-table-column label="状态" width="110"><template slot-scope="scope"><el-tag :type="scope.row.enabled ? 'success' : 'info'">{{ scope.row.enabled ? '已启用' : '未启用' }}</el-tag></template></el-table-column>
-            <el-table-column label="密钥" width="100"><template slot-scope="scope">{{ scope.row.apiKeyConfigured ? '已配置' : '未配置' }}</template></el-table-column>
+          <el-table v-workbench-table="'ModelConfiguration-1'" v-loading="loading" :data="items" row-key="configId" class="standard-data-table" border stripe empty-text="暂无大模型配置">
+            <el-table-column show-overflow-tooltip prop="name" label="配置名称" min-width="140" />
+            <el-table-column show-overflow-tooltip prop="provider" label="提供方" width="120" />
+            <el-table-column show-overflow-tooltip prop="modelName" label="模型名称" min-width="140" />
+            <el-table-column show-overflow-tooltip prop="reasoningEffort" label="推理强度" width="120"><template slot-scope="scope">{{ scope.row.reasoningEffort || '默认' }}</template></el-table-column>
+            <el-table-column show-overflow-tooltip label="状态" width="110"><template slot-scope="scope"><el-tag :type="scope.row.enabled ? 'success' : 'info'">{{ scope.row.enabled ? '已启用' : '未启用' }}</el-tag></template></el-table-column>
+            <el-table-column show-overflow-tooltip label="密钥" width="100"><template slot-scope="scope">{{ scope.row.apiKeyConfigured ? '已配置' : '未配置' }}</template></el-table-column>
             <el-table-column label="操作" width="220"><template slot-scope="scope"><el-button type="text" :disabled="scope.row.enabled" @click="enable(scope.row)">启用</el-button><el-button type="text" :disabled="!scope.row.enabled" @click="disable(scope.row)">停用</el-button><el-button type="text" @click="openEdit(scope.row)">编辑</el-button></template></el-table-column>
           </el-table>
         </div>
       </section>
     </template>
-    <el-dialog custom-class="workbench-dialog" :title="editing ? '编辑大模型' : '新增大模型'" :visible.sync="dialogVisible" width="600px" :close-on-click-modal="false"><el-form :model="form" label-position="top" class="workbench-dialog-form">
+    <el-dialog v-workbench-dialog custom-class="workbench-dialog" :title="editing ? '编辑大模型' : '新增大模型'" :visible.sync="dialogVisible" width="600px" :close-on-click-modal="false"><el-form :model="form" label-position="top" class="workbench-dialog-form">
       <el-form-item label="配置名称" required><el-input v-model.trim="form.name" maxlength="100" /></el-form-item><el-form-item label="提供方"><el-select v-model="form.provider" disabled><el-option label="DeepSeek" value="DEEPSEEK" /></el-select></el-form-item>
       <el-form-item label="API 地址" required><el-input v-model.trim="form.apiUrl" placeholder="例如：https://api.deepseek.com" /></el-form-item><el-form-item label="模型名称" required><el-input v-model.trim="form.modelName" placeholder="例如：deepseek-chat" /></el-form-item>
       <el-form-item label="推理强度"><el-select v-model="form.reasoningEffort" clearable><el-option label="低" value="low"/><el-option label="中" value="medium"/><el-option label="高" value="high"/></el-select></el-form-item>
