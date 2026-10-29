@@ -9,63 +9,84 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessDecisionPacket;
 import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessEvidenceAccum;
+import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseConnectionConfigService;
+import cn.com.crc.ems.finance.agent.emsdbconfig.domain.EmsDatabaseConnectionConfig;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessPacketAnalysisContext;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessPacketAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
+import cn.com.crc.ems.finance.agent.scenario.application.BusinessSceneSkillRepository;
+import cn.com.crc.ems.finance.agent.scenario.domain.BusinessSceneSkill;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJson;
 import cn.com.crc.ems.finance.agent.shared.domain.JsonCodec;
 import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
-import cn.com.crc.ems.finance.agent.task.application.GuidanceDraftRepository;
+import cn.com.crc.ems.finance.agent.task.application.InvestigationTaskRepository;
+import cn.com.crc.ems.finance.agent.task.application.TaskBusinessSceneSkillRepository;
+import cn.com.crc.ems.finance.agent.task.domain.InvestigationTask;
 
 /**
  *
- * @Description: 组装业务决策包，读取最新草稿与累积证据并按 schema、table、purpose 去重合并。
+ * @Description: 组装业务决策包：固定任务信息与去重证据，调用模型分析后固化修订；模型调用在保存事务外。
  *
  * @Version: 0.1.0
  * @Author: yigeyige99
- * @Date: 2026-10-24 10:00:00
+ * @Date: 2026-10-28 12:00:00
  */
 @Service
 public class BusinessDecisionPacketService {
 
     private static final int MAX_EVIDENCE = 50;
-    private static final String EVIDENCE_FIELD = "evidence";
 
     private final BusinessDecisionPacketRepository packetRepository;
     private final BusinessEvidenceAccumRepository evidenceRepository;
-    private final GuidanceDraftRepository guidanceDraftRepository;
+    private final BusinessModelClient modelClient;
+    private final InvestigationTaskRepository taskRepository;
+    private final TaskBusinessSceneSkillRepository taskBusinessSceneSkillRepository;
+    private final BusinessSceneSkillRepository businessSceneSkillRepository;
+    private final EmsDatabaseConnectionConfigService emsDatabaseConfigService;
     private final Clock clock;
 
     public BusinessDecisionPacketService(BusinessDecisionPacketRepository packetRepository,
-            BusinessEvidenceAccumRepository evidenceRepository, GuidanceDraftRepository guidanceDraftRepository,
-            Clock clock) {
+            BusinessEvidenceAccumRepository evidenceRepository, BusinessModelClient modelClient,
+            InvestigationTaskRepository taskRepository, TaskBusinessSceneSkillRepository taskBusinessSceneSkillRepository,
+            BusinessSceneSkillRepository businessSceneSkillRepository,
+            EmsDatabaseConnectionConfigService emsDatabaseConfigService, Clock clock) {
         this.packetRepository = packetRepository;
         this.evidenceRepository = evidenceRepository;
-        this.guidanceDraftRepository = guidanceDraftRepository;
+        this.modelClient = modelClient;
+        this.taskRepository = taskRepository;
+        this.taskBusinessSceneSkillRepository = taskBusinessSceneSkillRepository;
+        this.businessSceneSkillRepository = businessSceneSkillRepository;
+        this.emsDatabaseConfigService = emsDatabaseConfigService;
         this.clock = clock;
     }
 
     /**
      *
-     * @description: 生成业务决策包；无草稿时拒绝，内容与上一修订一致时跳过不新增修订。
+     * @description: 固定任务信息与已有证据，调用模型分析后生成业务决策包；内容与上一修订一致时跳过不新增修订。
      *
      * @param: taskId 当前任务标识
      * @return: 生成结果，含新增或跳过的修订与提示文案
-     * @throws: IllegalStateException 任务尚无业务处理草稿时抛出
+     * @throws: IllegalStateException 任务不存在、无证据或模型调用失败时抛出
      * @author: yigeyige99
      */
-    @Transactional
     public BusinessDecisionPacketResult generate(UUID taskId) {
-        String draftJson = guidanceDraftRepository.findLatestDraftJsonByTaskId(taskId)
-                .orElseThrow(() -> new IllegalStateException("尚未生成业务处理草稿，无法生成业务决策包"));
-        List<EmsDatabaseEvidence> deduplicated = deduplicate(evidenceRepository.findByTaskIdOrderByRound(taskId));
-        ObjectNode businessContent = buildBusinessContent(draftJson, deduplicated);
+        InvestigationTask task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalStateException("业务处理任务不存在或已失效"));
+        List<EmsDatabaseEvidence> evidence = deduplicate(evidenceRepository.findByTaskIdOrderByRound(taskId));
+        BusinessSceneSkill sceneSkill = findSceneSkill(taskId);
+        String decisionPacketPrompt = sceneSkill == null ? null : sceneSkill.decisionPacketPrompt();
+        BusinessPacketAnalysisSuggestion analysis = modelClient
+                .analyzeDecisionPacket(new BusinessPacketAnalysisContext(taskId, task.title(), task.originalQuestion(),
+                        evidence, decisionPacketPrompt))
+                .value();
+        ObjectNode businessContent = buildBusinessContent(task, sceneSkill, analysis, evidence);
         String contentDigest = CanonicalJson.of(businessContent.toString()).sha256();
         var latest = packetRepository.findLatestByTaskId(taskId);
         if (latest.isPresent() && latest.get().contentDigest().equals(contentDigest)) {
@@ -100,15 +121,24 @@ public class BusinessDecisionPacketService {
         return packetRepository.findByTaskIdAndRevision(taskId, revision);
     }
 
-    private ObjectNode buildBusinessContent(String draftJson, List<EmsDatabaseEvidence> evidence) {
+    private ObjectNode buildBusinessContent(InvestigationTask task, BusinessSceneSkill sceneSkill,
+            BusinessPacketAnalysisSuggestion analysis, List<EmsDatabaseEvidence> evidence) {
         ObjectNode content = JsonCodec.mapper().createObjectNode();
-        JsonNode draft = readTree(draftJson);
-        draft.fieldNames().forEachRemaining(name -> {
-            if (!EVIDENCE_FIELD.equals(name)) {
-                content.set(name, draft.get(name));
-            }
-        });
-        content.set(EVIDENCE_FIELD, JsonCodec.mapper().valueToTree(evidence));
+        content.put("subjectKey", analysis.subjectKey());
+        content.put("conclusion", analysis.conclusion());
+        content.put("recommendedGoal", analysis.recommendedGoal());
+        content.putPOJO("alternativeGoals", analysis.alternativeGoals());
+        content.put("reason", analysis.reason());
+        if (sceneSkill != null) {
+            content.put("sceneSkillId", sceneSkill.skillId().toString());
+            content.put("sceneSkillName", sceneSkill.name());
+        }
+        if (task.databaseConfigId() != null) {
+            EmsDatabaseConnectionConfig instance = emsDatabaseConfigService.resolveEnabled(task.databaseConfigId());
+            content.put("databaseConfigId", instance.configId().toString());
+            content.put("databaseInstanceName", instance.name());
+        }
+        content.set("evidence", JsonCodec.mapper().valueToTree(evidence));
         return content;
     }
 
@@ -146,11 +176,13 @@ public class BusinessDecisionPacketService {
         }
     }
 
-    private JsonNode readTree(String json) {
-        try {
-            return JsonCodec.mapper().readTree(json);
-        } catch (Exception exception) {
-            throw new IllegalStateException("业务处理草稿数据不可解析", exception);
+    private BusinessSceneSkill findSceneSkill(UUID taskId) {
+        if (taskBusinessSceneSkillRepository == null || businessSceneSkillRepository == null) {
+            return null;
         }
+        return taskBusinessSceneSkillRepository.findSkillIdByTaskId(taskId)
+                .map(skillId -> businessSceneSkillRepository.findActiveById(skillId)
+                        .orElseThrow(() -> new IllegalStateException("任务关联的业务场景 Skill 已失效，请重新创建任务")))
+                .orElse(null);
     }
 }

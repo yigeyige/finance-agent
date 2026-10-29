@@ -1,27 +1,139 @@
-<!-- 只读展示任务的业务说明、处理范围和方案，避免在历史任务中直接修改权威状态。 -->
+<!-- 只读展示任务三步：业务说明、模型协作与决策包，与新建业务处理布局一致，但隐藏聊天框与操作按钮，仅步骤可切换。 -->
 <template>
-  <section class="evidence-page list-page task-detail-page" v-loading="loading">
-    <div class="page-heading"><div><h2>{{ detail ? detail.title : '业务处理详情' }}</h2></div><el-button @click="$router.push('/tasks')">返回任务列表</el-button></div>
+  <section class="task-workbench task-detail-page" v-loading="loading">
+    <div class="page-heading entry-page-heading">
+      <div><h2>{{ detail ? detail.title : '业务处理详情' }}</h2></div>
+      <el-button @click="$router.push('/tasks')">返回任务列表</el-button>
+    </div>
+
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
-    <template v-else-if="detail"><el-row :gutter="20"><el-col :span="24"><el-card shadow="never"><div slot="header">业务说明</div><dl class="readonly-detail-list"><dt>处理状态</dt><dd>{{ statusLabel(detail.status) }}</dd><dt>发起人标识</dt><dd>{{ detail.initiatorUserId }}</dd><dt>业务说明</dt><dd>{{ detail.description }}</dd><dt>创建时间</dt><dd>{{ formatTime(detail.createdAt) }}</dd></dl></el-card><el-card shadow="never" class="detail-section"><div slot="header">检查结论</div><p v-if="!detail.conclusion" class="readonly-empty">尚未生成检查结论</p><p v-else class="conclusion-text">{{ detail.conclusion }}</p></el-card><el-card shadow="never" class="detail-section"><div slot="header">关联证据</div><p v-if="!detail.evidence.length" class="readonly-empty">暂无关联证据</p><div v-else v-for="(item, ei) in detail.evidence" :key="ei" class="evidence-item"><p class="evidence-meta">{{ item.schema }}.{{ item.table }} · {{ item.purpose }}</p><el-table v-workbench-table="'TaskDetail-1:' + item.schema + '.' + item.table" :data="evidenceRowObjects(item)" border size="mini"><el-table-column show-overflow-tooltip min-width="160" v-for="(col, ci) in item.columns" :key="ci" :prop="String(ci)" :label="col" /></el-table></div></el-card><el-card shadow="never" class="detail-section"><div slot="header">业务决策包<span v-if="detail.decisionPacket">（修订 {{ detail.decisionPacket.revision }}）</span></div><p v-if="!detail.decisionPacket" class="readonly-empty">尚未生成业务决策包</p><template v-else><p class="conclusion-text">{{ detail.decisionPacket.conclusion || '暂无结论' }}</p><div v-for="(item, ei) in detail.decisionPacket.evidence" :key="ei" class="evidence-item"><p class="evidence-meta">{{ item.schema }}.{{ item.table }} · {{ item.purpose }}</p><el-table v-workbench-table="'TaskDetail-2:' + item.schema + '.' + item.table" :data="evidenceRowObjects(item)" border size="mini"><el-table-column show-overflow-tooltip min-width="160" v-for="(col, ci) in item.columns" :key="ci" :prop="String(ci)" :label="col" /></el-table></div></template></el-card></el-col></el-row></template>
+
+    <template v-else-if="detail">
+      <div class="workflow-steps-bar">
+        <el-steps :active="activeStep" simple>
+          <el-step title="业务说明" @click.native="activeStep = 0" />
+          <el-step title="模型协作" @click.native="activeStep = 1" />
+          <el-step title="决策包" @click.native="activeStep = 2" />
+        </el-steps>
+      </div>
+
+      <el-card shadow="never" class="form-card guided-workflow">
+        <!-- 第一步：业务说明只读信息。 -->
+        <section v-if="activeStep === 0" class="handling-form-panel">
+          <div class="card-heading"><h4>业务说明</h4></div>
+          <dl class="readonly-detail-list">
+            <dt>业务标题</dt><dd>{{ detail.title }}</dd>
+            <dt>处理状态</dt><dd>{{ statusLabel(detail.status) }}</dd>
+            <dt>发起人标识</dt><dd>{{ detail.initiatorUserId }}</dd>
+            <dt>创建时间</dt><dd>{{ formatTime(detail.createdAt) }}</dd>
+            <dt>业务说明</dt><dd>{{ detail.description }}</dd>
+          </dl>
+        </section>
+
+        <!-- 第二步：检查结论与关联证据。 -->
+        <section v-else-if="activeStep === 1" class="guidance-result-panel">
+          <div class="card-heading"><h4>检查结论</h4></div>
+          <p v-if="!detail.conclusion" class="readonly-empty">尚未生成检查结论</p>
+          <p v-else class="conclusion-text">{{ detail.conclusion }}</p>
+          <template v-if="detail.evidence.length">
+            <h4>关联证据</h4>
+            <div v-for="(item, ei) in detail.evidence" :key="ei" class="evidence-item">
+              <p class="evidence-meta">{{ item.schema }}.{{ item.table }} · {{ item.purpose }}</p>
+              <el-table v-workbench-table="'TaskDetail-1:' + item.schema + '.' + item.table" :data="evidenceRowObjects(item)" border size="mini">
+                <el-table-column show-overflow-tooltip min-width="160" v-for="(col, ci) in item.columns" :key="ci" :prop="String(ci)" :label="col" />
+              </el-table>
+            </div>
+          </template>
+          <p v-else class="readonly-empty">暂无关联证据</p>
+        </section>
+
+        <!-- 第三步：业务决策包。 -->
+        <section v-else class="guidance-result-panel">
+          <div class="card-heading"><h4>业务决策包</h4></div>
+          <p v-if="!detail.decisionPacket" class="readonly-empty">尚未生成业务决策包</p>
+          <template v-else>
+            <!-- 四个独立卡片紧凑排列：数据对象、操作、结论、证据。 -->
+            <div class="packet-grid">
+              <el-card shadow="never" class="packet-card packet-card--object">
+                <div slot="header" class="packet-card__header">数据对象</div>
+                <div class="packet-object">
+                  <span class="packet-object__item"><span class="packet-object__label">处理对象</span><span class="packet-object__value">{{ detail.decisionPacket.subjectKey || '—' }}</span></span>
+                  <span class="packet-object__item"><span class="packet-object__label">数据库实例</span><span class="packet-object__value">{{ detail.decisionPacket.databaseInstanceName || '—' }}</span></span>
+                </div>
+              </el-card>
+
+              <el-card shadow="never" class="packet-card packet-card--action">
+                <div slot="header" class="packet-card__header">操作</div>
+                <div class="packet-recommend__goal">
+                  <el-tag type="primary" effect="dark" size="small">推荐</el-tag>
+                  <p>{{ detail.decisionPacket.recommendedGoal || '暂无' }}</p>
+                </div>
+                <p v-if="detail.decisionPacket.reason" class="packet-recommend__reason">推荐理由：{{ detail.decisionPacket.reason }}</p>
+                <ul v-if="detail.decisionPacket.alternativeGoals.length" class="packet-alternatives">
+                  <li v-for="(goal, gi) in detail.decisionPacket.alternativeGoals" :key="gi">
+                    <span class="packet-alternatives__index">{{ gi + 1 }}</span>
+                    <span>{{ goal }}</span>
+                  </li>
+                </ul>
+              </el-card>
+
+              <el-card shadow="never" class="packet-card packet-card--conclusion">
+                <div slot="header" class="packet-card__header">结论 <span class="packet-card__revision">修订 {{ detail.decisionPacket.revision }}</span></div>
+                <p class="packet-conclusion">{{ conclusionText }}</p>
+              </el-card>
+
+              <el-card v-if="detail.decisionPacket.evidence.length" shadow="never" class="packet-card packet-card--evidence">
+                <div slot="header" class="packet-card__header">证据</div>
+                <div v-for="(item, ei) in detail.decisionPacket.evidence" :key="ei" class="evidence-item">
+                  <p class="evidence-meta">{{ item.schema }}.{{ item.table }} · {{ item.purpose }}</p>
+                  <el-table v-workbench-table="'TaskDetail-2:' + item.schema + '.' + item.table" :data="evidenceRowObjects(item)" border size="mini">
+                    <el-table-column show-overflow-tooltip min-width="160" v-for="(col, ci) in item.columns" :key="ci" :prop="String(ci)" :label="col" />
+                  </el-table>
+                </div>
+              </el-card>
+            </div>
+          </template>
+        </section>
+      </el-card>
+    </template>
   </section>
 </template>
 <script lang="ts">
 import Vue from 'vue'
 import { DraftEvidence } from '../api/generated'
 import { getTaskDetail, TaskDetail } from '../services/task-list-api'
-/** 任务只读详情页，双击任务列表中的行进入。 */
-export default Vue.extend({ name: 'TaskDetail', data: () => ({ detail: null as TaskDetail | null, loading: false, errorMessage: '' }), created() { void this.loadDetail() }, methods: {
+/** 任务只读详情页，双击任务列表行进入，以三步布局展示且仅步骤可切换。 */
+export default Vue.extend({ name: 'TaskDetail', data: () => ({ detail: null as TaskDetail | null, loading: false, errorMessage: '', activeStep: 0 }), computed: { /** 将调查结论按分号/句号换行，便于管理员逐条阅读。 */ conclusionText(): string { const packet = this.detail && this.detail.decisionPacket ? this.detail.decisionPacket : null; const text = packet ? packet.conclusion : ''; return text.replace(/([；;。])\s*/g, '$1\n').trim() } }, created() { void this.loadDetail() }, methods: {
   /** 加载路由参数指向的只读详情。 */ async loadDetail(): Promise<void> { const taskId = this.$route.params.taskId; if (!taskId) { this.errorMessage = '未识别任务标识'; return } this.loading = true; try { this.detail = await getTaskDetail(taskId) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '任务详情暂时无法读取' } finally { this.loading = false } },
   /** 转换状态为业务中文。 */ statusLabel(status: string): string { return ({ DRAFT: '草稿', WAITING_SCOPE_CONFIRMATION: '待确认范围', READY: '待生成方案', WAITING_STEP_APPROVAL: '待处理', RUNNING_STEP: '处理中', ANALYZING: '分析中', WAITING_PROFESSIONAL_CONFIRMATION: '待专业确认', DRAFT_PACKET: '决策包草稿', WAITING_REVIEW: '待复核', RECHECKING_SCOPE: '重新核查范围', READY_TO_PUBLISH: '待发布', PUBLISHED: '已发布', HANDED_OFF: '已移交', CLOSED: '已关闭', PAUSED_MODEL_UNAVAILABLE: '模型暂不可用', PAUSED_BUDGET: '预算已暂停', PAUSED_SOURCE_UNAVAILABLE: '来源暂不可用', STALE_APPROVAL: '审批已失效', FAILED_RECOVERABLE: '处理失败，可重试', CANCELLED: '已取消' } as Record<string, string>)[status] || '状态待确认' },
-  /** 从范围存储值中读取业务对象，旧数据无法识别时保留原始值。 */ businessObject(value: string): string { try { const parsed = JSON.parse(value) as { businessObject?: string }; return parsed.businessObject || value } catch { return value } },
-  /** 从范围存储值中读取业务时间段，旧数据无法识别时保留原始值。 */ timeRange(value: string): string { try { const parsed = JSON.parse(value) as { from?: string; to?: string }; return parsed.from && parsed.to ? `${parsed.from} 至 ${parsed.to}` : value } catch { return value } },
-  /** 转换方案步骤状态为业务中文。 */ planStatusLabel(status: string): string { return ({ PROPOSED: '待确认', APPROVED: '已确认', RUNNING: '执行中', COMPLETED: '已完成', REJECTED: '未采纳' } as Record<string, string>)[status] || '状态待确认' },
   /** 以中文地区格式展示创建时间。 */ formatTime(value: string): string { const date = new Date(value); return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN', { hour12: false }) },
   /** 把二维证据行转换为 el-table 可用的对象数组。 */ evidenceRowObjects(item: DraftEvidence): Array<Record<string, string>> { return item.rows.map((row) => { const record: Record<string, string> = {}; row.forEach((cell, index) => { record[String(index)] = cell }); return record }) },
 } })
 </script>
 <style scoped>
-.detail-section{margin-top:20px}.readonly-detail-list{display:grid;grid-template-columns:112px 1fr;margin:0;border-top:1px solid #ebeef5}.readonly-detail-list dt,.readonly-detail-list dd{margin:0;padding:12px;border-bottom:1px solid #ebeef5}.readonly-detail-list dt{background:#f8fafc;color:#687386}.readonly-detail-list dd{white-space:pre-wrap;line-height:1.6}.readonly-empty{color:#909399;margin:8px 0}.readonly-plan-list{margin:0;padding-left:20px}.readonly-plan-list li{margin-bottom:14px}.readonly-plan-list span{display:block;margin-top:6px;line-height:1.6}.readonly-plan-list small,.premise-item span{color:#8492a6}.premise-item{padding:0 0 14px;border-bottom:1px solid #ebeef5;margin-bottom:14px}.premise-item p{line-height:1.6;margin:8px 0}
-.conclusion-text{white-space:pre-wrap;line-height:1.6;margin:8px 0}.evidence-item{margin-bottom:12px}.evidence-meta{margin:8px 0 4px;color:#817b73;font-size:13px}
+.task-detail-page ::v-deep .el-step { cursor: pointer; }
+.readonly-detail-list { display: grid; grid-template-columns: 112px 1fr; margin: 14px 0 0; border-top: 1px solid #ebeef5; }
+.readonly-detail-list dt, .readonly-detail-list dd { margin: 0; padding: 12px; border-bottom: 1px solid #ebeef5; }
+.readonly-detail-list dt { background: #f8fafc; color: #687386; }
+.readonly-detail-list dd { white-space: pre-wrap; line-height: 1.6; }
+.readonly-empty { color: #909399; margin: 8px 0; }
+.conclusion-text { white-space: pre-wrap; line-height: 1.6; margin: 10px 0 16px; }
+.evidence-item { margin-bottom: 12px; }
+.evidence-meta { margin: 8px 0 4px; color: #817b73; font-size: 13px; }
+/* 决策包卡片化展示：四个独立卡片纵向紧凑排列，每个横向平铺。 */
+.packet-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.packet-card { margin-bottom: 0; border: 1px solid #e7dfd4; border-radius: 10px; }
+.packet-object { display: flex; flex-wrap: wrap; gap: 24px; }
+.packet-object__item { display: inline-flex; align-items: center; gap: 8px; }
+.packet-object__label { color: #817b73; font-size: 13px; }
+.packet-object__value { color: #303133; font-weight: 600; }
+.packet-card__header { font-size: 15px; color: #4a4640; font-weight: 600; }
+.packet-card__revision { margin-left: 8px; color: #817b73; font-size: 13px; font-weight: 400; }
+.packet-conclusion { margin: 0; padding: 12px 14px; border-left: 3px solid #dd7a13; background: #fbf6ee; color: #4b5563; line-height: 1.7; white-space: pre-line; border-radius: 0 8px 8px 0; }
+.packet-recommend__goal { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.packet-recommend__goal p { margin: 0; color: #303133; font-weight: 600; line-height: 1.6; }
+.packet-recommend__reason { margin: 0 0 8px; color: #817b73; font-size: 13px; line-height: 1.6; }
+.packet-alternatives { margin: 0; padding: 0; list-style: none; }
+.packet-alternatives li { display: flex; gap: 8px; padding: 6px 0; color: #4b5563; line-height: 1.6; border-top: 1px dashed #ede6db; }
+.packet-alternatives__index { flex: none; width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 50%; background: #f3ede3; color: #dd7a13; font-size: 12px; }
 </style>

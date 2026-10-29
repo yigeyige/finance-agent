@@ -1,6 +1,7 @@
 package cn.com.crc.ems.finance.agent.task.application;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -97,22 +98,41 @@ public class TaskDetailService {
                 JsonNodeFactory.instance.arrayNode());
     }
 
-    /** 投影最新业务决策包的修订号、结论与去重后证据，不存在时返回空。 */
+    /** 投影最新业务决策包的修订号、处理对象、结论、推荐方案与去重后证据，不存在时返回空。 */
     private static DecisionPacket projectDecisionPacket(BusinessDecisionPacket packet) {
         try {
             JsonNode content = CanonicalJsonCodec.parse(packet.canonicalContent());
             JsonNode evidence = content.path("evidence");
-            return new DecisionPacket(packet.revision(), content.path("conclusion").asText(""),
+            return new DecisionPacket(packet.revision(), content.path("subjectKey").asText(""),
+                    content.path("conclusion").asText(""), content.path("recommendedGoal").asText(""),
+                    textArray(content.path("alternativeGoals")), content.path("reason").asText(""),
+                    content.path("sceneSkillName").asText(""), content.path("databaseInstanceName").asText(""),
                     evidence.isArray() ? evidence : JsonNodeFactory.instance.arrayNode());
         } catch (RuntimeException ignored) {
             return null;
         }
     }
 
+    /** 读取文本数组字段，缺失或非数组时返回空列表，兼容历史包。 */
+    private static List<String> textArray(JsonNode value) {
+        if (value == null || !value.isArray()) {
+            return List.of();
+        }
+        List<String> result = new ArrayList<>();
+        value.forEach(item -> {
+            if (item.isTextual()) {
+                result.add(item.textValue());
+            }
+        });
+        return List.copyOf(result);
+    }
+
     public record Detail(UUID taskId, String title, String description, String status, UUID initiatorUserId, Instant createdAt,
             List<Premise> premises, Scope scope, List<PlanStep> plans, String conclusion, @JsonRawValue JsonNode evidence,
             DecisionPacket decisionPacket) { }
-    public record DecisionPacket(int revision, String conclusion, @JsonRawValue JsonNode evidence) { }
+    public record DecisionPacket(int revision, String subjectKey, String conclusion, String recommendedGoal,
+            List<String> alternativeGoals, String reason, String sceneSkillName, String databaseInstanceName,
+            @JsonRawValue JsonNode evidence) { }
     public record Premise(String subjectKey) {
         static Premise from(TaskPremise value) { return new Premise(value.subjectKey()); }
     }

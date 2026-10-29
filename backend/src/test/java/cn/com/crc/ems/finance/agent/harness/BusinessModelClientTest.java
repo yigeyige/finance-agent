@@ -19,11 +19,14 @@ import com.sun.net.httpserver.HttpServer;
 
 import cn.com.crc.ems.finance.agent.config.FinanceAgentProperties;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelException;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessPacketAnalysisContext;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessPacketAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceAttachment;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
+import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanContext;
 import cn.com.crc.ems.finance.agent.harness.application.PromptTemplate;
 import cn.com.crc.ems.finance.agent.harness.application.PromptTemplateRepository;
@@ -133,6 +136,62 @@ class BusinessModelClientTest {
                 .isInstanceOf(BusinessModelException.class);
     }
 
+    @Test
+    void stubAnalyzesDecisionPacket() {
+        StubBusinessModelClient client = new StubBusinessModelClient();
+
+        var result = client.analyzeDecisionPacket(packetContext());
+
+        assertThat(result.metadata().mode()).isEqualTo("STUB");
+        assertThat(result.value().subjectKey()).isEqualTo("待管理员确认的业务对象");
+        assertThat(result.value().conclusion()).contains("证据");
+        assertThat(result.value().alternativeGoals()).hasSize(2);
+    }
+
+    @Test
+    void packetAnalysisRejectsMissingEvidenceAndExtraFields() {
+        assertThatThrownBy(() -> new BusinessPacketAnalysisContext(UUID.randomUUID(), "任务", "问题",
+                List.of(), null)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> BusinessPacketAnalysisSuggestion.fromJson(CanonicalJsonCodec.parse(
+                "{\"subjectKey\":\"对象\",\"conclusion\":\"结论\",\"recommendedGoal\":\"方案\",\"alternativeGoals\":[],\"reason\":\"理由\",\"extra\":true}")))
+                .isInstanceOf(BusinessModelException.class);
+    }
+
+    @Test
+    void liveClientUsesDecisionPacketPromptAndReturnsAnalysis() throws IOException {
+        AtomicReference<String> request = new AtomicReference<>();
+        server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+        server.createContext("/chat/completions", exchange -> {
+            request.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            String content = "{\"subjectKey\":\"E001 的审批权限\",\"conclusion\":\"仍有 3 条生效的审批权限需要回收\",\"recommendedGoal\":\"回收离职人员生效权限\",\"alternativeGoals\":[\"先冻结再回收\"],\"reason\":\"已核对证据\"}";
+            String response = "{\"id\":\"packet\",\"object\":\"chat.completion\",\"created\":1,"
+                    + "\"model\":\"deepseek-chat\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\","
+                    + "\"content\":" + quote(content) + "},\"finish_reason\":\"stop\"}],"
+                    + "\"usage\":{\"prompt_tokens\":10,\"completion_tokens\":8,\"total_tokens\":18}}";
+            byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, bytes.length);
+            exchange.getResponseBody().write(bytes);
+            exchange.close();
+        });
+        server.setExecutor(Executors.newCachedThreadPool());
+        server.start();
+        var settings = new FinanceAgentProperties.DeepSeek();
+        settings.setApiKey("test-key");
+        settings.setBaseUrl("http://localhost:" + server.getAddress().getPort());
+        settings.setModel("deepseek-chat");
+
+        PromptTemplateRepository templates = code -> Optional.of(new PromptTemplate(code,
+                "你是财务共享业务决策包分析助手。仅依据输入 JSON 生成决策结论。输入："));
+        var result = new DeepSeekBusinessModelClient(new DeepSeekOpenAiAdapter(settings), templates)
+                .analyzeDecisionPacket(packetContext());
+
+        assertThat(result.metadata().mode()).isEqualTo("LIVE");
+        assertThat(result.value().subjectKey()).isEqualTo("E001 的审批权限");
+        assertThat(result.value().conclusion()).contains("3 条");
+        assertThat(request.get()).contains("决策包提示词内容").doesNotContain("test-key");
+    }
+
     private static ModelPlanContext planContext() {
         return new ModelPlanContext(UUID.randomUUID(), "离职人员配置核查", "是否仍有有效配置", UUID.randomUUID(),
                 "{\"businessObject\":\"E001\"}");
@@ -141,6 +200,13 @@ class BusinessModelClientTest {
     private static EvidenceAnalysisContext evidenceContext() {
         return new EvidenceAnalysisContext(UUID.randomUUID(), "离职人员配置核查", "是否仍有有效配置",
                 1, 0, 0, List.of("COMPLETE"), List.of("发现一条仍生效的异常引用"));
+    }
+
+    private static BusinessPacketAnalysisContext packetContext() {
+        return new BusinessPacketAnalysisContext(UUID.randomUUID(), "离职权限处置", "核查离职人员生效权限",
+                List.of(new EmsDatabaseEvidence("basedata", "account", "核对生效权限", List.of("id"),
+                        List.of(List.of("1")))),
+                "决策包提示词内容");
     }
 
     private static String quote(String value) {

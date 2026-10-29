@@ -16,6 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import jakarta.validation.Valid;
 import cn.com.crc.ems.finance.agent.shared.domain.UtcTime;
 import cn.com.crc.ems.finance.agent.iam.application.IdentityContext;
+import cn.com.crc.ems.finance.agent.businesspacket.application.BusinessDecisionPacketService;
 import cn.com.crc.ems.finance.agent.task.application.AddTaskPremiseCommand;
 import cn.com.crc.ems.finance.agent.task.application.ConfirmScopeCommand;
 import cn.com.crc.ems.finance.agent.task.application.CreateTaskDraftCommand;
@@ -36,10 +37,13 @@ import cn.com.crc.ems.finance.agent.task.application.UpdateTaskCommand;
 public final class TaskIntakeController {
 
     private final TaskIntakeApplicationService intakeService;
+    private final BusinessDecisionPacketService decisionPacketService;
     private final Clock applicationClock;
 
-    public TaskIntakeController(TaskIntakeApplicationService intakeService, Clock applicationClock) {
+    public TaskIntakeController(TaskIntakeApplicationService intakeService,
+            BusinessDecisionPacketService decisionPacketService, Clock applicationClock) {
         this.intakeService = intakeService;
+        this.decisionPacketService = decisionPacketService;
         this.applicationClock = applicationClock;
     }
 
@@ -60,6 +64,9 @@ public final class TaskIntakeController {
     public TaskIntakeResponse updateTask(@PathVariable UUID taskId, @Valid @RequestBody UpdateTaskRequest request,
             @RequestHeader(value = "X-Actor-User-Id", required = false) UUID actorUserId) {
         actorUserId = trustedActor(actorUserId);
+        if (decisionPacketService.latest(taskId).isPresent()) {
+            throw new IllegalArgumentException("该任务已生成业务决策包，任务信息不可修改");
+        }
         var task = intakeService.updateTask(new UpdateTaskCommand(taskId, request.originalQuestion(),
                 request.businessSceneSkillId(), request.databaseConfigId(), actorUserId, UtcTime.now(applicationClock)));
         return TaskIntakeResponse.task(task);

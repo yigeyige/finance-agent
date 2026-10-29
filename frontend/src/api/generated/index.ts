@@ -111,7 +111,17 @@ export interface TaskPremise { subjectKey: string }
 export interface TaskScope { objectSelector: string; revisionNo: number }
 export interface TaskPlan { sequenceNo: number; goal: string; recommended: boolean; status: string }
 export interface TaskDetail { taskId: string; title: string; description: string; status: string; initiatorUserId: string; createdAt: string; premises: TaskPremise[]; scope: TaskScope | null; plans: TaskPlan[]; conclusion: string; evidence: DraftEvidence[]; decisionPacket: TaskDecisionPacket | null }
-export interface TaskDecisionPacket { revision: number; conclusion: string; evidence: DraftEvidence[] }
+export interface TaskDecisionPacket {
+  revision: number
+  subjectKey: string
+  conclusion: string
+  recommendedGoal: string
+  alternativeGoals: string[]
+  reason: string
+  sceneSkillName: string
+  databaseInstanceName: string
+  evidence: DraftEvidence[]
+}
 
 /** 业务方案修订与受控模型协作的契约模型。 */
 export interface StepProposalRevisionPayload { goal: string }
@@ -266,10 +276,10 @@ export function parseTaskDetail(value: unknown): TaskDetail {
   return { taskId: requireString(record.taskId, '任务标识'), title: requireString(record.title, '任务标题'), description: requireString(record.description, '业务说明'), status: requireString(record.status, '任务状态'), initiatorUserId: requireString(record.initiatorUserId, '发起人标识'), createdAt: requireString(record.createdAt, '创建时间'), premises: requireArray(record.premises, '任务前提').map(parseTaskPremise), scope, plans: requireArray(record.plans, '推荐方案').map(parseTaskPlan), conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence), decisionPacket }
 }
 
-/** 校验业务决策包投影。 */
+/** 校验业务决策包投影，历史包缺失的新增字段按空值容错。 */
 function parseTaskDecisionPacket(value: unknown): TaskDecisionPacket {
-  const record = assertObjectFields(value, ['revision', 'conclusion', 'evidence'], '业务决策包')
-  return { revision: requirePositiveNumber(record.revision, '决策包修订号'), conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence) }
+  const record = assertObjectFields(value, ['revision', 'subjectKey', 'conclusion', 'recommendedGoal', 'alternativeGoals', 'reason', 'sceneSkillName', 'databaseInstanceName', 'evidence'], '业务决策包')
+  return { revision: requirePositiveNumber(record.revision, '决策包修订号'), subjectKey: typeof record.subjectKey === 'string' ? record.subjectKey : '', conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', recommendedGoal: typeof record.recommendedGoal === 'string' ? record.recommendedGoal : '', alternativeGoals: Array.isArray(record.alternativeGoals) ? requireStringArray(record.alternativeGoals, '备选方案') : [], reason: typeof record.reason === 'string' ? record.reason : '', sceneSkillName: typeof record.sceneSkillName === 'string' ? record.sceneSkillName : '', databaseInstanceName: typeof record.databaseInstanceName === 'string' ? record.databaseInstanceName : '', evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence) }
 }
 
 /** 校验业务处理向导模型响应。 */
@@ -463,8 +473,23 @@ function parseDraftEvidence(value: unknown): DraftEvidence {
   return { schema: requireString(record.schema, '证据库名'), table: requireString(record.table, '证据表名'), purpose: requireString(record.purpose, '证据用途'), columns: requireArray(record.columns, '证据列').map((column) => requireDisplayString(column, '证据列')), rows: requireArray(record.rows, '证据行').map((row) => requireArray(row, '证据行').map((cell) => requireDisplayString(cell, '证据行'))) }
 }
 
-/** 业务决策包内容契约：标识 + 业务处理关键字段 + 去重后证据。 */
-export interface BusinessDecisionPacketContent { packetId: string; taskId: string; revision: number; createdAt: string; conclusion: string; recommendedGoal: string; reason: string; statement: string; evidence: DraftEvidence[] }
+/** 业务决策包内容契约：标识 + 模型分析结果 + 场景/实例留痕 + 去重后证据。 */
+export interface BusinessDecisionPacketContent {
+  packetId: string
+  taskId: string
+  revision: number
+  createdAt: string
+  subjectKey: string
+  conclusion: string
+  recommendedGoal: string
+  alternativeGoals: string[]
+  reason: string
+  sceneSkillId: string | null
+  sceneSkillName: string | null
+  databaseConfigId: string | null
+  databaseInstanceName: string | null
+  evidence: DraftEvidence[]
+}
 /** 业务决策包生成/查看响应契约。 */
 export interface BusinessDecisionPacketResponse { packetId: string; taskId: string; revision: number; createdAt: string; content: BusinessDecisionPacketContent; created: boolean; message: string | null }
 /** 证据工作区单轮累积证据响应契约。 */
@@ -479,11 +504,11 @@ export function parseBusinessDecisionPacket(value: unknown): BusinessDecisionPac
   return { packetId: requireString(record.packetId, '决策包标识'), taskId: requireString(record.taskId, '任务标识'), revision: requirePositiveNumber(record.revision, '修订号'), createdAt: requireString(record.createdAt, '生成时间'), content: parseBusinessDecisionPacketContent(record.content), created: requireBoolean(record.created, '生成结果'), message: nullableString(record.message) }
 }
 
-/** 校验业务决策包内容，仅提取展示所需字段，保留后端规范内容其余字段。 */
+/** 校验业务决策包内容，提取展示所需字段，历史包缺失的新增字段按空值容错。 */
 export function parseBusinessDecisionPacketContent(value: unknown): BusinessDecisionPacketContent {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error('决策包内容格式无法识别，请联系管理员同步接口契约')
   const record = value as Record<string, unknown>
-  return { packetId: requireString(record.packetId, '决策包标识'), taskId: requireString(record.taskId, '任务标识'), revision: requirePositiveNumber(record.revision, '修订号'), createdAt: requireString(record.createdAt, '生成时间'), conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', recommendedGoal: typeof record.recommendedGoal === 'string' ? record.recommendedGoal : '', reason: typeof record.reason === 'string' ? record.reason : '', statement: typeof record.statement === 'string' ? record.statement : '', evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence) }
+  return { packetId: requireString(record.packetId, '决策包标识'), taskId: requireString(record.taskId, '任务标识'), revision: requirePositiveNumber(record.revision, '修订号'), createdAt: requireString(record.createdAt, '生成时间'), subjectKey: typeof record.subjectKey === 'string' ? record.subjectKey : '', conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', recommendedGoal: typeof record.recommendedGoal === 'string' ? record.recommendedGoal : '', alternativeGoals: Array.isArray(record.alternativeGoals) ? requireStringArray(record.alternativeGoals, '备选方案') : [], reason: typeof record.reason === 'string' ? record.reason : '', sceneSkillId: nullableString(record.sceneSkillId), sceneSkillName: nullableString(record.sceneSkillName), databaseConfigId: nullableString(record.databaseConfigId), databaseInstanceName: nullableString(record.databaseInstanceName), evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence) }
 }
 
 /** 校验证据工作区累积证据列表响应。 */

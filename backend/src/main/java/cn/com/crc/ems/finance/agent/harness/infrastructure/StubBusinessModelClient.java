@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelCallMetadata;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelResult;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessPacketAnalysisContext;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessPacketAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessHandlingDraft;
@@ -80,6 +82,18 @@ public final class StubBusinessModelClient implements BusinessModelClient {
                         : "当前证据已形成判断，但业务影响仍需人工确认。",
                 recommendations);
         return result(contextJson(context), analysisJson(value), value, started);
+    }
+
+    @Override
+    public BusinessModelResult<BusinessPacketAnalysisSuggestion> analyzeDecisionPacket(
+            BusinessPacketAnalysisContext context) {
+        long started = System.nanoTime();
+        var value = new BusinessPacketAnalysisSuggestion("待管理员确认的业务对象",
+                "本地模拟模型已根据 " + context.evidence().size() + " 条已有证据形成结论，仍需管理员核验。",
+                "围绕“" + context.title() + "”形成可复核的业务处理方案",
+                List.of("复核证据关联关系与责任归属", "核对待处理事项并形成处置建议"),
+                "本地模拟模型依据固定证据与决策包提示词生成，管理员确认前不写入正式包。");
+        return result(packetInput(context), packetJson(value), value, started);
     }
 
     private static <T> BusinessModelResult<T> result(ObjectNode input, ObjectNode output, T value, long started) {
@@ -171,6 +185,28 @@ public final class StubBusinessModelClient implements BusinessModelClient {
         node.put("riskLevel", value.riskLevel());
         node.put("riskExplanation", value.riskExplanation());
         node.putPOJO("recommendations", value.recommendations());
+        return node;
+    }
+
+    private static ObjectNode packetInput(BusinessPacketAnalysisContext context) {
+        ObjectNode node = JsonNodeFactory.instance.objectNode();
+        node.put("taskId", context.taskId().toString());
+        node.put("title", context.title());
+        node.put("question", context.question());
+        if (context.decisionPacketPrompt() != null && !context.decisionPacketPrompt().isBlank()) {
+            node.put("decisionPacketPrompt", context.decisionPacketPrompt());
+        }
+        node.putPOJO("evidence", context.evidence());
+        return node;
+    }
+
+    private static ObjectNode packetJson(BusinessPacketAnalysisSuggestion value) {
+        ObjectNode node = JsonNodeFactory.instance.objectNode();
+        node.put("subjectKey", value.subjectKey());
+        node.put("conclusion", value.conclusion());
+        node.put("recommendedGoal", value.recommendedGoal());
+        node.putPOJO("alternativeGoals", value.alternativeGoals());
+        node.put("reason", value.reason());
         return node;
     }
 }

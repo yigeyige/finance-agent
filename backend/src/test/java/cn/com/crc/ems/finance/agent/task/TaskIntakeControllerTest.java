@@ -4,12 +4,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import cn.com.crc.ems.finance.agent.businesspacket.application.BusinessDecisionPacketService;
+import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessDecisionPacket;
 import cn.com.crc.ems.finance.agent.task.application.TaskIntakeApplicationService;
 import cn.com.crc.ems.finance.agent.task.application.ScopeConfirmationResult;
 import cn.com.crc.ems.finance.agent.task.domain.InvestigationTask;
@@ -108,9 +112,34 @@ class TaskIntakeControllerTest {
                 .andExpect(jsonPath("$.scopeRevisionNo").value(1));
     }
 
+    @Test
+    void rejectsTaskUpdateWhenDecisionPacketExists() throws Exception {
+        TaskIntakeApplicationService service = mock(TaskIntakeApplicationService.class);
+        BusinessDecisionPacketService decisionPacketService = mock(BusinessDecisionPacketService.class);
+        UUID taskId = UUID.randomUUID();
+        when(decisionPacketService.latest(taskId)).thenReturn(Optional.of(packet(taskId)));
+
+        mvc(service, decisionPacketService).perform(put("/api/v1/tasks/{taskId}", taskId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Actor-User-Id", ACTOR)
+                .content("{\"originalQuestion\":\"新的业务说明\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
     private static MockMvc mvc(TaskIntakeApplicationService service) {
-        return MockMvcBuilders.standaloneSetup(new TaskIntakeController(service,
+        BusinessDecisionPacketService decisionPacketService = mock(BusinessDecisionPacketService.class);
+        when(decisionPacketService.latest(any())).thenReturn(Optional.empty());
+        return mvc(service, decisionPacketService);
+    }
+
+    private static MockMvc mvc(TaskIntakeApplicationService service,
+            BusinessDecisionPacketService decisionPacketService) {
+        return MockMvcBuilders.standaloneSetup(new TaskIntakeController(service, decisionPacketService,
                 Clock.fixed(NOW, ZoneOffset.UTC))).setControllerAdvice(new TaskIntakeExceptionHandler()).build();
+    }
+
+    private static BusinessDecisionPacket packet(UUID taskId) {
+        return new BusinessDecisionPacket(UUID.randomUUID(), taskId, 1, "{}", "a".repeat(64), NOW);
     }
 
     private static InvestigationTask task() {

@@ -45,4 +45,14 @@ public interface BusinessModelClient {
 
     /** 根据脱敏证据摘要生成业务分析建议。 */
     BusinessModelResult<EvidenceAnalysisSuggestion> analyzeEvidence(EvidenceAnalysisContext context);
+
+    /**
+     *
+     * @description: 根据固定任务信息、已有证据和可选决策包提示词生成决策包分析，不启用查询工具。
+     *
+     * @param: context 已固定的决策包分析输入
+     * @return: 含处理对象、结论与建议的模型分析结果
+     * @author: yigeyige99
+     */
+    BusinessModelResult<BusinessPacketAnalysisSuggestion> analyzeDecisionPacket(BusinessPacketAnalysisContext context);
 }

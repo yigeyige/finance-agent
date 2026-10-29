@@ -24,6 +24,8 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessModelCallMetadat
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelException;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelResult;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessPacketAnalysisContext;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessPacketAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
@@ -186,6 +188,14 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         return invoke(instruction, input, EvidenceAnalysisSuggestion::fromJson);
     }
 
+    @Override
+    public BusinessModelResult<BusinessPacketAnalysisSuggestion> analyzeDecisionPacket(
+            BusinessPacketAnalysisContext context) {
+        ObjectNode input = packetInput(context);
+        String instruction = instruction("ANALYZE_DECISION_PACKET", input);
+        return invoke(instruction, input, BusinessPacketAnalysisSuggestion::fromJson);
+    }
+
     private <T> BusinessModelResult<T> invoke(String instruction, ObjectNode input,
             java.util.function.Function<JsonNode, T> parser) {
         long started = System.nanoTime();
@@ -299,6 +309,17 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         node.put("undeterminedCount", context.undeterminedCount());
         node.putPOJO("coverageStates", context.coverageStates());
         node.putPOJO("findingStatements", context.findingStatements());
+        return node;
+    }
+
+    private static ObjectNode packetInput(BusinessPacketAnalysisContext context) {
+        ObjectNode node = JsonNodeFactory.instance.objectNode();
+        node.put("title", context.title());
+        node.put("question", context.question());
+        if (context.decisionPacketPrompt() != null && !context.decisionPacketPrompt().isBlank()) {
+            node.put("decisionPacketPrompt", context.decisionPacketPrompt());
+        }
+        node.set("evidence", evidenceJson(context.evidence()));
         return node;
     }
 }

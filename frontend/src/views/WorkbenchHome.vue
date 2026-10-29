@@ -49,7 +49,7 @@
               <section class="handling-form-panel">
                 <div class="handling-form-panel__heading">
                   <h4>任务信息</h4>
-                  <el-button size="small" type="primary" :loading="saving" :disabled="modelLoading || chatLoading || packetLoading" @click="saveTaskInfo">保存任务</el-button>
+                  <el-button size="small" type="primary" :loading="saving" :disabled="modelLoading || chatLoading || packetLoading || Boolean(decisionPacket)" @click="saveTaskInfo">保存任务</el-button>
                 </div>
                 <p v-if="modelLoading" class="model-progress">
                   <i class="el-icon-loading"></i>
@@ -57,18 +57,18 @@
                 </p>
                 <el-form v-else :model="form" label-position="top" class="task-form">
                   <el-form-item label="处理对象">
-                    <el-input v-model.trim="form.subjectKey" :disabled="saving || chatLoading || packetLoading" />
+                    <el-input v-model.trim="form.subjectKey" :disabled="saving || chatLoading || packetLoading || Boolean(decisionPacket)" />
                   </el-form-item>
                   <el-form-item label="业务说明">
-                    <el-input v-model.trim="form.question" type="textarea" :rows="3" :disabled="saving || chatLoading || packetLoading" />
+                    <el-input v-model.trim="form.question" type="textarea" :rows="3" :disabled="saving || chatLoading || packetLoading || Boolean(decisionPacket)" />
                   </el-form-item>
                   <el-form-item label="业务场景 Skill">
-                    <el-select v-model="selectedSkillId" clearable filterable :loading="sceneSkillsLoading" :disabled="saving || chatLoading || packetLoading">
+                    <el-select v-model="selectedSkillId" clearable filterable :loading="sceneSkillsLoading" :disabled="saving || chatLoading || packetLoading || Boolean(decisionPacket)">
                       <el-option v-for="skill in sceneSkills" :key="skill.skillId" :label="skill.name" :value="skill.skillId" />
                     </el-select>
                   </el-form-item>
                   <el-form-item label="数据库实例">
-                    <el-select v-model="selectedDatabaseConfigId" clearable :disabled="saving || chatLoading || packetLoading">
+                    <el-select v-model="selectedDatabaseConfigId" clearable :disabled="saving || chatLoading || packetLoading || Boolean(decisionPacket)">
                       <el-option v-for="instance in databaseInstances" :key="instance.configId" :label="instance.name" :value="instance.configId" />
                     </el-select>
                   </el-form-item>
@@ -100,16 +100,53 @@
           </template>
           <!-- 第三步：只展示已成功生成的决策包，可返回第二步继续协作。 -->
           <section v-else-if="decisionPacket" class="guidance-result-panel packet-result-panel">
-            <div class="card-heading"><h3>业务决策包</h3><el-button @click="activeStep = 1">返回模型协作</el-button></div>
-            <el-tag type="info">修订 {{ decisionPacket.revision }}</el-tag>
-            <p v-if="decisionPacket.message" class="evidence-meta">{{ decisionPacket.message }}</p>
-            <p class="conclusion-text">{{ decisionPacket.content.conclusion || '暂无结论' }}</p>
-            <p class="evidence-meta">推荐方案：{{ decisionPacket.content.recommendedGoal || '暂无' }}</p>
-            <div v-for="(item, ei) in decisionPacket.content.evidence" :key="ei" class="evidence-item">
-              <p class="evidence-meta">{{ item.schema }}.{{ item.table }} · {{ item.purpose }}</p>
-              <el-table v-workbench-table="'WorkbenchHome-2:' + item.schema + '.' + item.table" :data="evidenceRowObjects(item)" border size="mini">
-                <el-table-column show-overflow-tooltip min-width="160" v-for="(col, ci) in item.columns" :key="ci" :prop="String(ci)" :label="col" />
-              </el-table>
+            <div class="card-heading">
+              <h3>业务决策包</h3>
+              <div class="collaboration-actions">
+                <el-tag type="info" size="small">修订 {{ decisionPacket.revision }}</el-tag>
+                <el-button @click="activeStep = 1">返回模型协作</el-button>
+              </div>
+            </div>
+
+            <!-- 四个独立卡片紧凑排列：数据对象、操作、结论、证据。 -->
+            <div class="packet-grid">
+              <el-card shadow="never" class="packet-card packet-card--object">
+                <div slot="header" class="packet-card__header">数据对象</div>
+                <div class="packet-object">
+                  <span class="packet-object__item"><span class="packet-object__label">处理对象</span><span class="packet-object__value">{{ decisionPacket.content.subjectKey || '—' }}</span></span>
+                  <span class="packet-object__item"><span class="packet-object__label">数据库实例</span><span class="packet-object__value">{{ decisionPacket.content.databaseInstanceName || '—' }}</span></span>
+                </div>
+              </el-card>
+
+              <el-card shadow="never" class="packet-card packet-card--action">
+                <div slot="header" class="packet-card__header">操作</div>
+                <div class="packet-recommend__goal">
+                  <el-tag type="primary" effect="dark" size="small">推荐</el-tag>
+                  <p>{{ decisionPacket.content.recommendedGoal || '暂无' }}</p>
+                </div>
+                <p v-if="decisionPacket.content.reason" class="packet-recommend__reason">推荐理由：{{ decisionPacket.content.reason }}</p>
+                <ul v-if="decisionPacket.content.alternativeGoals.length" class="packet-alternatives">
+                  <li v-for="(goal, gi) in decisionPacket.content.alternativeGoals" :key="gi">
+                    <span class="packet-alternatives__index">{{ gi + 1 }}</span>
+                    <span>{{ goal }}</span>
+                  </li>
+                </ul>
+              </el-card>
+
+              <el-card shadow="never" class="packet-card packet-card--conclusion">
+                <div slot="header" class="packet-card__header">结论</div>
+                <p class="packet-conclusion">{{ conclusionText }}</p>
+              </el-card>
+
+              <el-card v-if="decisionPacket.content.evidence.length" shadow="never" class="packet-card packet-card--evidence">
+                <div slot="header" class="packet-card__header">证据</div>
+                <div v-for="(item, ei) in decisionPacket.content.evidence" :key="ei" class="evidence-item">
+                  <p class="evidence-meta">{{ item.schema }}.{{ item.table }} · {{ item.purpose }}</p>
+                  <el-table v-workbench-table="'WorkbenchHome-2:' + item.schema + '.' + item.table" :data="evidenceRowObjects(item)" border size="mini">
+                    <el-table-column show-overflow-tooltip min-width="160" v-for="(col, ci) in item.columns" :key="ci" :prop="String(ci)" :label="col" />
+                  </el-table>
+                </div>
+              </el-card>
             </div>
           </section>
         </el-card>
@@ -140,7 +177,7 @@ const ATTACHMENT_EXTENSIONS = ['txt', 'md', 'csv', 'json', 'xls', 'xlsx']
 const createInitialForm = (): Form => ({ title: '', question: '', subjectKey: '' })
 /** 仅接受后端可受控分析的文本附件，避免浏览器选择无效格式。 */
 const isSupportedAttachment = (file: AttachmentFile): boolean => { const extension = file.name.split('.').pop()?.toLowerCase(); return Boolean(file.raw) && file.size !== 0 && file.size !== undefined && file.size <= 1024 * 1024 && Boolean(extension && ATTACHMENT_EXTENSIONS.includes(extension)) }
-export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }, data() { return { runtimeModel: null as ModelRuntimeSummary | null, runtimeModelLoading: false, lastModelMetadata: null as ModelCallMetadata | null, activeStep: 0, saving: false, modelLoading: false, chatLoading: false, task: null as TaskResponse | null, guidance: null as BusinessGuidanceResponse | null, chatMessage: '', chatMessages: [] as Chat[], attachmentFiles: [] as AttachmentFile[], sceneSkills: [] as BusinessSceneSkill[], selectedSkillId: '', sceneSkillsLoading: false, databaseInstances: [] as EmsDatabaseInstance[], selectedDatabaseConfigId: '', progressStage: '', progressTimer: null as ReturnType<typeof setInterval> | null, errorMessage: '', accumulatedEvidence: [] as BusinessEvidenceAccumResponse[], decisionPacket: null as BusinessDecisionPacketResponse | null, packetLoading: false, form: createInitialForm() } }, created() { void this.loadSceneSkills(); void this.loadDatabaseInstances(); void this.loadRuntimeModel() }, /** 返回缓存页时刷新当前启用的模型摘要。 */ activated() { void this.loadRuntimeModel() }, /** 组件销毁前清理进度轮询定时器，避免离开页面产生僵尸请求。 */ beforeDestroy() { this.stopProgressPolling() }, watch: { /** 仅响应显式新建入口的草稿标识，普通导航继续保留当前向导状态。 */ '$route.query.draft'(): void { this.resetDraft() } }, methods: {
+export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }, data() { return { runtimeModel: null as ModelRuntimeSummary | null, runtimeModelLoading: false, lastModelMetadata: null as ModelCallMetadata | null, activeStep: 0, saving: false, modelLoading: false, chatLoading: false, task: null as TaskResponse | null, guidance: null as BusinessGuidanceResponse | null, chatMessage: '', chatMessages: [] as Chat[], attachmentFiles: [] as AttachmentFile[], sceneSkills: [] as BusinessSceneSkill[], selectedSkillId: '', sceneSkillsLoading: false, databaseInstances: [] as EmsDatabaseInstance[], selectedDatabaseConfigId: '', progressStage: '', progressTimer: null as ReturnType<typeof setInterval> | null, errorMessage: '', accumulatedEvidence: [] as BusinessEvidenceAccumResponse[], decisionPacket: null as BusinessDecisionPacketResponse | null, packetLoading: false, form: createInitialForm() } }, computed: { /** 将调查结论按分号/句号换行，便于管理员逐条阅读。 */ conclusionText(): string { const text = this.decisionPacket && this.decisionPacket.content ? this.decisionPacket.content.conclusion : ''; return text.replace(/([；;。])\s*/g, '$1\n').trim() } }, created() { void this.loadSceneSkills(); void this.loadDatabaseInstances(); void this.loadRuntimeModel() }, /** 返回缓存页时刷新当前启用的模型摘要。 */ activated() { void this.loadRuntimeModel() }, /** 组件销毁前清理进度轮询定时器，避免离开页面产生僵尸请求。 */ beforeDestroy() { this.stopProgressPolling() }, watch: { /** 仅响应显式新建入口的草稿标识，普通导航继续保留当前向导状态。 */ '$route.query.draft'(): void { this.resetDraft() } }, methods: {
   /** 在无进行中写请求时清空本地草稿和待分析附件，不删除已创建的后端任务。 */ resetDraft(): void { if (this.saving || this.modelLoading || this.chatLoading || this.packetLoading) return; this.activeStep = 0; this.task = null; this.guidance = null; this.chatMessage = ''; this.chatMessages = []; this.attachmentFiles = []; this.selectedSkillId = ''; this.progressStage = ''; this.stopProgressPolling(); this.errorMessage = ''; this.accumulatedEvidence = []; this.decisionPacket = null; this.lastModelMetadata = null; this.form = createInitialForm() },
   /** 读取安全运行摘要，失败不阻断业务表单，也不访问管理员配置列表。 */ async loadRuntimeModel(): Promise<void> { if (this.runtimeModelLoading) return; this.runtimeModelLoading = true; try { this.runtimeModel = await getModelRuntimeSummary() } catch { this.runtimeModel = null } finally { this.runtimeModelLoading = false } },
   /** 加载业务场景 Skill 列表供第一步选择，失败时保留空列表并提示。 */ async loadSceneSkills(): Promise<void> { this.sceneSkillsLoading = true; this.errorMessage = ''; try { this.sceneSkills = await listBusinessSceneSkills() } catch (error: unknown) { this.sceneSkills = []; this.errorMessage = error instanceof Error ? error.message : '业务场景列表暂时无法读取' } finally { this.sceneSkillsLoading = false } },
@@ -183,4 +220,19 @@ export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }
 .guidance-result-panel .conclusion-text { margin: 8px 0 16px; color: #4b5563; line-height: 1.6; }
 .guidance-result-panel .evidence-item { margin-bottom: 12px; }
 .guidance-result-panel .evidence-meta { margin: 8px 0 4px; color: #817b73; font-size: 13px; }
+/* 决策包卡片化展示：四个独立卡片纵向紧凑排列，每个横向平铺。 */
+.packet-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.packet-card { margin-bottom: 0; border: 1px solid #e7dfd4; border-radius: 10px; }
+.packet-object { display: flex; flex-wrap: wrap; gap: 24px; }
+.packet-object__item { display: inline-flex; align-items: center; gap: 8px; }
+.packet-object__label { color: #817b73; font-size: 13px; }
+.packet-object__value { color: #303133; font-weight: 600; }
+.packet-card__header { font-size: 15px; color: #4a4640; font-weight: 600; }
+.packet-conclusion { margin: 0; padding: 12px 14px; border-left: 3px solid #dd7a13; background: #fbf6ee; color: #4b5563; line-height: 1.7; white-space: pre-line; border-radius: 0 8px 8px 0; }
+.packet-recommend__goal { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.packet-recommend__goal p { margin: 0; color: #303133; font-weight: 600; line-height: 1.6; }
+.packet-recommend__reason { margin: 0 0 8px; color: #817b73; font-size: 13px; line-height: 1.6; }
+.packet-alternatives { margin: 0; padding: 0; list-style: none; }
+.packet-alternatives li { display: flex; gap: 8px; padding: 6px 0; color: #4b5563; line-height: 1.6; border-top: 1px dashed #ede6db; }
+.packet-alternatives__index { flex: none; width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 50%; background: #f3ede3; color: #dd7a13; font-size: 12px; }
 </style>
