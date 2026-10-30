@@ -24,7 +24,7 @@ public record BusinessPacketAnalysisContext(UUID taskId, String title, String qu
             throw new IllegalStateException("尚无可用证据，请先完成调查证据采集");
         }
         evidence = List.copyOf(evidence);
-        if (decisionPacketPrompt != null && (decisionPacketPrompt.isBlank() || decisionPacketPrompt.length() > 8000)) {
+        if (decisionPacketPrompt != null && decisionPacketPrompt.length() > 8000) {
             throw new IllegalArgumentException("decisionPacketPrompt is invalid");
         }
     }

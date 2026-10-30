@@ -20,7 +20,7 @@ public record BusinessSceneSkill(UUID skillId, String name, String investigation
         }
         validateText(name, 100, "name");
         validateText(investigationPrompt, 2000, "investigationPrompt");
-        validateText(decisionPacketPrompt, 2000, "decisionPacketPrompt");
+        validateOptionalText(decisionPacketPrompt, 2000, "decisionPacketPrompt");
     }
 
     /**
@@ -62,6 +62,13 @@ public record BusinessSceneSkill(UUID skillId, String name, String investigation
 
     private static void validateText(String value, int maxLength, String field) {
         if (value == null || value.isBlank() || value.length() > maxLength) {
+            throw new IllegalArgumentException(field + " is invalid");
+        }
+    }
+
+    /** 校验可选文本：允许为空，非空时仅限制长度。 */
+    private static void validateOptionalText(String value, int maxLength, String field) {
+        if (value != null && value.length() > maxLength) {
             throw new IllegalArgumentException(field + " is invalid");
         }
     }

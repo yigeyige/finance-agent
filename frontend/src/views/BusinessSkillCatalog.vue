@@ -44,9 +44,9 @@
           <el-input v-model.trim="form.investigationPrompt" type="textarea" :rows="8" maxlength="2000" show-word-limit
             placeholder="说明该场景调查时需要的业务背景、关键表字段语义与查询注意事项" />
         </el-form-item>
-        <el-form-item label="决策包提示词" required>
+        <el-form-item label="决策包提示词">
           <el-input v-model.trim="form.decisionPacketPrompt" type="textarea" :rows="8" maxlength="2000" show-word-limit
-            placeholder="说明生成业务决策包时的结论、责任与后续处理要求" />
+            placeholder="可选，说明生成业务决策包时的结论、责任与后续处理要求" />
         </el-form-item>
       </el-form>
       <span slot="footer" class="workbench-dialog__actions">
@@ -129,8 +129,8 @@ export default Vue.extend({
       this.dialogVisible = true
     },
     async save() {
-      if (!this.form.name || !this.form.investigationPrompt || !this.form.decisionPacketPrompt) {
-        this.notify('请补齐场景名称、调查提示词和决策包提示词', 'warning')
+      if (!this.form.name || !this.form.investigationPrompt) {
+        this.notify('请补齐场景名称和调查提示词', 'warning')
         return
       }
       this.saving = true

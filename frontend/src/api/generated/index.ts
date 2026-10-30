@@ -167,7 +167,7 @@ const BUSINESS_DRAFT_FIELDS = ['subjectKey', 'objectKey', 'recommendedGoal', 'al
 /** 校验业务场景 Skill 响应。 */
 export function parseBusinessSceneSkill(value: unknown): BusinessSceneSkill {
   const record = assertObjectFields(value, BUSINESS_SCENE_SKILL_FIELDS, '业务场景 Skill 响应')
-  return { skillId: requireString(record.skillId, 'Skill 标识'), name: requireString(record.name, 'Skill 名称'), investigationPrompt: requireString(record.investigationPrompt, '调查提示词'), decisionPacketPrompt: requireString(record.decisionPacketPrompt, '决策包提示词'), updatedAt: requireString(record.updatedAt, '更新时间') }
+  return { skillId: requireString(record.skillId, 'Skill 标识'), name: requireString(record.name, 'Skill 名称'), investigationPrompt: requireString(record.investigationPrompt, '调查提示词'), decisionPacketPrompt: typeof record.decisionPacketPrompt === 'string' ? record.decisionPacketPrompt : '', updatedAt: requireString(record.updatedAt, '更新时间') }
 }
 
 /** 校验业务场景 Skill 列表响应。 */
