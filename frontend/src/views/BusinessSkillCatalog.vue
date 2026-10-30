@@ -38,16 +38,37 @@
       :close-on-click-modal="false" @closed="resetForm">
       <el-form :model="form" label-position="top" class="workbench-dialog-form">
         <el-form-item label="场景名称" required>
-          <el-input v-model.trim="form.name" maxlength="100" show-word-limit placeholder="例如：人员变更处理" />
+          <el-input v-model.trim="form.name" :maxlength="100" show-word-limit placeholder="例如：人员变更处理" />
         </el-form-item>
         <el-form-item label="调查提示词" required>
-          <el-input v-model.trim="form.investigationPrompt" type="textarea" :rows="8" maxlength="2000" show-word-limit
+          <el-input v-model.trim="form.investigationPrompt" type="textarea" :rows="8" :maxlength="2000" show-word-limit
             placeholder="说明该场景调查时需要的业务背景、关键表字段语义与查询注意事项" />
         </el-form-item>
         <el-form-item label="决策包提示词">
-          <el-input v-model.trim="form.decisionPacketPrompt" type="textarea" :rows="8" maxlength="2000" show-word-limit
+          <el-input v-model.trim="form.decisionPacketPrompt" type="textarea" :rows="8" :maxlength="2000" show-word-limit
             placeholder="可选，说明生成业务决策包时的结论、责任与后续处理要求" />
         </el-form-item>
+        <el-form-item v-if="editingId" label="场景附件">
+          <div class="skill-attachments">
+            <div v-for="attachment in attachments" :key="attachment.attachmentId" class="skill-attachment-item">
+              <div class="skill-attachment-item__meta">
+                <span class="skill-attachment-item__name">{{ attachment.fileName }}</span>
+                <span class="skill-attachment-item__summary">{{ attachment.summary }}</span>
+              </div>
+              <el-button type="text" class="skill-delete-action" @click="removeAttachment(attachment)">删除</el-button>
+            </div>
+            <div class="skill-attachment-upload">
+              <el-upload action="#" :auto-upload="false" :show-file-list="false" accept=".txt,.md,.csv,.json,.xml,.xls,.xlsx"
+                :on-change="selectAttachmentFile">
+                <el-button type="primary" plain>选择文件</el-button>
+              </el-upload>
+              <el-input v-model.trim="pendingSummary" :maxlength="500" placeholder="附件摘要（必填）" />
+              <el-button type="primary" :disabled="!pendingFile || !pendingSummary || attachmentUploading" :loading="attachmentUploading"
+                @click="uploadAttachment">上传</el-button>
+            </div>
+          </div>
+        </el-form-item>
+        <p v-else class="skill-attachment-hint">保存业务场景后可上传知识附件（json/xml/xlsx 等，单个不超过 100KB）</p>
       </el-form>
       <span slot="footer" class="workbench-dialog__actions">
         <el-button :disabled="saving" @click="dialogVisible = false">取消</el-button>
@@ -63,10 +84,14 @@ import Vue from 'vue'
 import {
   BusinessSceneSkill,
   BusinessSceneSkillPayload,
+  SceneSkillAttachment,
   createBusinessSceneSkill,
   deleteBusinessSceneSkill,
+  deleteSceneSkillAttachment,
   listBusinessSceneSkills,
+  listSceneSkillAttachments,
   updateBusinessSceneSkill,
+  uploadSceneSkillAttachment,
 } from '../services/business-skill-api'
 
 interface SkillForm {
@@ -93,6 +118,10 @@ export default Vue.extend({
       dialogVisible: false,
       editingId: '' as string | '',
       form: emptyForm(),
+      attachments: [] as SceneSkillAttachment[],
+      pendingFile: null as File | null,
+      pendingSummary: '',
+      attachmentUploading: false,
     }
   },
   created() {
@@ -126,7 +155,11 @@ export default Vue.extend({
         investigationPrompt: skill.investigationPrompt,
         decisionPacketPrompt: skill.decisionPacketPrompt,
       }
+      this.attachments = []
+      this.pendingFile = null
+      this.pendingSummary = ''
       this.dialogVisible = true
+      void this.loadAttachments(skill.skillId)
     },
     async save() {
       if (!this.form.name || !this.form.investigationPrompt) {
@@ -168,6 +201,49 @@ export default Vue.extend({
     resetForm() {
       this.editingId = ''
       this.form = emptyForm()
+      this.attachments = []
+      this.pendingFile = null
+      this.pendingSummary = ''
+    },
+    /** 读取当前场景的附件清单。 */
+    async loadAttachments(skillId: string) {
+      try {
+        this.attachments = await listSceneSkillAttachments(skillId)
+      } catch (error: unknown) {
+        this.attachments = []
+        this.notify(error instanceof Error ? error.message : '附件清单读取失败', 'error')
+      }
+    },
+    /** 记录待上传文件。 */
+    selectAttachmentFile(file: { raw?: File }) {
+      this.pendingFile = file.raw || null
+    },
+    /** 上传当前选中的附件与摘要。 */
+    async uploadAttachment() {
+      if (!this.editingId || !this.pendingFile || !this.pendingSummary.trim()) return
+      this.attachmentUploading = true
+      try {
+        await uploadSceneSkillAttachment(this.editingId, this.pendingFile, this.pendingSummary.trim())
+        this.pendingFile = null
+        this.pendingSummary = ''
+        await this.loadAttachments(this.editingId)
+        this.notify('附件已上传', 'success')
+      } catch (error: unknown) {
+        this.notify(error instanceof Error ? error.message : '附件上传失败', 'error')
+      } finally {
+        this.attachmentUploading = false
+      }
+    },
+    /** 删除当前场景附件。 */
+    async removeAttachment(attachment: SceneSkillAttachment) {
+      if (!this.editingId) return
+      try {
+        await deleteSceneSkillAttachment(this.editingId, attachment.attachmentId)
+        await this.loadAttachments(this.editingId)
+        this.notify('附件已删除', 'success')
+      } catch (error: unknown) {
+        this.notify(error instanceof Error ? error.message : '附件删除失败', 'error')
+      }
     },
     formatTime(value: string) {
       const date = new Date(value)
@@ -184,4 +260,12 @@ export default Vue.extend({
   border: 0;
   border-radius: 0;
 }
+.skill-attachments { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.skill-attachment-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; border: 1px solid #e7dfd4; border-radius: 8px; background: #fffdf9; }
+.skill-attachment-item__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.skill-attachment-item__name { font-weight: 600; color: #303133; }
+.skill-attachment-item__summary { color: #817b73; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.skill-attachment-upload { display: flex; gap: 8px; align-items: center; }
+.skill-attachment-upload .el-input { flex: 1; }
+.skill-attachment-hint { margin: 0; color: #909399; font-size: 13px; }
 </style>

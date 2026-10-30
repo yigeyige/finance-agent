@@ -52,6 +52,7 @@ public final class StubBusinessModelClient implements BusinessModelClient {
         ObjectNode output = JsonNodeFactory.instance.objectNode();
         output.put("reply", reply);
         output.set("draft", draft.toJson());
+        output.putPOJO("requestedAttachments", List.of());
         return result(contextJson(context), output, value, started);
     }
 
@@ -155,6 +156,12 @@ public final class StubBusinessModelClient implements BusinessModelClient {
             });
         }
         if (!context.databaseEvidence().isEmpty()) node.putPOJO("databaseEvidence", context.databaseEvidence());
+        if (!context.sceneAttachmentCatalog().isEmpty()) {
+            node.putPOJO("sceneAttachmentCatalog", context.sceneAttachmentCatalog());
+        }
+        if (!context.sceneAttachmentBodies().isEmpty()) {
+            node.putPOJO("sceneAttachmentBodies", context.sceneAttachmentBodies());
+        }
         return node;
     }
 

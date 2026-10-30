@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,12 +13,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import cn.com.crc.ems.finance.agent.iam.application.IdentityContext;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 import cn.com.crc.ems.finance.agent.scenario.application.BusinessSceneSkillService;
+import cn.com.crc.ems.finance.agent.scenario.application.SceneSkillAttachmentService;
 import jakarta.validation.Valid;
 
 /**
@@ -33,9 +37,12 @@ import jakarta.validation.Valid;
 public final class BusinessSceneSkillController {
 
     private final BusinessSceneSkillService skillService;
+    private final SceneSkillAttachmentService attachmentService;
 
-    public BusinessSceneSkillController(BusinessSceneSkillService skillService) {
+    public BusinessSceneSkillController(BusinessSceneSkillService skillService,
+            SceneSkillAttachmentService attachmentService) {
         this.skillService = skillService;
+        this.attachmentService = attachmentService;
     }
 
     /** 查询当前有效的业务场景 Skill。 */
@@ -64,6 +71,28 @@ public final class BusinessSceneSkillController {
     @DeleteMapping("/{skillId}")
     public ResponseEntity<Void> delete(@PathVariable UUID skillId) {
         skillService.delete(skillId, requireOperator());
+        return ResponseEntity.noContent().build();
+    }
+
+    /** 查询场景附件清单。 */
+    @GetMapping("/{skillId}/attachments")
+    public List<SceneSkillAttachmentResponse> listAttachments(@PathVariable UUID skillId) {
+        requireOperator();
+        return attachmentService.list(skillId).stream().map(SceneSkillAttachmentResponse::from).toList();
+    }
+
+    /** 上传场景附件，需同时提交文件名与摘要。 */
+    @PostMapping(value = "/{skillId}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<SceneSkillAttachmentResponse> uploadAttachment(@PathVariable UUID skillId,
+            @RequestParam("file") MultipartFile file, @RequestParam("summary") String summary) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(SceneSkillAttachmentResponse.from(
+                attachmentService.upload(skillId, file, summary, requireOperator())));
+    }
+
+    /** 删除场景附件。 */
+    @DeleteMapping("/{skillId}/attachments/{attachmentId}")
+    public ResponseEntity<Void> deleteAttachment(@PathVariable UUID skillId, @PathVariable UUID attachmentId) {
+        attachmentService.delete(skillId, attachmentId);
         return ResponseEntity.noContent().build();
     }
 

@@ -74,6 +74,7 @@ export interface TaskDiagnosticResponse { taskId: string; taskStatus: TaskStatus
 /** 业务场景 Skill 的契约枚举与读写模型。 */
 export interface BusinessSceneSkill { skillId: string; name: string; investigationPrompt: string; decisionPacketPrompt: string; updatedAt: string }
 export interface BusinessSceneSkillPayload { name: string; investigationPrompt: string; decisionPacketPrompt: string }
+export interface SceneSkillAttachment { attachmentId: string; skillId: string; fileName: string; contentType: string; summary: string; createdAt: string }
 
 /** EMS 结构快照形成的只读业务域目录，不包含实时业务数据。 */
 export interface EmsBusinessDomainKnowledge {
@@ -173,6 +174,19 @@ export function parseBusinessSceneSkill(value: unknown): BusinessSceneSkill {
 /** 校验业务场景 Skill 列表响应。 */
 export function parseBusinessSceneSkills(value: unknown): BusinessSceneSkill[] {
   return requireArray(value, '业务场景 Skill 列表').map(parseBusinessSceneSkill)
+}
+
+const SCENE_SKILL_ATTACHMENT_FIELDS = ['attachmentId', 'skillId', 'fileName', 'contentType', 'summary', 'createdAt']
+
+/** 校验业务场景附件。 */
+export function parseSceneSkillAttachment(value: unknown): SceneSkillAttachment {
+  const record = assertObjectFields(value, SCENE_SKILL_ATTACHMENT_FIELDS, '业务场景附件')
+  return { attachmentId: requireString(record.attachmentId, '附件标识'), skillId: requireString(record.skillId, 'Skill 标识'), fileName: requireString(record.fileName, '附件文件名'), contentType: requireString(record.contentType, '附件类型'), summary: requireString(record.summary, '附件摘要'), createdAt: requireString(record.createdAt, '上传时间') }
+}
+
+/** 校验业务场景附件列表响应。 */
+export function parseSceneSkillAttachments(value: unknown): SceneSkillAttachment[] {
+  return requireArray(value, '业务场景附件列表').map(parseSceneSkillAttachment)
 }
 
 /** 校验 EMS 业务域知识响应。 */

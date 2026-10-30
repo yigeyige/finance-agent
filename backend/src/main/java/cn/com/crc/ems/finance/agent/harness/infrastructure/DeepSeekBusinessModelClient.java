@@ -283,6 +283,22 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
                 projected.put("boundary", "只读查询的待核验辅助信息，不代表已确认事实或授权执行操作");
             });
         }
+        if (!context.sceneAttachmentCatalog().isEmpty()) {
+            var catalog = node.putArray("sceneAttachmentCatalog");
+            context.sceneAttachmentCatalog().forEach(item -> {
+                ObjectNode projected = catalog.addObject();
+                projected.put("fileName", item.fileName());
+                projected.put("summary", item.summary());
+            });
+        }
+        if (!context.sceneAttachmentBodies().isEmpty()) {
+            var bodies = node.putArray("sceneAttachmentBodies");
+            context.sceneAttachmentBodies().forEach(item -> {
+                ObjectNode projected = bodies.addObject();
+                projected.put("fileName", item.fileName());
+                projected.put("content", item.content());
+            });
+        }
         return node;
     }
 

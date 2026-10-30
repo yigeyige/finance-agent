@@ -10,7 +10,7 @@ source: development-workplan
 
 # 财务共享智能运维 Agent 开发顺序任务索引
 
-> 索引共收录 140 份独立 task：P0 120 项、P1 9 项、P2 11 项。本索引依据任务卡“前置条件”进行拓扑排序；同一依赖层级按照 BOOT、DATA、RUN、TOOL、HAR、UI、QA、P1、P2 排列。
+> 索引共收录 141 份独立 task：P0 121 项、P1 9 项、P2 11 项。本索引依据任务卡“前置条件”进行拓扑排序；同一依赖层级按照 BOOT、DATA、RUN、TOOL、HAR、UI、QA、P1、P2 排列。
 
 ## 使用说明
 
@@ -165,6 +165,7 @@ source: development-workplan
 |  141 | P0 自定义需求 | [20261029-refine-three-step-workbench](../03.achieved/20261029-业务处理三步向导与聊天优化.md) | 业务处理三步向导与聊天优化 | [20261029-业务处理三步向导与聊天优化.md](../03.achieved/20261029-业务处理三步向导与聊天优化.md) | 已完成 | 无 |
 |  142 | P0 自定义需求 | [20261029-refine-chat-viewport-metadata](../03.achieved/20261029-聊天视口与模型信息优化.md) | 聊天视口与模型信息优化 | [20261029-聊天视口与模型信息优化.md](../03.achieved/20261029-聊天视口与模型信息优化.md) | 已完成 | `20261029-refine-three-step-workbench` |
 |  143 | P0 自定义需求 | [20261029-task-detail-three-step-readonly](../03.achieved/20261029-任务详情三步只读展示.md) | 任务详情三步只读展示 | [20261029-任务详情三步只读展示.md](../03.achieved/20261029-任务详情三步只读展示.md) | 已完成 | 无 |
+|  144 | P0 自定义需求 | [20261030-scene-skill-attachments](../03.achieved/20261030-业务场景Skill附件.md) | 业务场景 Skill 附件 | [20261030-业务场景Skill附件.md](../03.achieved/20261030-业务场景Skill附件.md) | 已完成 | 无 |
 
 > 2026-10-28：用户删除原开发顺序 128—130 的三个旧提案，现由 137—139 三个新切片替代；历史顺序号不复用。三个新任务仅完成规划，实施项均未勾选，按依赖顺序推进。
 
@@ -180,7 +181,7 @@ source: development-workplan
 
 | 阶段 |  数量 |
 |---|----:|
-| P0 | 120 |
+| P0 | 121 |
 | P1 |   9 |
 | P2 |  11 |
-| 合计 | 140 |
+| 合计 | 141 |

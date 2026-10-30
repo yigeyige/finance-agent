@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  *
- * @Description: 业务处理初稿及会话修订送入模型前的受限上下文投影。
+ * @Description: 业务处理初稿及会话修订送入模型前的受限上下文投影，含场景附件目录与按需正文。
  *
  * @Version: 0.1.0
  * @Author: yigeyige99
@@ -13,22 +13,23 @@ import java.util.List;
  */
 public record BusinessGuidanceContext(UUID taskId, String title, String description, String feedback,
         BusinessHandlingDraft currentDraft, BusinessSceneSkillContext sceneSkill,
-        List<BusinessGuidanceAttachment> attachments, List<EmsDatabaseEvidence> databaseEvidence) {
+        List<BusinessGuidanceAttachment> attachments, List<EmsDatabaseEvidence> databaseEvidence,
+        List<SceneSkillAttachmentSummary> sceneAttachmentCatalog, List<SceneSkillAttachmentBody> sceneAttachmentBodies) {
 
     public BusinessGuidanceContext(UUID taskId, String title, String description, String feedback,
             BusinessHandlingDraft currentDraft) {
-        this(taskId, title, description, feedback, currentDraft, null, List.of(), List.of());
+        this(taskId, title, description, feedback, currentDraft, null, List.of(), List.of(), List.of(), List.of());
     }
 
     public BusinessGuidanceContext(UUID taskId, String title, String description, String feedback,
             BusinessHandlingDraft currentDraft, BusinessSceneSkillContext sceneSkill) {
-        this(taskId, title, description, feedback, currentDraft, sceneSkill, List.of(), List.of());
+        this(taskId, title, description, feedback, currentDraft, sceneSkill, List.of(), List.of(), List.of(), List.of());
     }
 
     public BusinessGuidanceContext(UUID taskId, String title, String description, String feedback,
             BusinessHandlingDraft currentDraft, BusinessSceneSkillContext sceneSkill,
             List<BusinessGuidanceAttachment> attachments) {
-        this(taskId, title, description, feedback, currentDraft, sceneSkill, attachments, List.of());
+        this(taskId, title, description, feedback, currentDraft, sceneSkill, attachments, List.of(), List.of(), List.of());
     }
 
     public BusinessGuidanceContext {
@@ -49,6 +50,10 @@ public record BusinessGuidanceContext(UUID taskId, String title, String descript
         }
         databaseEvidence = databaseEvidence == null ? List.of() : List.copyOf(databaseEvidence);
         if (databaseEvidence.size() > 10) throw new IllegalArgumentException("databaseEvidence is invalid");
+        sceneAttachmentCatalog = sceneAttachmentCatalog == null ? List.of() : List.copyOf(sceneAttachmentCatalog);
+        if (sceneAttachmentCatalog.size() > 5) throw new IllegalArgumentException("sceneAttachmentCatalog is invalid");
+        sceneAttachmentBodies = sceneAttachmentBodies == null ? List.of() : List.copyOf(sceneAttachmentBodies);
+        if (sceneAttachmentBodies.size() > 2) throw new IllegalArgumentException("sceneAttachmentBodies is invalid");
     }
 
     private static void requireText(String value, String field, int maxLength) {

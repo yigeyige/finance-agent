@@ -1,7 +1,7 @@
-import { deleteJson, getJson, postJson, putJson } from './http'
-import { BusinessSceneSkill, BusinessSceneSkillPayload, parseBusinessSceneSkill, parseBusinessSceneSkills } from '../api/generated'
+import { deleteJson, getJson, postForm, postJson, putJson } from './http'
+import { BusinessSceneSkill, BusinessSceneSkillPayload, SceneSkillAttachment, parseBusinessSceneSkill, parseBusinessSceneSkills, parseSceneSkillAttachment, parseSceneSkillAttachments } from '../api/generated'
 
-export type { BusinessSceneSkill, BusinessSceneSkillPayload }
+export type { BusinessSceneSkill, BusinessSceneSkillPayload, SceneSkillAttachment }
 
 /** 查询全部可维护的业务场景 Skill。 */
 export async function listBusinessSceneSkills(): Promise<BusinessSceneSkill[]> {
@@ -24,4 +24,22 @@ export function updateBusinessSceneSkill(
 /** 删除一个业务场景 Skill。 */
 export function deleteBusinessSceneSkill(skillId: string): Promise<void> {
   return deleteJson(`/v1/business-scene-skills/${skillId}`)
+}
+
+/** 查询场景附件清单。 */
+export async function listSceneSkillAttachments(skillId: string): Promise<SceneSkillAttachment[]> {
+  return parseSceneSkillAttachments(await getJson<unknown>(`/v1/business-scene-skills/${skillId}/attachments`))
+}
+
+/** 上传场景附件（文件 + 摘要）。 */
+export async function uploadSceneSkillAttachment(skillId: string, file: File, summary: string): Promise<SceneSkillAttachment> {
+  const formData = new FormData()
+  formData.append('file', file, file.name)
+  formData.append('summary', summary)
+  return parseSceneSkillAttachment(await postForm<unknown>(`/v1/business-scene-skills/${skillId}/attachments`, formData))
+}
+
+/** 删除场景附件。 */
+export function deleteSceneSkillAttachment(skillId: string, attachmentId: string): Promise<void> {
+  return deleteJson(`/v1/business-scene-skills/${skillId}/attachments/${attachmentId}`)
 }

@@ -1,0 +1,18 @@
+[
+   {
+      "head":
+      {
+         "rulesHeadId":442,"processId":"crc_ems-0be371ed-5db2-464b-a634-d97606fb8b01","processName":"中艺香港-退还按金（对接用友）","categoryCode":"","categoryName":"","businessLineCode":"","businessLineName":"","orgTypeCode":"","orgTypeName":"","orgCode":"","orgName":"","workflowLineKey":"applyAmount","workflowLineKey1":"","ouCode":"","ouName":"","createdBy":"蒋武","updatedBy":"蒋武","isDelete":"0","areaValue":""
+      },"lineList":
+      [
+         {
+            "rulesLineId":1374,"rulesHeadId":442,"workflowLineValue":"A001","applyAmountMin":-99.00,"applyAmountMax":10000.00,"isDelete":"0","currency":"HKD"
+         },{
+            "rulesLineId":1375,"rulesHeadId":442,"workflowLineValue":"A002","applyAmountMin":10000.01,"applyAmountMax":1000000.00,"isDelete":"0","currency":"HKD"
+         }
+
+      ]
+
+   }
+
+]

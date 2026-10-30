@@ -1,30 +1,41 @@
 package cn.com.crc.ems.finance.agent.harness.application;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  *
- * @Description: 业务处理模型回复及完整结构化草稿，供页面安全回填。
+ * @Description: 业务处理模型回复及完整结构化草稿，附带模型声明的需要进一步注入正文的场景附件文件名。
  *
  * @Version: 0.1.0
  * @Author: yigeyige99
  * @Date: 2026-10-08 21:10:00
  */
-public record BusinessGuidanceSuggestion(String reply, BusinessHandlingDraft draft) {
+public record BusinessGuidanceSuggestion(String reply, BusinessHandlingDraft draft, List<String> requestedAttachments) {
 
-    private static final Set<String> FIELDS = Set.of("reply", "draft");
+    private static final Set<String> FIELDS = Set.of("reply", "draft", "requestedAttachments");
+
+    public BusinessGuidanceSuggestion(String reply, BusinessHandlingDraft draft) {
+        this(reply, draft, List.of());
+    }
 
     public BusinessGuidanceSuggestion {
         if (reply == null || reply.isBlank() || reply.length() > 2000 || draft == null) {
             throw new IllegalArgumentException("business guidance is invalid");
         }
+        requestedAttachments = requestedAttachments == null ? List.of() : List.copyOf(requestedAttachments);
+        if (requestedAttachments.size() > 2 || requestedAttachments.stream()
+                .anyMatch(value -> value == null || value.isBlank() || value.length() > 255)) {
+            throw new IllegalArgumentException("requestedAttachments is invalid");
+        }
     }
 
     /**
      *
-     * @description: 从严格模型 JSON 读取会话回复与完整业务草稿。
+     * @description: 从严格模型 JSON 读取会话回复、完整业务草稿及按需请求的附件文件名。
      *
      * @param: value 模型返回 JSON
      * @return: 经校验的业务处理建议
@@ -33,7 +44,7 @@ public record BusinessGuidanceSuggestion(String reply, BusinessHandlingDraft dra
      */
     public static BusinessGuidanceSuggestion fromJson(JsonNode value) {
         if (value == null || !value.isObject() || value.size() != FIELDS.size() || !value.has("reply")
-                || !value.has("draft")) {
+                || !value.has("draft") || !value.has("requestedAttachments")) {
             throw new BusinessModelException("模型返回内容不符合约定结构");
         }
         value.fieldNames().forEachRemaining(field -> {
@@ -45,6 +56,18 @@ public record BusinessGuidanceSuggestion(String reply, BusinessHandlingDraft dra
         if (!reply.isTextual() || reply.textValue().isBlank() || reply.textValue().length() > 2000) {
             throw new BusinessModelException("模型返回字段格式不正确: reply");
         }
-        return new BusinessGuidanceSuggestion(reply.textValue(), BusinessHandlingDraft.fromJson(value.get("draft")));
+        JsonNode requested = value.get("requestedAttachments");
+        if (!requested.isArray() || requested.size() > 2) {
+            throw new BusinessModelException("模型返回字段格式不正确: requestedAttachments");
+        }
+        List<String> fileNames = new ArrayList<>();
+        requested.forEach(item -> {
+            if (!item.isTextual() || item.textValue().isBlank() || item.textValue().length() > 255) {
+                throw new BusinessModelException("模型返回字段格式不正确: requestedAttachments");
+            }
+            fileNames.add(item.textValue());
+        });
+        return new BusinessGuidanceSuggestion(reply.textValue(), BusinessHandlingDraft.fromJson(value.get("draft")),
+                fileNames);
     }
 }

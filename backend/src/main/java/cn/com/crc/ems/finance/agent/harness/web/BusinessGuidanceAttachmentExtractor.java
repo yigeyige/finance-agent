@@ -35,11 +35,12 @@ public final class BusinessGuidanceAttachmentExtractor {
     static final int MAX_ATTACHMENT_COUNT = 3;
     static final long MAX_ATTACHMENT_BYTES = 1_024L * 1_024L;
     static final int MAX_MODEL_CONTENT_CHARS = 24_000;
+    static final long MAX_SCENE_ATTACHMENT_BYTES = 100L * 1_024L;
     private static final int MAX_EXCEL_SHEET_COUNT = 5;
     private static final int MAX_EXCEL_ROWS_PER_SHEET = 200;
     private static final int MAX_EXCEL_COLUMNS_PER_ROW = 50;
     private static final int MAX_EXCEL_CELL_CHARS = 500;
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("txt", "md", "csv", "json", "xls", "xlsx");
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("txt", "md", "csv", "json", "xml", "xls", "xlsx");
 
     /**
      *
@@ -83,6 +84,30 @@ public final class BusinessGuidanceAttachmentExtractor {
             throw new BusinessGuidanceAttachmentException("附件内容超出模型分析限制");
         }
         return List.copyOf(attachments);
+    }
+
+    /**
+     *
+     * @description: 提取单个场景附件的完整文本投影，不按模型输入长度截断；单文件不超过 100KB。
+     *
+     * @param: file 已通过文件名白名单校验的上传文件
+     * @return: 可持久化的完整文本投影
+     * @throws: BusinessGuidanceAttachmentException 文件超出大小或解析失败时抛出
+     * @author: yigeyige99
+     */
+    public String extractSceneAttachmentText(MultipartFile file) {
+        String fileName = requireFileName(file);
+        if (file.isEmpty() || file.getSize() <= 0) {
+            throw new BusinessGuidanceAttachmentException("附件不能为空");
+        }
+        if (file.getSize() > MAX_SCENE_ATTACHMENT_BYTES) {
+            throw new BusinessGuidanceAttachmentException("单个附件不能超过 100KB");
+        }
+        String text = isExcel(fileName) ? extractExcel(file) : decodeUtf8(file);
+        if (text.isBlank()) {
+            throw new BusinessGuidanceAttachmentException("附件不能为空");
+        }
+        return text;
     }
 
     /**

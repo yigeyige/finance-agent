@@ -28,7 +28,11 @@ import cn.com.crc.ems.finance.agent.task.application.GuidanceDraftRepository;
 import cn.com.crc.ems.finance.agent.task.application.ScopeRevisionRepository;
 import cn.com.crc.ems.finance.agent.task.application.TaskBusinessSceneSkillRepository;
 import cn.com.crc.ems.finance.agent.scenario.application.BusinessSceneSkillRepository;
+import cn.com.crc.ems.finance.agent.scenario.application.SceneSkillAttachmentRepository;
+import cn.com.crc.ems.finance.agent.scenario.domain.SceneSkillAttachment;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessSceneSkillContext;
+import cn.com.crc.ems.finance.agent.harness.application.SceneSkillAttachmentSummary;
+import cn.com.crc.ems.finance.agent.harness.application.SceneSkillAttachmentBody;
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseAssistanceService;
 import cn.com.crc.ems.finance.agent.businesspacket.application.BusinessEvidenceAccumRepository;
 import cn.com.crc.ems.finance.agent.businesspacket.domain.BusinessEvidenceAccum;
@@ -63,13 +67,14 @@ public final class BusinessModelInteractionService {
     private final GuidanceDraftRepository guidanceDraftRepository;
     private final GuidanceProgressStore progressStore;
     private final BusinessEvidenceAccumRepository evidenceAccumRepository;
+    private final SceneSkillAttachmentRepository sceneSkillAttachmentRepository;
 
     public BusinessModelInteractionService(BusinessModelClient modelClient,
             InvestigationTaskRepository taskRepository, ScopeRevisionRepository scopeRepository,
             FactSnapshotRepository snapshotRepository, CoverageRecordRepository coverageRepository,
             FindingRepository findingRepository) {
         this(modelClient, taskRepository, scopeRepository, snapshotRepository, coverageRepository, findingRepository,
-                null, null, null, null, null, null);
+                null, null, null, null, null, null, null);
     }
 
     @Autowired
@@ -79,7 +84,8 @@ public final class BusinessModelInteractionService {
             FindingRepository findingRepository, TaskBusinessSceneSkillRepository taskBusinessSceneSkillRepository,
             BusinessSceneSkillRepository businessSceneSkillRepository, EmsDatabaseAssistanceService emsDatabaseAssistanceService,
             GuidanceDraftRepository guidanceDraftRepository, GuidanceProgressStore progressStore,
-            BusinessEvidenceAccumRepository evidenceAccumRepository) {
+            BusinessEvidenceAccumRepository evidenceAccumRepository,
+            SceneSkillAttachmentRepository sceneSkillAttachmentRepository) {
         this.modelClient = modelClient;
         this.taskRepository = taskRepository;
         this.scopeRepository = scopeRepository;
@@ -92,6 +98,7 @@ public final class BusinessModelInteractionService {
         this.guidanceDraftRepository = guidanceDraftRepository;
         this.progressStore = progressStore;
         this.evidenceAccumRepository = evidenceAccumRepository;
+        this.sceneSkillAttachmentRepository = sceneSkillAttachmentRepository;
     }
 
     /**
@@ -128,20 +135,50 @@ public final class BusinessModelInteractionService {
                 .orElseThrow(() -> new IllegalStateException("业务处理任务不存在或已失效"));
         Consumer<String> progress = progressStore == null ? stage -> { } : stage -> progressStore.record(task.taskId(), stage);
         progress.accept("正在分析业务说明与处理范围");
+        List<SceneSkillAttachmentSummary> attachmentCatalog = findSceneAttachmentCatalog(taskId);
         BusinessGuidanceContext base = new BusinessGuidanceContext(task.taskId(), task.title(), task.originalQuestion(),
-                feedback, currentDraft, findSceneSkill(taskId), attachments);
+                feedback, currentDraft, findSceneSkill(taskId), attachments, List.of(), attachmentCatalog, List.of());
         List<EmsDatabaseEvidence> evidence = emsDatabaseAssistanceService == null ? List.of()
                 : emsDatabaseAssistanceService.collect(modelClient, base, task.databaseConfigId(), progress);
         progress.accept("正在生成业务处理初稿");
         BusinessModelResult<BusinessGuidanceSuggestion> result = modelClient.guideBusinessHandling(
                 new BusinessGuidanceContext(task.taskId(), task.title(), task.originalQuestion(), feedback, currentDraft,
-                        findSceneSkill(taskId), attachments, evidence));
+                        findSceneSkill(taskId), attachments, evidence, attachmentCatalog, List.of()));
+        List<SceneSkillAttachmentBody> bodies = resolveRequestedBodies(taskId, result.value().requestedAttachments());
+        if (!bodies.isEmpty()) {
+            progress.accept("正在结合场景附件补充分析");
+            result = modelClient.guideBusinessHandling(
+                    new BusinessGuidanceContext(task.taskId(), task.title(), task.originalQuestion(), feedback, currentDraft,
+                            findSceneSkill(taskId), attachments, evidence, attachmentCatalog, bodies));
+        }
         progress.accept("初稿生成完成");
         if (guidanceDraftRepository != null) {
             guidanceDraftRepository.save(taskId, result.value().draft().toJson().toString(), task.initiatorUserId());
         }
         accumulateEvidence(task.taskId(), evidence);
         return result;
+    }
+
+    /** 读取任务关联场景的附件清单（文件名+摘要），供模型第一轮判断是否需要正文。 */
+    private List<SceneSkillAttachmentSummary> findSceneAttachmentCatalog(UUID taskId) {
+        if (sceneSkillAttachmentRepository == null || taskBusinessSceneSkillRepository == null) {
+            return List.of();
+        }
+        return taskBusinessSceneSkillRepository.findSkillIdByTaskId(taskId)
+                .map(sceneSkillAttachmentRepository::findBySkillId).orElse(List.of()).stream()
+                .map(item -> new SceneSkillAttachmentSummary(item.fileName(), item.summary())).toList();
+    }
+
+    /** 按模型第一轮声明的文件名读取附件正文，供第二轮按需注入。 */
+    private List<SceneSkillAttachmentBody> resolveRequestedBodies(UUID taskId, List<String> requestedFileNames) {
+        if (sceneSkillAttachmentRepository == null || taskBusinessSceneSkillRepository == null
+                || requestedFileNames == null || requestedFileNames.isEmpty()) {
+            return List.of();
+        }
+        return taskBusinessSceneSkillRepository.findSkillIdByTaskId(taskId)
+                .map(skillId -> sceneSkillAttachmentRepository.findBySkillIdAndFileNames(skillId, requestedFileNames))
+                .orElse(List.of()).stream()
+                .map(item -> new SceneSkillAttachmentBody(item.fileName(), item.contentText())).toList();
     }
 
     /** 将当轮非空证据追加写入证据工作区，保留轮次且不覆盖历史轮次；唯一约束冲突时重新分配轮次。 */
