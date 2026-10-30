@@ -79,6 +79,7 @@ public final class FlywayMigrationRunner {
                     .baselineOnMigrate(false)
                     .outOfOrder(false)
                     .validateMigrationNaming(true)
+                    .placeholderReplacement(false)
                     .load();
             if (validateOnly) {
                 flyway.validate();
