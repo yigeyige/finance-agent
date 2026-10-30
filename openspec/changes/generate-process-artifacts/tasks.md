@@ -1,33 +1,24 @@
-## 1. 持久化与迁移
+## 1. 调查与决策包交接
 
-- [ ] 1.1 V30 迁移：business_scene_skill 加 process_artifact_prompt 列、新建 task.business_process_artifact 产物表、GUIDE_HANDLING 模板强化两段式引导、场景调查提示词补 sys_value_set
-- [ ] 1.2 场景领域 BusinessSceneSkill/请求/响应/前端契约加生成文件提示词字段（可空）
-- [ ] 1.3 产物领域 BusinessProcessArtifact + Repository 及 MyBatis 实现
+- [ ] 1.1 为本场景的现有调查草稿增加结构化流程结论与待补项，沿用多轮反馈及证据展示，不另建事实稿或确认按钮
+- [ ] 1.2 生成决策包时固定当前调查结论和关联证据，并在包正文保留结构化快照及原有五字段文字方案；文件生成仅读取该包
+- [ ] 1.3 V30 修订本场景调查与决策包提示词，区分事实、样例、证据和待补项；只有证实阻断时才最小修订通用 `GUIDE_HANDLING` 模板
 
-## 2. 中间表示与模型方法
+## 2. 生成契约与存储
 
-- [ ] 2.1 定义 ProcessDefinition 中间表示 record（nodes/flows/rules/orgTemplate）与严格 fromJson 校验（id 唯一、引用存在、枚举合法）
-- [ ] 2.2 BusinessModelClient 新增 generateProcessDefinition 方法与 DeepSeek/Stub/DatabaseConfigured 实现，输入含任务信息、决策包方案与场景生成文件提示词
-- [ ] 2.3 无生成文件提示词或无决策包时明确中文报错
+- [ ] 2.1 核对 EMS ZIP 导入最低要求、模型 JSON 结构和三种配置数组格式；建立中间表示到关键导入字段的映射及静态契约样例
+- [ ] 2.2 V30 增加场景生成文件提示词列、批次与文件表；仅给「审批流程生成-隆地」配置提示词
+- [ ] 2.3 定义中间表示与校验：五类节点、顺序/排他流转、可选配置、未知值、遗漏原因及最低导入条件
+- [ ] 2.4 新增模型生成方法：输入指定决策包固定内容与场景文件提示词；逐次检查 1M 和实际模型上下文上限，超限中文提示
 
-## 3. Java 转换器
+## 3. 文件转换与服务
 
-- [ ] 3.1 构件工厂：UserTask 五类变体（node_type/监听器默认配置）、ExclusiveGateway、SequenceFlow、StartNoneEvent、EndNoneEvent
-- [ ] 3.2 通用图组装 + 分层自动布局，生成 BPMN 编辑器 JSON
-- [ ] 3.3 节点参数配置文件生成（assignee 展开为 roleCode/getAssigneePath/is_choose/fixedCode 行）
-- [ ] 3.4 审批规则与部门审批流文件生成（rules/orgTemplate 为空跳过），任一失败整体不落库
+- [ ] 3.1 用 Java 构件模板生成 EMS 编辑器 JSON 流程模型，文件名兼容现有 ZIP 导入入口；生成符合导入契约的适用配置文件
+- [ ] 3.2 校验节点/流转、条件变量、档位和跨文件关联；未达最低导入要求时标待修复，不宣称可导入
+- [ ] 3.3 实现用户触发生成、批次列表、单文件下载及选择配置的 ZIP 下载；成功仅保留最新与上一次，失败保留旧批次，并发生成不产生多个最新批次
 
-## 4. 服务与接口
+## 4. 页面与验证
 
-- [ ] 4.1 ProcessArtifactService：触发生成（校验已有决策包、覆盖式更新、留档中间表示）、列表、下载
-- [ ] 4.2 Controller 与响应契约：POST/GET process-artifacts、GET download
-
-## 5. 前端
-
-- [ ] 5.1 场景编辑弹窗新增「生成文件提示词」textarea（可选）
-- [ ] 5.2 WorkbenchHome 决策包下方「生成/重新生成流程文件」按钮（无决策包置灰）与文件卡片下载
-- [ ] 5.3 前端产物 API 与类型契约
-
-## 6. 验证
-
-- [ ] 6.1 中间表示校验、转换器、服务测试；前后端编译/类型检查/构建；OpenSpec 严格校验通过
+- [ ] 4.1 沿用调查多轮反馈展示结构化结论；在工作台展示文件待补项、导入状态、来源决策包修订、最新及上一次批次
+- [ ] 4.2 提供单文件及可选配置 ZIP 下载，模型文件固定纳入 ZIP，并提示 EMS 导入会自动部署、设置运行版本
+- [ ] 4.3 静态校验转换契约、批次保留和失败路径；完成前后端编译/类型检查及 OpenSpec 严格校验。EMS 启动、导入和运行效果由用户手工验证并记录为待验收边界
