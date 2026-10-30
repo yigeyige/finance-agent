@@ -204,6 +204,7 @@ public final class StubBusinessModelClient implements BusinessModelClient {
             node.put("decisionPacketPrompt", context.decisionPacketPrompt());
         }
         node.putPOJO("evidence", context.evidence());
+        node.set("guidanceDraft", context.guidanceDraft().toJson());
         return node;
     }
 

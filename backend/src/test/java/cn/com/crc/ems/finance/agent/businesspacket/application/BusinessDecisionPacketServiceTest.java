@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import java.time.Clock;
@@ -27,7 +28,9 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessPacketAnalysisCo
 import cn.com.crc.ems.finance.agent.harness.application.BusinessPacketAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.scenario.application.BusinessSceneSkillRepository;
 import cn.com.crc.ems.finance.agent.scenario.domain.BusinessSceneSkill;
+import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 import cn.com.crc.ems.finance.agent.task.application.InvestigationTaskRepository;
+import cn.com.crc.ems.finance.agent.task.application.GuidanceDraftRepository;
 import cn.com.crc.ems.finance.agent.task.application.TaskBusinessSceneSkillRepository;
 import cn.com.crc.ems.finance.agent.task.domain.InvestigationTask;
 import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
@@ -47,10 +50,12 @@ class BusinessDecisionPacketServiceTest {
         var taskSkillRepository = mock(TaskBusinessSceneSkillRepository.class);
         var sceneSkillRepository = mock(BusinessSceneSkillRepository.class);
         var emsConfigService = mock(EmsDatabaseConnectionConfigService.class);
+        var guidanceDraftRepository = mock(GuidanceDraftRepository.class);
         UUID taskId = UUID.randomUUID();
         UUID skillId = UUID.randomUUID();
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task(taskId)));
         when(evidenceRepository.findByTaskIdOrderByRound(taskId)).thenReturn(List.of(accum(taskId)));
+        when(guidanceDraftRepository.findLatestDraftJsonByTaskId(taskId)).thenReturn(Optional.of(draftJson("逐轮修订结论")));
         when(taskSkillRepository.findSkillIdByTaskId(taskId)).thenReturn(Optional.of(skillId));
         when(sceneSkillRepository.findActiveById(skillId)).thenReturn(Optional.of(skill(skillId)));
         var suggestion = new BusinessPacketAnalysisSuggestion("离职人员 E001", "仍有 3 条生效权限", "回收生效权限",
@@ -58,7 +63,8 @@ class BusinessDecisionPacketServiceTest {
         when(modelClient.analyzeDecisionPacket(any())).thenReturn(new BusinessModelResult<>(suggestion,
                 new BusinessModelCallMetadata("LIVE", "deepseek-chat", "a".repeat(64), "b".repeat(64), 10, 100)));
         var service = new BusinessDecisionPacketService(packetRepository, evidenceRepository, modelClient, taskRepository,
-                taskSkillRepository, sceneSkillRepository, emsConfigService, Clock.fixed(NOW, ZoneOffset.UTC));
+                taskSkillRepository, sceneSkillRepository, emsConfigService, guidanceDraftRepository,
+                Clock.fixed(NOW, ZoneOffset.UTC));
 
         service.generate(taskId);
 
@@ -68,10 +74,17 @@ class BusinessDecisionPacketServiceTest {
         assertThat(contextCaptor.getValue().title()).isEqualTo("离职权限处置");
         assertThat(contextCaptor.getValue().evidence()).hasSize(1);
         assertThat(contextCaptor.getValue().decisionPacketPrompt()).isEqualTo("决策包提示词");
+        assertThat(contextCaptor.getValue().guidanceDraft().conclusion()).isEqualTo("逐轮修订结论");
+        assertThat(contextCaptor.getValue().guidanceDraft().evidence()).hasSize(1);
         ArgumentCaptor<BusinessDecisionPacket> packetCaptor = ArgumentCaptor.forClass(BusinessDecisionPacket.class);
         verify(packetRepository).insert(packetCaptor.capture());
         assertThat(packetCaptor.getValue().revision()).isEqualTo(1);
         assertThat(packetCaptor.getValue().canonicalContent()).contains("sceneSkillName");
+        assertThat(packetCaptor.getValue().canonicalContent()).contains("guidanceDraft");
+        assertThat(packetCaptor.getValue().canonicalContent()).contains("逐轮修订结论");
+        var packetContent = CanonicalJsonCodec.parse(packetCaptor.getValue().canonicalContent());
+        assertThat(packetContent.path("evidence").size()).isEqualTo(1);
+        assertThat(packetContent.path("guidanceDraft").path("evidence").size()).isEqualTo(1);
     }
 
     @Test
@@ -83,13 +96,98 @@ class BusinessDecisionPacketServiceTest {
         var taskSkillRepository = mock(TaskBusinessSceneSkillRepository.class);
         var sceneSkillRepository = mock(BusinessSceneSkillRepository.class);
         var emsConfigService = mock(EmsDatabaseConnectionConfigService.class);
+        var guidanceDraftRepository = mock(GuidanceDraftRepository.class);
         UUID taskId = UUID.randomUUID();
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task(taskId)));
         when(evidenceRepository.findByTaskIdOrderByRound(taskId)).thenReturn(List.of());
+        when(guidanceDraftRepository.findLatestDraftJsonByTaskId(taskId)).thenReturn(Optional.of(draftJson("结论")));
         var service = new BusinessDecisionPacketService(packetRepository, evidenceRepository, modelClient, taskRepository,
-                taskSkillRepository, sceneSkillRepository, emsConfigService, Clock.fixed(NOW, ZoneOffset.UTC));
+                taskSkillRepository, sceneSkillRepository, emsConfigService, guidanceDraftRepository,
+                Clock.fixed(NOW, ZoneOffset.UTC));
 
         assertThatThrownBy(() -> service.generate(taskId)).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void rejectsGenerationWithoutSavedGuidanceDraft() {
+        var packetRepository = mock(BusinessDecisionPacketRepository.class);
+        var evidenceRepository = mock(BusinessEvidenceAccumRepository.class);
+        var modelClient = mock(BusinessModelClient.class);
+        var taskRepository = mock(InvestigationTaskRepository.class);
+        var taskSkillRepository = mock(TaskBusinessSceneSkillRepository.class);
+        var sceneSkillRepository = mock(BusinessSceneSkillRepository.class);
+        var emsConfigService = mock(EmsDatabaseConnectionConfigService.class);
+        var guidanceDraftRepository = mock(GuidanceDraftRepository.class);
+        UUID taskId = UUID.randomUUID();
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(task(taskId)));
+        when(evidenceRepository.findByTaskIdOrderByRound(taskId)).thenReturn(List.of(accum(taskId)));
+        var service = new BusinessDecisionPacketService(packetRepository, evidenceRepository, modelClient, taskRepository,
+                taskSkillRepository, sceneSkillRepository, emsConfigService, guidanceDraftRepository,
+                Clock.fixed(NOW, ZoneOffset.UTC));
+
+        assertThatThrownBy(() -> service.generate(taskId))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("调查草稿");
+        org.mockito.Mockito.verifyNoInteractions(modelClient);
+    }
+
+    @Test
+    void changedGuidanceDraftCreatesNewRevisionWithoutChangingOldPacket() {
+        var packetRepository = mock(BusinessDecisionPacketRepository.class);
+        var evidenceRepository = mock(BusinessEvidenceAccumRepository.class);
+        var modelClient = mock(BusinessModelClient.class);
+        var taskRepository = mock(InvestigationTaskRepository.class);
+        var guidanceDraftRepository = mock(GuidanceDraftRepository.class);
+        UUID taskId = UUID.randomUUID();
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(task(taskId)));
+        when(evidenceRepository.findByTaskIdOrderByRound(taskId)).thenReturn(List.of(accum(taskId)));
+        when(guidanceDraftRepository.findLatestDraftJsonByTaskId(taskId))
+                .thenReturn(Optional.of(draftJson("初次结论")), Optional.of(draftJson("修订结论")));
+        var suggestion = new BusinessPacketAnalysisSuggestion("离职人员 E001", "模型结论", "回收权限", List.of(), "理由");
+        when(modelClient.analyzeDecisionPacket(any())).thenReturn(new BusinessModelResult<>(suggestion,
+                new BusinessModelCallMetadata("LIVE", "deepseek-chat", "a".repeat(64), "b".repeat(64), 10, 100)));
+        var service = new BusinessDecisionPacketService(packetRepository, evidenceRepository, modelClient, taskRepository,
+                null, null, mock(EmsDatabaseConnectionConfigService.class), guidanceDraftRepository,
+                Clock.fixed(NOW, ZoneOffset.UTC));
+
+        BusinessDecisionPacket first = service.generate(taskId).packet();
+        when(packetRepository.findLatestByTaskId(taskId)).thenReturn(Optional.of(first));
+        BusinessDecisionPacket second = service.generate(taskId).packet();
+
+        assertThat(first.revision()).isEqualTo(1);
+        assertThat(second.revision()).isEqualTo(2);
+        assertThat(first.canonicalContent()).contains("初次结论").doesNotContain("修订结论");
+        assertThat(second.canonicalContent()).contains("修订结论");
+        assertThat(second.contentDigest()).isNotEqualTo(first.contentDigest());
+        ArgumentCaptor<BusinessPacketAnalysisContext> contexts = ArgumentCaptor.forClass(BusinessPacketAnalysisContext.class);
+        verify(modelClient, times(2)).analyzeDecisionPacket(contexts.capture());
+        assertThat(contexts.getAllValues().get(1).guidanceDraft().conclusion()).isEqualTo("修订结论");
+    }
+
+    @Test
+    void rejectsDamagedGuidanceDraftBeforeCallingModel() {
+        var packetRepository = mock(BusinessDecisionPacketRepository.class);
+        var evidenceRepository = mock(BusinessEvidenceAccumRepository.class);
+        var modelClient = mock(BusinessModelClient.class);
+        var taskRepository = mock(InvestigationTaskRepository.class);
+        var guidanceDraftRepository = mock(GuidanceDraftRepository.class);
+        UUID taskId = UUID.randomUUID();
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(task(taskId)));
+        when(guidanceDraftRepository.findLatestDraftJsonByTaskId(taskId)).thenReturn(Optional.of("{}"));
+        var service = new BusinessDecisionPacketService(packetRepository, evidenceRepository, modelClient, taskRepository,
+                null, null, mock(EmsDatabaseConnectionConfigService.class), guidanceDraftRepository,
+                Clock.fixed(NOW, ZoneOffset.UTC));
+
+        assertThatThrownBy(() -> service.generate(taskId))
+                .isInstanceOf(IllegalStateException.class).hasMessageContaining("调查草稿无法读取");
+        org.mockito.Mockito.verifyNoInteractions(modelClient);
+    }
+
+    private static String draftJson(String conclusion) {
+        return "{\"subjectKey\":\"离职人员 E001\",\"objectKey\":\"审批权限\","
+                + "\"recommendedGoal\":\"回收权限\",\"alternativeGoals\":[],\"reason\":\"调查证据\","
+                + "\"conclusion\":\"" + conclusion + "\",\"evidence\":[{\"schema\":\"basedata\","
+                + "\"table\":\"account\",\"purpose\":\"核对生效权限\",\"columns\":[\"id\"],\"rows\":[[\"1\"]]}]}";
     }
 
     private static InvestigationTask task(UUID taskId) {

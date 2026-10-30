@@ -166,7 +166,8 @@ source: development-workplan
 |  142 | P0 自定义需求 | [20261029-refine-chat-viewport-metadata](../03.achieved/20261029-聊天视口与模型信息优化.md) | 聊天视口与模型信息优化 | [20261029-聊天视口与模型信息优化.md](../03.achieved/20261029-聊天视口与模型信息优化.md) | 已完成 | `20261029-refine-three-step-workbench` |
 |  143 | P0 自定义需求 | [20261029-task-detail-three-step-readonly](../03.achieved/20261029-任务详情三步只读展示.md) | 任务详情三步只读展示 | [20261029-任务详情三步只读展示.md](../03.achieved/20261029-任务详情三步只读展示.md) | 已完成 | 无 |
 |  144 | P0 自定义需求 | [20261030-scene-skill-attachments](../03.achieved/20261030-业务场景Skill附件.md) | 业务场景 Skill 附件 | [20261030-业务场景Skill附件.md](../03.achieved/20261030-业务场景Skill附件.md) | 已完成 | 无 |
-|  145 | P0 自定义需求 | [20261030-generate-process-artifacts](20261030-流程文件产物生成.md) | 流程文件产物生成 | [20261030-流程文件产物生成.md](20261030-流程文件产物生成.md) | 进行中 | 无 |
+|  145 | P0 自定义需求 | [20261031-include-guidance-draft-in-decision-packet](../03.achieved/20261031-决策包纳入调查结论.md) | 决策包生成纳入逐轮修订的调查结论与证据 | [20261031-决策包纳入调查结论.md](../03.achieved/20261031-决策包纳入调查结论.md) | 已完成 | `20261024-business-decision-packet` |
+|  146 | P0 自定义需求 | [20261030-generate-process-artifacts](20261030-流程文件产物生成.md) | 流程文件产物生成 | [20261030-流程文件产物生成.md](20261030-流程文件产物生成.md) | 进行中 | `20261031-include-guidance-draft-in-decision-packet` |
 
 > 2026-10-28：用户删除原开发顺序 128—130 的三个旧提案，现由 137—139 三个新切片替代；历史顺序号不复用。三个新任务仅完成规划，实施项均未勾选，按依赖顺序推进。
 

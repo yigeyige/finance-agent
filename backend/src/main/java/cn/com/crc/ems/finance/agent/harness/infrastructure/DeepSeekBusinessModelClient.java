@@ -336,6 +336,7 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
             node.put("decisionPacketPrompt", context.decisionPacketPrompt());
         }
         node.set("evidence", evidenceJson(context.evidence()));
+        node.set("guidanceDraft", context.guidanceDraft().toJson());
         return node;
     }
 }

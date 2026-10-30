@@ -24,6 +24,7 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessPacketAnalysisSu
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceAttachment;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessHandlingDraft;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
@@ -151,7 +152,7 @@ class BusinessModelClientTest {
     @Test
     void packetAnalysisRejectsMissingEvidenceAndExtraFields() {
         assertThatThrownBy(() -> new BusinessPacketAnalysisContext(UUID.randomUUID(), "任务", "问题",
-                List.of(), null)).isInstanceOf(IllegalStateException.class);
+                List.of(), null, draft())).isInstanceOf(IllegalStateException.class);
         assertThatThrownBy(() -> BusinessPacketAnalysisSuggestion.fromJson(CanonicalJsonCodec.parse(
                 "{\"subjectKey\":\"对象\",\"conclusion\":\"结论\",\"recommendedGoal\":\"方案\",\"alternativeGoals\":[],\"reason\":\"理由\",\"extra\":true}")))
                 .isInstanceOf(BusinessModelException.class);
@@ -189,7 +190,8 @@ class BusinessModelClientTest {
         assertThat(result.metadata().mode()).isEqualTo("LIVE");
         assertThat(result.value().subjectKey()).isEqualTo("E001 的审批权限");
         assertThat(result.value().conclusion()).contains("3 条");
-        assertThat(request.get()).contains("决策包提示词内容").doesNotContain("test-key");
+        assertThat(request.get()).contains("决策包提示词内容", "guidanceDraft")
+                .doesNotContain("test-key");
     }
 
     private static ModelPlanContext planContext() {
@@ -206,7 +208,13 @@ class BusinessModelClientTest {
         return new BusinessPacketAnalysisContext(UUID.randomUUID(), "离职权限处置", "核查离职人员生效权限",
                 List.of(new EmsDatabaseEvidence("basedata", "account", "核对生效权限", List.of("id"),
                         List.of(List.of("1")))),
-                "决策包提示词内容");
+                "决策包提示词内容", draft());
+    }
+
+    private static BusinessHandlingDraft draft() {
+        return new BusinessHandlingDraft("离职人员 E001", "审批权限", "回收权限", List.of(),
+                "调查证据", "逐轮修订结论", List.of(new EmsDatabaseEvidence("basedata", "account",
+                        "核对生效权限", List.of("id"), List.of(List.of("1")))));
     }
 
     private static String quote(String value) {
