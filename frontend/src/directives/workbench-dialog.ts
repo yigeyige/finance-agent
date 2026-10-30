@@ -130,7 +130,13 @@ function attach(el: HTMLElement, vnode: VNode): void {
     if (!vm?.visible) return
     apply(previousRect ? { left: 8, top: 8, width: viewport().width - 16, height: viewport().height - 16 } : rect())
   }
-  /** 每次关闭重置位置尺寸，保留框架原始的宽度和居中行为。 */
+  /** 首次打开时水平垂直居中，替代 Element UI 依赖 margin-top 的默认定位，避免重渲染改写 margin 导致位移。 */
+  function centerOnOpen(): void {
+    const current = rect()
+    const vp = viewport()
+    apply({ left: (vp.width - current.width) / 2, top: (vp.height - current.height) / 2, width: current.width, height: current.height })
+  }
+  /** 每次关闭重置位置尺寸，保留框架原始的宽度与定位样式。 */
   function reset(): void {
     stopDrag?.()
     previousRect = null
@@ -142,7 +148,7 @@ function attach(el: HTMLElement, vnode: VNode): void {
     else void vm.$nextTick(() => {
       if (disposed || !vm.visible) return
       originalStyle = panel.getAttribute('style') || ''
-      fitViewport()
+      centerOnOpen()
     })
   }, { immediate: true })
   updateControls()

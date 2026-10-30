@@ -82,6 +82,16 @@ test('弹窗移动和缩放遵守视口边界，最大化后可还原', async ()
   workbenchDialog.unbind(f.el)
 })
 
+test('打开时水平垂直居中，且固定 margin 归零', async () => {
+  const f = fixture()
+  f.setVisible(true)
+  await Promise.resolve()
+  assert.equal(f.panel.style.left, '340px')
+  assert.equal(f.panel.style.top, '150px')
+  assert.equal(f.panel.style.margin, '0')
+  workbenchDialog.unbind(f.el)
+})
+
 test('拖动中关闭重置默认尺寸并停止移动，再打开不保留上次几何', async () => {
   const f = fixture()
   f.setVisible(true)
