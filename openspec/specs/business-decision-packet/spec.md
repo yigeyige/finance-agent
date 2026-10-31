@@ -2,9 +2,7 @@
 
 ## Purpose
 业务处理过程中跨轮累积关联证据，并支持管理员一键生成可查看、可追溯、可复核的业务决策包，作为业务处理结论与证据的固化产物。
-
 ## Requirements
-
 ### Requirement: Evidence accumulation across rounds
 系统 SHALL 在每次业务处理模型成功生成或修订草稿后，将当轮产生的关联证据追加保存到该任务的证据工作区，并保留轮次，不得覆盖历史轮次证据。
 
@@ -61,3 +59,20 @@
 #### Scenario: View old packet
 - **WHEN** 历史包缺少新增展示字段
 - **THEN** 仍可查看原内容，不要求回填或伪造字段
+
+### Requirement: Decision packet uses latest evidence snapshot
+
+决策包生成 SHALL 使用任务最新一轮证据快照；若最新轮次是历史增量（snapshot=false），SHALL 合并全部轮次以保持兼容。证据为空时 MUST 拒绝并返回“尚无调查证据，请先完成调查”，MUST NOT 调用模型。
+
+#### Scenario: Latest snapshot is used
+- **WHEN** 任务存在多轮证据且最新轮次为快照
+- **THEN** 决策包只使用最新快照
+
+#### Scenario: Legacy data is merged
+- **WHEN** 最新轮次为历史增量
+- **THEN** 决策包合并全部轮次
+
+#### Scenario: Empty evidence is rejected
+- **WHEN** 任务没有证据
+- **THEN** 系统拒绝生成且不调用模型
+

@@ -36,7 +36,7 @@ public class EmsDatabaseAssistanceService {
     private static final int MAX_ROUNDS = 3;
     private static final Set<String> FILTER_KEYWORDS = Set.of("approve", "audit", "role", "user", "org",
             "process", "flow", "config", "employee", "staff", "person", "permission", "authorize", "esb",
-            "category", "claim");
+            "category", "claim", "value_set", "dict", "value");
     private static final Pattern FROM_SOURCE = Pattern.compile("(?i)\\bFROM\\s+`?([a-z0-9_]+)`?\\.`?([a-z0-9_]+)`?");
 
     private final EmsDatabaseConnectionConfigService configService;
@@ -83,6 +83,9 @@ public class EmsDatabaseAssistanceService {
             }
         }
         List<EmsDatabaseEvidence> evidence = new ArrayList<>();
+        if (context.databaseEvidence() != null) {
+            evidence.addAll(context.databaseEvidence());
+        }
         for (int round = 0; round < MAX_ROUNDS; round++) {
             progress.accept("正在规划只读查询（第 " + (round + 1) + " 轮）");
             Optional<EmsDatabaseQueryRequest> request = modelClient.planEmsDatabaseQuery(context, catalog, evidence,
@@ -109,7 +112,7 @@ public class EmsDatabaseAssistanceService {
     }
 
     /** 配置类数据只在 basedata；其他库仅保留人员定位所需表。 */
-    private static List<EmsDatabaseTableMetadata> coarseFilter(List<EmsDatabaseTableMetadata> catalog) {
+    static List<EmsDatabaseTableMetadata> coarseFilter(List<EmsDatabaseTableMetadata> catalog) {
         return catalog.stream()
                 .filter(item -> {
                     String lower = (item.schema() + "." + item.table() + " " + item.comment()).toLowerCase(Locale.ROOT);

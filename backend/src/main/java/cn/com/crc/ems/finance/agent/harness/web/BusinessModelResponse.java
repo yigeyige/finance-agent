@@ -8,6 +8,7 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggesti
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanSuggestion;
+import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactPlan;
 
 /**
  *
@@ -37,17 +38,19 @@ public final class BusinessModelResponse {
         }
     }
 
-    public record Guidance(String reply, BusinessHandlingDraftResponse draft, Metadata metadata) {
+    public record Guidance(String reply, BusinessHandlingDraftResponse draft, List<String> warnings,
+            Metadata metadata) {
         static Guidance from(BusinessModelResult<BusinessGuidanceSuggestion> result) {
             var draft = result.value().draft();
             return new Guidance(result.value().reply(), new BusinessHandlingDraftResponse(draft.subjectKey(), draft.objectKey(),
                     draft.recommendedGoal(), draft.alternativeGoals(), draft.reason(), draft.conclusion(),
-                    draft.evidence()), Metadata.from(result.metadata()));
+                    draft.evidence(), draft.processPlan()), result.warnings(), Metadata.from(result.metadata()));
         }
     }
 
     public record BusinessHandlingDraftResponse(String subjectKey, String objectKey, String recommendedGoal,
-            List<String> alternativeGoals, String reason, String conclusion, List<EmsDatabaseEvidence> evidence) {
+            List<String> alternativeGoals, String reason, String conclusion, List<EmsDatabaseEvidence> evidence,
+            ProcessArtifactPlan processPlan) {
     }
 
     public record Analysis(String summary, String riskLevel, String riskExplanation,

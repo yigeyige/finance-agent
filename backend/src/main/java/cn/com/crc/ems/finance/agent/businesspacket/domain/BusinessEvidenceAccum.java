@@ -12,7 +12,12 @@ import java.util.UUID;
  * @Date: 2026-10-24 10:00:00
  */
 public record BusinessEvidenceAccum(UUID evidenceAccumId, UUID taskId, int roundNo, String evidenceJson,
-        Instant createdAt) {
+        boolean snapshot, Instant createdAt) {
+
+    public BusinessEvidenceAccum(UUID evidenceAccumId, UUID taskId, int roundNo, String evidenceJson,
+            Instant createdAt) {
+        this(evidenceAccumId, taskId, roundNo, evidenceJson, false, createdAt);
+    }
 
     public BusinessEvidenceAccum {
         if (evidenceAccumId == null || taskId == null) {

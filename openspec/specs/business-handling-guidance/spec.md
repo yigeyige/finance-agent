@@ -2,11 +2,11 @@
 
 ## Purpose
 规定业务处理向导中受控模型初稿、会话修订、严格字段校验和人工确认的边界，使管理员能先获得可编辑建议，再安全确认对象、前提、范围和后续方案。
-
 ## Requirements
-
 ### Requirement: Controlled handling draft and chat revision
 系统 SHALL 在业务标题和业务说明创建任务后，提供受控模型交互以生成或修订业务处理草稿。草稿 MUST 包含处理对象、推荐方案、简短说明、检查结论和关联证据；模型输入 MUST 仅来自服务端任务投影、管理员明确提交的消息及白名单化草稿字段。初稿请求可以包含后端校验的受限文本附件投影；系统 MUST NOT 接受浏览器直接提交的任意附件正文、Skill 内容或其他模型上下文。
+
+对于「审批流程生成-隆地」场景，若模型返回的 processPlan 存在可安全规范化的偏差（显式 start/end 节点、kind 别名、assignee 为 null、节点 ID 含非法字符、无效条件或引用），系统 SHALL 规范化后返回草稿并附带 warnings；无法安全修复时 SHALL 置空 processPlan 并返回其余草稿与 warnings，MUST NOT 因 processPlan 结构偏差丢弃整份草稿或返回模型不可用。非流程场景 MUST NOT 返回 processPlan。reply、draft、requestedAttachments 和草稿必填字段仍 MUST 严格校验。
 
 #### Scenario: Initial handling draft is generated
 - **WHEN** OPERATOR 已创建有效业务标题和业务说明的任务并请求处理初稿
@@ -27,6 +27,22 @@
 #### Scenario: Initial draft is requested with attachments
 - **WHEN** OPERATOR 在新建业务处理页面选择合法附件并开始模型分析
 - **THEN** 页面提交受控 multipart 初稿请求，保留附件选择状态直到请求完成，并允许在提交前移除附件
+
+#### Scenario: Process plan deviations are normalized
+- **WHEN** 流程场景模型返回的 processPlan 含显式 start/end、kind 别名、assignee 为 null、非法节点 ID 或无效条件
+- **THEN** 系统在初稿生成阶段规范化这些结构并返回草稿，同时在 warnings 中列出规范化项
+
+#### Scenario: Unrecoverable process plan is returned with warning
+- **WHEN** 流程场景模型返回的 processPlan 无法安全修复为合法结构
+- **THEN** 系统返回其余草稿、空的 processPlan 和警告，不返回模型不可用错误，并允许用户通过对话补充说明后重新分析
+
+#### Scenario: Guidance response exposes process plan and warnings
+- **WHEN** OPERATOR 请求流程场景初稿
+- **THEN** 响应包含可供页面展示的 processPlan（或空值）与 warnings，便于用户在生成决策包前检查
+
+#### Scenario: Non-process scene omits process plan
+- **WHEN** OPERATOR 对未关联审批流程场景的任务请求初稿
+- **THEN** 响应不包含 processPlan，其余草稿字段保持既有严格校验
 
 ### Requirement: Handling draft does not bypass authoritative confirmation
 模型草稿 SHALL 只用于协助管理员填写对象、前提和范围；系统 MUST 在管理员显式确认后才追加前提、创建范围修订或步骤提议。
@@ -74,3 +90,28 @@
 #### Scenario: Administrator opens a business scenario Skill dialog
 - **WHEN** OPERATOR 打开新增或编辑业务场景 Skill 弹窗
 - **THEN** 页面以统一工作台弹窗样式展示已有字段和保存、取消操作，且不改变当前业务数据
+
+### Requirement: Required BPMN structural projection in investigation
+
+调查阶段 SHALL 识别场景 Skill 的必读 BPMN XML 附件，并在第一轮模型输入中自动注入其结构投影；投影 MUST 包含节点标识、类型、名称、流转、条件和坐标骨架，MUST NOT 包含原始 XML 全文。模型 SHALL 使用投影理解节点类型、条件写法和命名约定，但 MUST NOT 把样例业务值当作目标流程事实。投影解析失败或必读附件缺失时，系统 MUST 继续生成初稿并记录待核查说明。
+
+#### Scenario: Projection is injected automatically
+- **WHEN** 任务关联的场景存在必读 BPMN XML 附件
+- **THEN** 第一轮模型输入包含结构投影，模型无需主动请求该附件
+
+#### Scenario: Projection excludes raw XML
+- **WHEN** 系统注入 BPMN 结构投影
+- **THEN** 注入内容不包含原始 XML 全文，只包含节点、流转、条件和坐标骨架
+
+#### Scenario: Projection parsing fails
+- **WHEN** BPMN XML 无法解析或缺少必要结构
+- **THEN** 系统不阻断初稿生成，注入附件摘要并在 missingItems 或 warnings 中记录需要补充核查
+
+### Requirement: Decision packet rejects empty evidence
+
+决策包生成 SHALL 在证据为空时拒绝并返回中文错误，MUST NOT 调用模型。
+
+#### Scenario: Empty evidence
+- **WHEN** 任务没有可用的证据快照
+- **THEN** 系统返回“尚无调查证据，请先完成调查”，不调用模型
+

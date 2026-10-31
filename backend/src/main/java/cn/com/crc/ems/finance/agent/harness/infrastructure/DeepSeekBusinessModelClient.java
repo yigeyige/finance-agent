@@ -176,7 +176,9 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
     public BusinessModelResult<BusinessGuidanceSuggestion> guideBusinessHandling(BusinessGuidanceContext context) {
         ObjectNode input = guidanceInput(context);
         String instruction = instruction("GUIDE_HANDLING", input);
-        return invoke(instruction, input, BusinessGuidanceSuggestion::fromJson);
+        List<String> warnings = new ArrayList<>();
+        return invokeWithWarnings(instruction, input,
+                node -> new ParsedModelOutput<>(BusinessGuidanceSuggestion.fromJson(node, warnings), warnings));
     }
 
     @Override
@@ -217,6 +219,17 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
 
     private <T> BusinessModelResult<T> invoke(String instruction, ObjectNode input,
             java.util.function.Function<JsonNode, T> parser) {
+        return invokeInternal(instruction, input,
+                node -> new ParsedModelOutput<>(parser.apply(node), List.of()));
+    }
+
+    private <T> BusinessModelResult<T> invokeWithWarnings(String instruction, ObjectNode input,
+            java.util.function.Function<JsonNode, ParsedModelOutput<T>> parser) {
+        return invokeInternal(instruction, input, parser);
+    }
+
+    private <T> BusinessModelResult<T> invokeInternal(String instruction, ObjectNode input,
+            java.util.function.Function<JsonNode, ParsedModelOutput<T>> parser) {
         long started = System.nanoTime();
         try {
             ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER)
@@ -228,19 +241,22 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
             String text = response.getContent().stream().filter(TextBlock.class::isInstance)
                     .map(TextBlock.class::cast).map(TextBlock::getText).collect(Collectors.joining());
             JsonNode output = CanonicalJsonCodec.parse(text);
-            T value = parser.apply(output);
+            ParsedModelOutput<T> parsed = parser.apply(output);
             int tokens = response.getUsage() == null ? 0 : response.getUsage().getTotalTokens();
-            return new BusinessModelResult<>(value, new BusinessModelCallMetadata("LIVE", adapter.modelName(),
+            return new BusinessModelResult<>(parsed.value(), new BusinessModelCallMetadata("LIVE", adapter.modelName(),
                     Sha256Digest.hex(CanonicalJsonCodec.canonicalize(input)),
                     Sha256Digest.hex(CanonicalJsonCodec.canonicalize(output)), tokens,
-                    Duration.ofNanos(System.nanoTime() - started).toMillis()));
+                    Duration.ofNanos(System.nanoTime() - started).toMillis()), parsed.warnings());
         } catch (BusinessModelException exception) {
-            LOGGER.warn("业务模型输出不符合契约: {}", exception.getMessage());
+            LOGGER.warn("业务模型输出不符合契约: {}", describe(exception));
             throw exception;
         } catch (RuntimeException exception) {
             LOGGER.warn("业务模型调用失败: {}", describe(exception));
             throw new BusinessModelException("模型分析暂时不可用，请稍后重试", exception);
         }
+    }
+
+    private record ParsedModelOutput<T>(T value, List<String> warnings) {
     }
 
     /** 仅记录异常类名与脱敏消息链，不记录提示词、密钥或模型输出。 */

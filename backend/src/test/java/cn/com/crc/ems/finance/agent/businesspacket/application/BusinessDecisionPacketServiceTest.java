@@ -183,6 +183,42 @@ class BusinessDecisionPacketServiceTest {
         org.mockito.Mockito.verifyNoInteractions(modelClient);
     }
 
+    @Test
+    void usesLatestSnapshotOnly() {
+        var packetRepository = mock(BusinessDecisionPacketRepository.class);
+        var evidenceRepository = mock(BusinessEvidenceAccumRepository.class);
+        var modelClient = mock(BusinessModelClient.class);
+        var taskRepository = mock(InvestigationTaskRepository.class);
+        var taskSkillRepository = mock(TaskBusinessSceneSkillRepository.class);
+        var sceneSkillRepository = mock(BusinessSceneSkillRepository.class);
+        var emsConfigService = mock(EmsDatabaseConnectionConfigService.class);
+        var guidanceDraftRepository = mock(GuidanceDraftRepository.class);
+        UUID taskId = UUID.randomUUID();
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(task(taskId)));
+        when(evidenceRepository.findByTaskIdOrderByRound(taskId)).thenReturn(List.of(
+                new BusinessEvidenceAccum(UUID.randomUUID(), taskId, 1,
+                        "[{\"schema\":\"basedata\",\"table\":\"old_table\",\"purpose\":\"旧证据\",\"columns\":[\"id\"],\"rows\":[[\"1\"]]}]",
+                        false, NOW),
+                new BusinessEvidenceAccum(UUID.randomUUID(), taskId, 2,
+                        "[{\"schema\":\"basedata\",\"table\":\"latest_table\",\"purpose\":\"最新快照\",\"columns\":[\"id\"],\"rows\":[[\"1\"]]}]",
+                        true, NOW)));
+        when(guidanceDraftRepository.findLatestDraftJsonByTaskId(taskId)).thenReturn(Optional.of(draftJson("最新结论")));
+        var suggestion = new BusinessPacketAnalysisSuggestion("对象", "结论", "目标", List.of(), "理由");
+        when(modelClient.analyzeDecisionPacket(any())).thenReturn(new BusinessModelResult<>(suggestion,
+                new BusinessModelCallMetadata("LIVE", "deepseek-chat", "a".repeat(64), "b".repeat(64), 10, 100)));
+        var service = new BusinessDecisionPacketService(packetRepository, evidenceRepository, modelClient, taskRepository,
+                taskSkillRepository, sceneSkillRepository, emsConfigService, guidanceDraftRepository,
+                Clock.fixed(NOW, ZoneOffset.UTC));
+
+        service.generate(taskId);
+
+        ArgumentCaptor<BusinessPacketAnalysisContext> contextCaptor = ArgumentCaptor
+                .forClass(BusinessPacketAnalysisContext.class);
+        verify(modelClient).analyzeDecisionPacket(contextCaptor.capture());
+        assertThat(contextCaptor.getValue().evidence()).extracting(item -> item.table())
+                .containsExactly("latest_table");
+    }
+
     private static String draftJson(String conclusion) {
         return "{\"subjectKey\":\"离职人员 E001\",\"objectKey\":\"审批权限\","
                 + "\"recommendedGoal\":\"回收权限\",\"alternativeGoals\":[],\"reason\":\"调查证据\","

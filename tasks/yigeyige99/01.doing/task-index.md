@@ -168,6 +168,10 @@ source: development-workplan
 |  144 | P0 自定义需求 | [20261030-scene-skill-attachments](../03.achieved/20261030-业务场景Skill附件.md) | 业务场景 Skill 附件 | [20261030-业务场景Skill附件.md](../03.achieved/20261030-业务场景Skill附件.md) | 已完成 | 无 |
 |  145 | P0 自定义需求 | [20261031-include-guidance-draft-in-decision-packet](../03.achieved/20261031-决策包纳入调查结论.md) | 决策包生成纳入逐轮修订的调查结论与证据 | [20261031-决策包纳入调查结论.md](../03.achieved/20261031-决策包纳入调查结论.md) | 已完成 | `20261024-business-decision-packet` |
 |  146 | P0 自定义需求 | [20261030-generate-process-artifacts](../03.achieved/20261030-%20流程文件产物生成.md) | 流程文件产物生成 | [20261030- 流程文件产物生成.md](../03.achieved/20261030-%20流程文件产物生成.md) | 已完成 | `20261031-include-guidance-draft-in-decision-packet` |
+|  147 | P0 自定义需求 | [20261031-briefing-validation-relaxation-valueset](../03.achieved/20261031-修复业务处理初稿校验与值集查询.md) | 修复业务处理初稿严格校验与值集查询问题 | [20261031-修复业务处理初稿校验与值集查询.md](../03.achieved/20261031-修复业务处理初稿校验与值集查询.md) | 已完成 | `20261030-generate-process-artifacts` |
+|  148 | P0 自定义需求 | [20261031-improve-process-layout-bpmn-reference](../03.achieved/20261031-优化流程图布局与BPMN必读附件.md) | 优化流程图布局与BPMN必读附件 | [20261031-优化流程图布局与BPMN必读附件.md](../03.achieved/20261031-优化流程图布局与BPMN必读附件.md) | 已完成 | 无 |
+|  149 | P0 自定义需求 | [20261031-fix-cross-round-evidence-and-scene-prompt](../03.achieved/20261031-修复跨轮证据与场景提示词.md) | 修复跨轮证据语义与审批流程场景提示词 | [20261031-修复跨轮证据与场景提示词.md](../03.achieved/20261031-修复跨轮证据与场景提示词.md) | 已完成 | 无 |
+|  149 | P1 自定义需求 | [20261031-instance-configuration-schema-catalog](20261031-数据库实例配置结构目录.md) | 数据库实例关联配置结构知识目录并供模型检索 | [20261031-数据库实例配置结构目录.md](20261031-数据库实例配置结构目录.md) | 进行中 | 无 |
 
 > 2026-10-28：用户删除原开发顺序 128—130 的三个旧提案，现由 137—139 三个新切片替代；历史顺序号不复用。三个新任务仅完成规划，实施项均未勾选，按依赖顺序推进。
 

@@ -9,6 +9,7 @@
 | AgentScope BOM | `io.agentscope:agentscope-dependencies-bom:2.0.3` | 唯一 AgentScope 版本入口 |
 | Harness | `io.agentscope:agentscope-harness:2.0.3` | AgentScope BOM 不管理自身模块，显式与 BOM 版本保持一致 |
 | OpenAI 兼容模型 | `io.agentscope:agentscope-extensions-model-openai:2.0.3` | 用于 DeepSeek 兼容端点；显式与 BOM 版本保持一致 |
+| 图布局（预留） | `org.eclipse.elk:org.eclipse.elk.core` / `org.eclipse.elk.alg.layered:0.9.1` | 仅引入依赖，本阶段不调用；用于后续复杂流程布局评估 |
 
 POM 没有引入 `SNAPSHOT`、Git `main` 源码或未解释的依赖版本覆盖。两个 AgentScope 扩展模块的显式 `2.0.3` 是因为官方 BOM 不声明自身模块版本，属于与 `agentscope.version` 同源的必要锁定。Spring Boot 与 AgentScope BOM 的版本组合与方案基线一致。
 

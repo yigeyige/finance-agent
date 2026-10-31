@@ -26,5 +26,6 @@ public class BusinessEvidenceAccumEntity {
     public Integer roundNo;
     @TableField(value = "evidence", typeHandler = JsonbTypeHandler.class)
     public String evidence;
+    public Boolean snapshot;
     public Instant createdAt;
 }

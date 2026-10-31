@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactBatch;
 import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactFile;
 import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactPlan;
 import cn.com.crc.ems.finance.agent.scenario.application.BusinessSceneSkillRepository;
+import cn.com.crc.ems.finance.agent.scenario.application.SceneSkillAttachmentRepository;
 import cn.com.crc.ems.finance.agent.scenario.domain.BusinessSceneSkill;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 
@@ -31,14 +33,16 @@ public final class ProcessArtifactService {
     private final BusinessSceneSkillRepository skills;
     private final BusinessModelClient model;
     private final ProcessArtifactBatchRepository batches;
+    private final SceneSkillAttachmentRepository attachments;
     private final Clock clock;
 
     public ProcessArtifactService(BusinessDecisionPacketRepository packets, BusinessSceneSkillRepository skills,
-            BusinessModelClient model, ProcessArtifactBatchRepository batches, Clock clock) {
+            BusinessModelClient model, ProcessArtifactBatchRepository batches, SceneSkillAttachmentRepository attachments, Clock clock) {
         this.packets = packets;
         this.skills = skills;
         this.model = model;
         this.batches = batches;
+        this.attachments = attachments;
         this.clock = clock;
     }
 
@@ -64,7 +68,7 @@ public final class ProcessArtifactService {
             throw new IllegalStateException("审批流程文件生成提示词尚未配置");
         }
         ProcessArtifactPlan plan = model.generateProcessArtifacts(new ProcessArtifactModelContext(taskId,
-                packet.packetId(), packet.revision(), content, skill.processArtifactPrompt())).value();
+                packet.packetId(), packet.revision(), content, skill.processArtifactPrompt(), requiredBpmnReference())).value();
         if (packets.findLatestByTaskId(taskId).filter(latest -> latest.packetId().equals(packet.packetId()))
                 .isEmpty()) throw new IllegalStateException("决策包已更新，请刷新后再生成文件");
         EmsProcessArtifactFiles converted = new EmsProcessArtifactConverter().convert(plan);
@@ -78,6 +82,19 @@ public final class ProcessArtifactService {
         return batches.save(new ProcessArtifactBatch(batchId, taskId, packet.packetId(), packet.revision(),
                 CanonicalJsonCodec.canonicalize(plan.toJson()), converted.missingItems(), converted.importStatus(),
                 now, List.copyOf(files)));
+    }
+
+    /** 读取场景必读 BPMN XML 原文，限制 100KB；缺失或超限时拒绝生成。 */
+    private String requiredBpmnReference() {
+        var attachment = attachments.findBySkillId(PROCESS_SKILL_ID).stream()
+                .filter(item -> item.fileName().toLowerCase(Locale.ROOT).endsWith(".xml"))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("场景缺少必读 BPMN 参考文件"));
+        String xml = attachment.contentText();
+        if (xml.length() > 100_000) {
+            throw new IllegalStateException("BPMN 参考文件超过 100KB，无法注入");
+        }
+        return xml;
     }
 
     /** 展示最近两次成功生成的批次。 */

@@ -88,6 +88,23 @@ public record ProcessArtifactPlan(String name, List<Node> nodes, List<Flow> flow
                 texts(value.get("missingItems"), "待补信息"), texts(value.get("unsupported"), "未支持形态"));
     }
 
+    /** 判断节点 ID 是否符合首版编辑器约束。 */
+    static boolean isValidNodeId(String id) {
+        return id != null && ID.matcher(id).matches();
+    }
+
+    /** 判断节点类型是否在首版支持范围内。 */
+    static boolean isSupportedKind(String kind) {
+        return kind != null && KINDS.contains(kind);
+    }
+
+    /** 判断排他分支三元组是否满足白名单约束。 */
+    static boolean isValidCondition(String variable, String operator, String value) {
+        return variable != null && ID.matcher(variable).matches()
+                && Set.of("==", "!=", ">", ">=", "<", "<=").contains(operator)
+                && value != null && VALUE.matcher(value).matches();
+    }
+
     /** 把已校验的中间表示交给模型和批次存储，字段集合保持固定。 */
     public ObjectNode toJson() {
         ObjectNode node = JsonNodeFactory.instance.objectNode();

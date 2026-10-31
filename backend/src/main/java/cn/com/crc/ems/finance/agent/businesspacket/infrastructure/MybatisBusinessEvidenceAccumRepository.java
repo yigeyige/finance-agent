@@ -44,6 +44,7 @@ public class MybatisBusinessEvidenceAccumRepository implements BusinessEvidenceA
         entity.taskId = accum.taskId();
         entity.roundNo = accum.roundNo();
         entity.evidence = accum.evidenceJson();
+        entity.snapshot = accum.snapshot();
         entity.createdAt = accum.createdAt();
         mapper.insert(entity);
     }
@@ -56,6 +57,6 @@ public class MybatisBusinessEvidenceAccumRepository implements BusinessEvidenceA
 
     private BusinessEvidenceAccum toDomain(BusinessEvidenceAccumEntity entity) {
         return new BusinessEvidenceAccum(PersistenceUuid.toDomain(entity.evidenceAccumId), entity.taskId,
-                entity.roundNo, entity.evidence, entity.createdAt);
+                entity.roundNo, entity.evidence, Boolean.TRUE.equals(entity.snapshot), entity.createdAt);
     }
 }

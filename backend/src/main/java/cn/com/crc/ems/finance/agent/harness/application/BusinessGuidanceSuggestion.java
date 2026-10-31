@@ -43,31 +43,45 @@ public record BusinessGuidanceSuggestion(String reply, BusinessHandlingDraft dra
      * @author: yigeyige99
      */
     public static BusinessGuidanceSuggestion fromJson(JsonNode value) {
+        return fromJson(value, new ArrayList<>());
+    }
+
+    /**
+     *
+     * @description: 从严格模型 JSON 读取业务建议，并收集流程结构规范化警告。
+     *
+     * @param: value 模型返回 JSON
+     * @param: warnings 用于收集流程结构规范化说明的可变列表
+     * @return: 经校验的业务处理建议
+     * @throws: BusinessModelOutputException 输出字段不符合契约时抛出
+     * @author: yigeyige99
+     */
+    public static BusinessGuidanceSuggestion fromJson(JsonNode value, List<String> warnings) {
         if (value == null || !value.isObject() || value.size() != FIELDS.size() || !value.has("reply")
                 || !value.has("draft") || !value.has("requestedAttachments")) {
-            throw new BusinessModelException("模型返回内容不符合约定结构");
+            throw new BusinessModelOutputException("模型返回内容不符合约定结构");
         }
         value.fieldNames().forEachRemaining(field -> {
             if (!FIELDS.contains(field)) {
-                throw new BusinessModelException("模型返回内容包含未约定字段");
+                throw new BusinessModelOutputException("模型返回内容包含未约定字段");
             }
         });
         JsonNode reply = value.get("reply");
         if (!reply.isTextual() || reply.textValue().isBlank() || reply.textValue().length() > 2000) {
-            throw new BusinessModelException("模型返回字段格式不正确: reply");
+            throw new BusinessModelOutputException("模型返回字段格式不正确: reply");
         }
         JsonNode requested = value.get("requestedAttachments");
         if (!requested.isArray() || requested.size() > 2) {
-            throw new BusinessModelException("模型返回字段格式不正确: requestedAttachments");
+            throw new BusinessModelOutputException("模型返回字段格式不正确: requestedAttachments");
         }
         List<String> fileNames = new ArrayList<>();
         requested.forEach(item -> {
             if (!item.isTextual() || item.textValue().isBlank() || item.textValue().length() > 255) {
-                throw new BusinessModelException("模型返回字段格式不正确: requestedAttachments");
+                throw new BusinessModelOutputException("模型返回字段格式不正确: requestedAttachments");
             }
             fileNames.add(item.textValue());
         });
-        return new BusinessGuidanceSuggestion(reply.textValue(), BusinessHandlingDraft.fromJson(value.get("draft")),
+        return new BusinessGuidanceSuggestion(reply.textValue(), BusinessHandlingDraft.fromJson(value.get("draft"), warnings),
                 fileNames);
     }
 }

@@ -26,6 +26,17 @@ import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
  */
 public final class EmsProcessArtifactConverter {
 
+    private static final int X_BASE = 40;
+    private static final int LAYER_GAP = 220;
+    private static final int ROW_GAP = 120;
+    private static final int LANE_GAP = 140;
+    private static final int CENTER_Y = 300;
+    private static final int NODE_WIDTH = 120;
+    private static final int NODE_HEIGHT = 60;
+    private static final int GATEWAY_WIDTH = 40;
+    private static final int GATEWAY_HEIGHT = 40;
+    private static final int EVENT_SIZE = 40;
+
     private static final Set<String> NODE_PARAMETER_FIELDS = Set.of("variableName", "actId", "variableValue",
             "variableNote", "variableIsnull", "usednextact", "actName", "variableDefaultvalue",
             "variableFormat", "scope", "variableDatatype");
@@ -40,6 +51,7 @@ public final class EmsProcessArtifactConverter {
 
     /** 生成根目录可导入的模型文件及适用配置；未连通流程标为待修复。 */
     public EmsProcessArtifactFiles convert(ProcessArtifactPlan plan) {
+        Layout layout = layout(plan);
         Map<String, String> resources = new HashMap<>();
         resources.put("start", resource());
         resources.put("end", resource());
@@ -47,13 +59,15 @@ public final class EmsProcessArtifactConverter {
         ObjectNode model = model(plan.name());
         ArrayNode shapes = model.withArray("childShapes");
         Map<String, ObjectNode> shapeById = new HashMap<>();
-        shapeById.put("start", shape("start", "StartNoneEvent", "开始", resources.get("start"), 0));
-        int position = 1;
+        shapeById.put("start", shape("start", "StartNoneEvent", "开始", resources.get("start"), layout.boxes().get("start")));
         for (ProcessArtifactPlan.Node node : plan.nodes()) {
+            Box box = layout.boxes().get(node.id());
             shapeById.put(node.id(), shape(node.id(), "exclusive-gateway".equals(node.kind())
-                    ? "ExclusiveGateway" : "UserTask", node.name(), resources.get(node.id()), position++));
+                    ? "ExclusiveGateway" : "UserTask", node.name(), resources.get(node.id()), box));
             ObjectNode props = (ObjectNode) shapeById.get(node.id()).get("properties");
-            if (!"exclusive-gateway".equals(node.kind())) {
+            if ("exclusive-gateway".equals(node.kind())) {
+                props.put("sequencefloworder", "");
+            } else {
                 props.put("node_type", nodeType(node.kind()));
                 props.put("usertaskassignment", node.assignee());
                 props.put("multiinstance_type", "None");
@@ -69,27 +83,22 @@ public final class EmsProcessArtifactConverter {
                 props.put("tasklisteners", "");
             }
         }
-        shapeById.put("end", shape("end", "EndNoneEvent", "结束", resources.get("end"), position));
+        shapeById.put("end", shape("end", "EndNoneEvent", "结束", resources.get("end"), layout.boxes().get("end")));
         shapes.add(shapeById.get("start"));
         plan.nodes().forEach(node -> shapes.add(shapeById.get(node.id())));
         shapes.add(shapeById.get("end"));
         for (ProcessArtifactPlan.Flow flow : plan.flows()) {
             String flowId = resource();
             ((ArrayNode) shapeById.get(flow.source()).get("outgoing")).addObject().put("resourceId", flowId);
-            ObjectNode line = shape("", "SequenceFlow", "", flowId, position++);
+            ObjectNode line = lineShape(flowId, resources.get(flow.target()), layout.boxes().get(flow.source()), layout.boxes().get(flow.target()));
             ObjectNode properties = (ObjectNode) line.get("properties");
             properties.put("conditionsequenceflow", flow.condition() == null ? "" : expression(flow.condition()));
-            properties.put("executionlisteners", "");
-            properties.put("defaultflow", "false");
-            properties.put("showdiamondmarker", false);
-            line.putObject("target").put("resourceId", resources.get(flow.target()));
-            line.withArray("outgoing").addObject().put("resourceId", resources.get(flow.target()));
-            ArrayNode dockers = line.putArray("dockers");
-            dockers.addObject().put("x", 50).put("y", 40);
-            dockers.addObject().put("x", 50).put("y", 40);
             shapes.add(line);
         }
         List<String> missing = new ArrayList<>(plan.missingItems());
+        if (!layout.acyclic()) {
+            missing.add("流程存在回边或循环，已标记待修复");
+        }
         missing.addAll(plan.unsupported().stream().map(value -> "暂未转换：" + value).toList());
         boolean connected = connected(plan);
         if (!connected) missing.add("流程没有从开始到结束的完整路径，或存在未连通节点");
@@ -148,7 +157,7 @@ public final class EmsProcessArtifactConverter {
         return root;
     }
 
-    private static ObjectNode shape(String id, String stencil, String name, String resourceId, int position) {
+    private static ObjectNode shape(String id, String stencil, String name, String resourceId, Box box) {
         ObjectNode node = JsonNodeFactory.instance.objectNode();
         node.put("resourceId", resourceId);
         ObjectNode props = node.putObject("properties");
@@ -159,10 +168,215 @@ public final class EmsProcessArtifactConverter {
         node.putObject("stencil").put("id", stencil);
         node.putArray("childShapes");
         node.putArray("outgoing");
-        bounds(node, 40 + position * 160, 140, 140 + position * 160, 220);
+        bounds(node, box.x(), box.y(), box.right(), box.bottom());
         node.putArray("dockers");
         return node;
     }
+
+    private static ObjectNode lineShape(String flowId, String targetResourceId, Box source, Box target) {
+        ObjectNode line = JsonNodeFactory.instance.objectNode();
+        line.put("resourceId", flowId);
+        ObjectNode props = line.putObject("properties");
+        props.put("name", "");
+        props.put("documentation", "");
+        props.put("executionlisteners", "");
+        props.put("conditionsequenceflow", "");
+        props.put("defaultflow", "false");
+        props.put("showdiamondmarker", false);
+        line.putObject("stencil").put("id", "SequenceFlow");
+        line.putArray("childShapes");
+        line.putArray("outgoing");
+        line.putObject("target").put("resourceId", targetResourceId);
+        line.withArray("outgoing").addObject().put("resourceId", targetResourceId);
+        Point start = new Point(source.centerX(), source.centerY());
+        Point end = new Point(target.centerX(), target.centerY());
+        int minX = Math.min(start.x(), end.x());
+        int minY = Math.min(start.y(), end.y());
+        int maxX = Math.max(start.x(), end.x());
+        int maxY = Math.max(start.y(), end.y());
+        bounds(line, minX, minY, maxX, maxY);
+        ArrayNode dockers = line.putArray("dockers");
+        dockers.addObject().put("x", source.width() / 2).put("y", source.height() / 2);
+        dockers.addObject().put("x", target.width() / 2).put("y", target.height() / 2);
+        return line;
+    }
+
+    private static List<Point> route(Box source, Box target) {
+        if (target.x() - source.right() > 300) {
+            int routeY = Math.max(source.bottom(), target.bottom()) + 80;
+            return List.of(new Point(source.centerX(), source.bottom()), new Point(source.centerX(), routeY),
+                    new Point(target.centerX(), routeY), new Point(target.centerX(), target.bottom()));
+        }
+        if (target.x() >= source.right() + 20) {
+            int sourceY = source.centerY();
+            int targetY = target.centerY();
+            if (sourceY == targetY) {
+                return List.of(new Point(source.right(), sourceY), new Point(target.x(), targetY));
+            }
+            int middleX = (source.right() + target.x()) / 2;
+            return List.of(new Point(source.right(), sourceY), new Point(middleX, sourceY),
+                    new Point(middleX, targetY), new Point(target.x(), targetY));
+        }
+        if (target.bottom() >= source.bottom()) {
+            int routeY = Math.max(source.bottom(), target.bottom()) + 40;
+            return List.of(new Point(source.centerX(), source.bottom()), new Point(source.centerX(), routeY),
+                    new Point(target.centerX(), routeY), new Point(target.centerX(), target.bottom()));
+        }
+        int routeY = Math.min(source.y(), target.y()) - 40;
+        return List.of(new Point(source.centerX(), source.y()), new Point(source.centerX(), routeY),
+                new Point(target.centerX(), routeY), new Point(target.centerX(), target.y()));
+    }
+
+    private static Layout layout(ProcessArtifactPlan plan) {
+        Map<String, Integer> layers = new HashMap<>();
+        layers.put("start", 0);
+        plan.nodes().forEach(node -> layers.put(node.id(), 1));
+        layers.put("end", 1);
+        boolean acyclic = true;
+        int maxIterations = plan.nodes().size() + 3;
+        for (int iteration = 0; iteration < maxIterations; iteration++) {
+            boolean changed = false;
+            for (ProcessArtifactPlan.Flow flow : plan.flows()) {
+                if ("end".equals(flow.source())) {
+                    continue;
+                }
+                int sourceLayer = layers.getOrDefault(flow.source(), 0);
+                int targetLayer = layers.getOrDefault(flow.target(), 1);
+                if (sourceLayer + 1 > targetLayer) {
+                    layers.put(flow.target(), sourceLayer + 1);
+                    changed = true;
+                }
+            }
+            if (!changed) {
+                break;
+            }
+            if (iteration == maxIterations - 1) {
+                acyclic = false;
+            }
+        }
+        if (!acyclic) {
+            return sequentialLayout(plan);
+        }
+        int maxNodeLayer = plan.nodes().stream().mapToInt(node -> layers.getOrDefault(node.id(), 1)).max().orElse(0);
+        if (layers.getOrDefault("end", 1) <= maxNodeLayer) {
+            layers.put("end", maxNodeLayer + 1);
+        }
+        return buildLayout(plan, layers, computeLanes(plan, layers), true);
+    }
+
+    private static Layout sequentialLayout(ProcessArtifactPlan plan) {
+        Map<String, Integer> layers = new HashMap<>();
+        layers.put("start", 0);
+        int position = 1;
+        for (ProcessArtifactPlan.Node node : plan.nodes()) {
+            layers.put(node.id(), position++);
+        }
+        layers.put("end", position);
+        return buildLayout(plan, layers, computeLanes(plan, layers), false);
+    }
+
+    private static Layout buildLayout(ProcessArtifactPlan plan, Map<String, Integer> layers,
+            Map<String, Integer> lanes, boolean acyclic) {
+        Map<Integer, List<String>> byLayer = new HashMap<>();
+        List<String> ordered = new ArrayList<>();
+        ordered.add("start");
+        plan.nodes().forEach(node -> ordered.add(node.id()));
+        ordered.add("end");
+        for (String id : ordered) {
+            byLayer.computeIfAbsent(layers.getOrDefault(id, 0), key -> new ArrayList<>()).add(id);
+        }
+        int maxLayer = byLayer.keySet().stream().mapToInt(Integer::intValue).max().orElse(0);
+        Map<String, Box> boxes = new HashMap<>();
+        for (int layer = 0; layer <= maxLayer; layer++) {
+            List<String> ids = byLayer.getOrDefault(layer, List.of());
+            Map<Integer, List<String>> byLane = new HashMap<>();
+            for (String id : ids) {
+                byLane.computeIfAbsent(lanes.getOrDefault(id, 0), key -> new ArrayList<>()).add(id);
+            }
+            for (Map.Entry<Integer, List<String>> laneEntry : byLane.entrySet()) {
+                List<String> laneIds = laneEntry.getValue();
+                int total = Math.max(0, (laneIds.size() - 1) * ROW_GAP);
+                for (int index = 0; index < laneIds.size(); index++) {
+                    String id = laneIds.get(index);
+                    int width = "start".equals(id) || "end".equals(id) ? EVENT_SIZE
+                            : isGateway(plan, id) ? GATEWAY_WIDTH : NODE_WIDTH;
+                    int height = "start".equals(id) || "end".equals(id) ? EVENT_SIZE
+                            : isGateway(plan, id) ? GATEWAY_HEIGHT : NODE_HEIGHT;
+                    int x = X_BASE + layer * LAYER_GAP + (NODE_WIDTH - width) / 2;
+                    int y = CENTER_Y + laneEntry.getKey() * LANE_GAP - total / 2 + index * ROW_GAP - height / 2;
+                    boxes.put(id, new Box(x, y, width, height));
+                }
+            }
+        }
+        return new Layout(boxes, acyclic);
+    }
+
+    /** 根据排他网关出口分配纵向车道，使分支目标上下错开。 */
+    private static Map<String, Integer> computeLanes(ProcessArtifactPlan plan, Map<String, Integer> layers) {
+        Map<String, Integer> lanes = new HashMap<>();
+        lanes.put("start", 0);
+        plan.nodes().forEach(node -> lanes.put(node.id(), 0));
+        lanes.put("end", 0);
+        for (ProcessArtifactPlan.Node node : plan.nodes()) {
+            if (!"exclusive-gateway".equals(node.kind())) {
+                continue;
+            }
+            List<ProcessArtifactPlan.Flow> outgoing = plan.flows().stream()
+                    .filter(flow -> flow.source().equals(node.id())).toList();
+            int gatewayLane = lanes.getOrDefault(node.id(), 0);
+            for (int index = 0; index < outgoing.size(); index++) {
+                String target = outgoing.get(index).target();
+                if (!"end".equals(target)) {
+                    lanes.put(target, gatewayLane + branchOffset(index, outgoing.size()));
+                }
+            }
+        }
+        for (int iteration = 0; iteration <= plan.nodes().size(); iteration++) {
+            boolean changed = false;
+            for (ProcessArtifactPlan.Flow flow : plan.flows()) {
+                if ("end".equals(flow.source())) {
+                    continue;
+                }
+                int sourceLane = lanes.getOrDefault(flow.source(), 0);
+                if (sourceLane != 0 && lanes.getOrDefault(flow.target(), 0) == 0) {
+                    lanes.put(flow.target(), sourceLane);
+                    changed = true;
+                }
+            }
+            if (!changed) {
+                break;
+            }
+        }
+        int endLane = plan.flows().stream().filter(flow -> "end".equals(flow.target()))
+                .mapToInt(flow -> lanes.getOrDefault(flow.source(), 0)).max().orElse(0);
+        lanes.put("end", endLane);
+        return lanes;
+    }
+
+    private static int branchOffset(int index, int count) {
+        if (count <= 1) {
+            return 0;
+        }
+        if (count % 2 == 0) {
+            return index < count / 2 ? index - count / 2 : index - count / 2 + 1;
+        }
+        return index - (count - 1) / 2;
+    }
+
+    private static boolean isGateway(ProcessArtifactPlan plan, String id) {
+        return plan.nodes().stream().anyMatch(node -> node.id().equals(id) && "exclusive-gateway".equals(node.kind()));
+    }
+
+    private record Box(int x, int y, int width, int height) {
+        int right() { return x + width; }
+        int bottom() { return y + height; }
+        int centerX() { return x + width / 2; }
+        int centerY() { return y + height / 2; }
+    }
+
+    private record Layout(Map<String, Box> boxes, boolean acyclic) { }
+
+    private record Point(int x, int y) { }
 
     private static void bounds(ObjectNode node, int left, int top, int right, int bottom) {
         ObjectNode bounds = node.putObject("bounds");

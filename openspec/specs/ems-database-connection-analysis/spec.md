@@ -3,9 +3,7 @@
 ## Purpose
 
 让平台管理员受控维护 EMS MySQL 连接，并让业务处理模型仅通过后端只读工具取得有限的辅助查询结果。
-
 ## Requirements
-
 ### Requirement: Managed EMS database configuration
 
 系统 SHALL 允许具有 `PLATFORM_ADMIN` 角色的身份维护 EMS MySQL 数据库连接配置，并且允许同时启用多条配置。密码 MUST 使用应用密钥加密保存，任何响应、日志和模型上下文 MUST NOT 返回密码或密文。未配置或长度不足的加密主密钥时，系统 MUST 拒绝保存并返回安全、可操作的配置不可用错误，MUST NOT 将其映射为业务状态冲突。
@@ -78,3 +76,36 @@
 
 - **WHEN** 平台管理员点击侧栏中的数据库实例
 - **THEN** 页面展示受控配置表单、状态、启停和测试操作，密码字段不回填
+
+### Requirement: Value set catalog and role-code fallback
+
+系统 SHALL 将 basedata.sys_value_set 和 basedata.sys_value_set_item 纳入业务处理模型的 EMS 候选表目录。当用户说明包含角色代码时，受控提示词 SHALL 引导模型查询 approval_config_role 值集（VS_CODE 为 approval_config_role，角色代码取 VSI_KEY，显示名取 basedata.sys_value_set_item_lang.VSI_VALUE）。值集查询未命中时，系统 SHALL 使用用户提供的角色代码作为流程条件值，并在 missingItems 中标记未在值集表核实，MUST NOT 臆造其他角色代码或阻断初稿生成。
+
+#### Scenario: Value set tables appear in candidate catalog
+- **WHEN** 任务选择启用的 EMS 实例且模型请求表目录
+- **THEN** 候选目录包含 basedata.sys_value_set 与 basedata.sys_value_set_item
+
+#### Scenario: Role code is verified from value set
+- **WHEN** 用户说明包含角色代码 ZYMD 且值集存在 approval_config_role.ZYMD
+- **THEN** 模型可取得该角色项作为辅助证据，流程条件使用该代码
+
+#### Scenario: Role code is not found in value set
+- **WHEN** 值集查询未返回用户提供的角色代码
+- **THEN** 系统仍使用用户提供的代码生成流程条件，并在 missingItems 中标记未核实，不阻断初稿返回
+
+### Requirement: Approval scene evidence scope
+
+审批流程生成场景的 EMS 辅助查询 SHALL 只获取流程结构、分支条件和值集所需信息。系统 MUST NOT 查询审核人、用户、角色主数据（如 sys_role、sys_user、sys_employee）来推断审批人；只有需要校验角色代码时，才查询 `approval_config_role` 值集。值集未命中时 MUST 使用用户提供的角色代码并列入 missingItems。
+
+#### Scenario: Role master data is not queried
+- **WHEN** 审批流程场景分析用户说明中的角色代码
+- **THEN** 模型不查询 sys_role/sys_user/sys_employee 等主数据
+
+#### Scenario: Value set is queried
+- **WHEN** 需要校验角色代码
+- **THEN** 查询 basedata.sys_value_set_item 的 approval_config_role 值集
+
+#### Scenario: Role code not found
+- **WHEN** 值集未返回用户提供的代码
+- **THEN** 使用用户代码并列入 missingItems，不继续查主数据
+

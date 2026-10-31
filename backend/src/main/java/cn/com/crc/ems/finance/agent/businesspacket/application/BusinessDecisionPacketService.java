@@ -93,7 +93,16 @@ public class BusinessDecisionPacketService {
         } catch (RuntimeException exception) {
             throw new IllegalStateException("调查草稿无法读取，请重新完成调查", exception);
         }
-        List<EmsDatabaseEvidence> evidence = deduplicate(evidenceRepository.findByTaskIdOrderByRound(taskId));
+        List<BusinessEvidenceAccum> rounds = evidenceRepository.findByTaskIdOrderByRound(taskId);
+        if (rounds.isEmpty()) {
+            throw new IllegalStateException("尚无调查证据，请先完成调查");
+        }
+        BusinessEvidenceAccum latestAccum = rounds.get(rounds.size() - 1);
+        List<EmsDatabaseEvidence> evidence = latestAccum.snapshot()
+                ? limit(parseEvidence(latestAccum.evidenceJson())) : deduplicate(rounds);
+        if (evidence.isEmpty()) {
+            throw new IllegalStateException("尚无调查证据，请先完成调查");
+        }
         BusinessSceneSkill sceneSkill = findSceneSkill(taskId);
         String decisionPacketPrompt = sceneSkill == null ? null : sceneSkill.decisionPacketPrompt();
         BusinessPacketAnalysisSuggestion analysis = modelClient
@@ -182,6 +191,13 @@ public class BusinessDecisionPacketService {
             return List.copyOf(result.subList(result.size() - MAX_EVIDENCE, result.size()));
         }
         return List.copyOf(result);
+    }
+
+    private static List<EmsDatabaseEvidence> limit(List<EmsDatabaseEvidence> evidence) {
+        if (evidence.size() > MAX_EVIDENCE) {
+            return List.copyOf(evidence.subList(evidence.size() - MAX_EVIDENCE, evidence.size()));
+        }
+        return List.copyOf(evidence);
     }
 
     private List<EmsDatabaseEvidence> parseEvidence(String evidenceJson) {

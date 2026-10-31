@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelException;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessModelOutputException;
 
 /**
  *
@@ -20,6 +21,12 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessModelException;
  */
 @RestControllerAdvice(assignableTypes = BusinessModelController.class)
 public final class BusinessModelExceptionHandler {
+
+    @ExceptionHandler(BusinessModelOutputException.class)
+    public ResponseEntity<Map<String, String>> outputInvalid(BusinessModelOutputException exception) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("code", "MODEL_OUTPUT_INVALID",
+                "message", safeOutputMessage(exception.getMessage())));
+    }
 
     @ExceptionHandler(BusinessModelException.class)
     public ResponseEntity<Map<String, String>> modelUnavailable(BusinessModelException exception) {
@@ -63,6 +70,10 @@ public final class BusinessModelExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, String>> attachmentTooLarge(MaxUploadSizeExceededException exception) {
         return ResponseEntity.badRequest().body(Map.of("code", "ATTACHMENT_INVALID", "message", "单个附件不能超过 1 MB"));
+    }
+
+    private static String safeOutputMessage(String message) {
+        return message == null || message.isBlank() ? "模型输出结构不符合约定" : message;
     }
 
     private static String safeStateMessage(String message) {

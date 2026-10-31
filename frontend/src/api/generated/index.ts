@@ -142,7 +142,7 @@ export interface DraftEvidence { schema: string; table: string; purpose: string;
 export interface ProcessArtifactPlan { name: string; nodes: Array<{ id: string; kind: string; name: string; assignee: string }>; flows: Array<{ source: string; target: string; condition: { variable: string; operator: string; value: string } | null }>; nodeParameters: Record<string, unknown>[]; departmentApprovals: Record<string, unknown>[]; approvalRules: Record<string, unknown>[]; missingItems: string[]; unsupported: string[] }
 export interface BusinessHandlingDraft { subjectKey: string; objectKey: string; recommendedGoal: string; alternativeGoals: string[]; reason: string; conclusion: string; evidence: DraftEvidence[]; processPlan?: ProcessArtifactPlan }
 export interface BusinessGuidanceRequest { message?: string; currentDraft?: BusinessHandlingDraft }
-export interface BusinessGuidanceResponse { reply: string; draft: BusinessHandlingDraft; metadata: ModelCallMetadata }
+export interface BusinessGuidanceResponse { reply: string; draft: BusinessHandlingDraft; warnings: string[]; metadata: ModelCallMetadata }
 export interface TaskDraftRequest { title: string; originalQuestion: string; initiatorUserId: string; runtimeBundleId: string; businessSceneSkillId?: string; databaseConfigId?: string }
 
 const TASK_RESPONSE_FIELDS = ['taskId', 'title', 'status', 'rowVersion', 'currentScopeRevisionId', 'createdAt', 'premiseId', 'scopeRevisionNo', 'scopeDigest']
@@ -299,8 +299,8 @@ function parseTaskDecisionPacket(value: unknown): TaskDecisionPacket {
 
 /** 校验业务处理向导模型响应。 */
 export function parseBusinessGuidance(value: unknown): BusinessGuidanceResponse {
-  const record = assertObjectFields(value, ['reply', 'draft', 'metadata'], '模型业务初稿')
-  return { reply: requireString(record.reply, '模型回复'), draft: parseBusinessHandlingDraft(record.draft), metadata: parseModelCallMetadata(record.metadata) }
+  const record = assertObjectFields(value, ['reply', 'draft', 'metadata', 'warnings'], '模型业务初稿')
+  return { reply: requireString(record.reply, '模型回复'), draft: parseBusinessHandlingDraft(record.draft), warnings: record.warnings === undefined ? [] : requireStringArray(record.warnings, '模型输出警告'), metadata: parseModelCallMetadata(record.metadata) }
 }
 
 /** 校验模型方案建议响应。 */
@@ -482,7 +482,7 @@ function parseBusinessHandlingDraft(value: unknown): BusinessHandlingDraft {
   const raw = value as Record<string, unknown>
   const fields = raw.processPlan === undefined ? BUSINESS_DRAFT_FIELDS : [...BUSINESS_DRAFT_FIELDS, 'processPlan']
   const record = assertObjectFields(value, fields, '业务处理草稿')
-  return { subjectKey: requireString(record.subjectKey, '处理对象'), objectKey: requireString(record.objectKey, '对象标识'), recommendedGoal: requireString(record.recommendedGoal, '推荐方案'), alternativeGoals: requireStringArray(record.alternativeGoals, '备选方案'), reason: requireString(record.reason, '推荐理由'), conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence), processPlan: record.processPlan === undefined ? undefined : parseProcessArtifactPlan(record.processPlan) }
+  return { subjectKey: requireString(record.subjectKey, '处理对象'), objectKey: requireString(record.objectKey, '对象标识'), recommendedGoal: requireString(record.recommendedGoal, '推荐方案'), alternativeGoals: requireStringArray(record.alternativeGoals, '备选方案'), reason: requireString(record.reason, '推荐理由'), conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence), processPlan: record.processPlan === undefined || record.processPlan === null ? undefined : parseProcessArtifactPlan(record.processPlan) }
 }
 
 /** 校验流程调查结构，逐轮反馈时原样带回已确认的节点与流转。 */

@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactPlan;
+import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactPlanNormalizer;
+import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactPlanNormalizer;
 
 /**
  *
@@ -61,29 +63,47 @@ public record BusinessHandlingDraft(String subjectKey, String objectKey, String 
      * @author: yigeyige99
      */
     public static BusinessHandlingDraft fromJson(JsonNode value) {
+        return fromJson(value, new ArrayList<>());
+    }
+
+    /**
+     *
+     * @description: 严格解析模型返回的业务处理草稿；流程结构允许安全规范化并回传警告。
+     *
+     * @param: value 模型输出中的草稿 JSON
+     * @param: warnings 用于收集流程结构规范化说明的可变列表
+     * @return: 可用于业务表单的受限草稿
+     * @throws: BusinessModelOutputException 输出不符合顶层契约时抛出
+     * @author: yigeyige99
+     */
+    public static BusinessHandlingDraft fromJson(JsonNode value, List<String> warnings) {
         requireExactObject(value);
         List<String> alternatives = textArray(value.get("alternativeGoals"), "alternativeGoals", 0, 5);
         List<EmsDatabaseEvidence> evidence = evidenceArray(value.get("evidence"));
+        ProcessArtifactPlan processPlan = null;
+        if (value.has("processPlan")) {
+            ProcessArtifactPlanNormalizer.Result normalized = ProcessArtifactPlanNormalizer.normalize(value.get("processPlan"));
+            processPlan = normalized.plan();
+            warnings.addAll(normalized.warnings());
+        }
         try {
-            ProcessArtifactPlan processPlan = value.has("processPlan")
-                    ? ProcessArtifactPlan.fromJson(value.get("processPlan")) : null;
             return new BusinessHandlingDraft(text(value, "subjectKey", 200), text(value, "objectKey", 200),
                     text(value, "recommendedGoal", 2000), alternatives, text(value, "reason", 2000),
                     textValue(value.get("conclusion"), "conclusion", 2000), evidence, processPlan);
         } catch (IllegalArgumentException exception) {
-            throw new BusinessModelException("模型返回的业务处理初稿格式不正确", exception);
+            throw new BusinessModelOutputException("模型返回的业务处理初稿格式不正确", exception);
         }
     }
 
     /** 解析模型返回的关联证据数组，仅接受受限的行列结构。 */
     private static List<EmsDatabaseEvidence> evidenceArray(JsonNode value) {
         if (value == null || !value.isArray() || value.size() > 10) {
-            throw new BusinessModelException("模型返回字段格式不正确: evidence");
+            throw new BusinessModelOutputException("模型返回字段格式不正确: evidence");
         }
         List<EmsDatabaseEvidence> result = new ArrayList<>();
         value.forEach(item -> {
             if (!item.isObject()) {
-                throw new BusinessModelException("模型返回字段格式不正确: evidence");
+                throw new BusinessModelOutputException("模型返回字段格式不正确: evidence");
             }
             try {
                 String schema = textValue(item.get("schema"), "evidence.schema", 100);
@@ -102,7 +122,7 @@ public record BusinessHandlingDraft(String subjectKey, String objectKey, String 
                 }
                 result.add(new EmsDatabaseEvidence(schema, table, purpose, columns, rows));
             } catch (IllegalArgumentException exception) {
-                throw new BusinessModelException("模型返回字段格式不正确: evidence", exception);
+                throw new BusinessModelOutputException("模型返回字段格式不正确: evidence", exception);
             }
         });
         return List.copyOf(result);
@@ -132,20 +152,20 @@ public record BusinessHandlingDraft(String subjectKey, String objectKey, String 
 
     private static void requireExactObject(JsonNode value) {
         if (value == null || !value.isObject() || value.size() != FIELDS.size() + (value.has("processPlan") ? 1 : 0)) {
-            throw new BusinessModelException("模型返回内容不符合约定结构");
+            throw new BusinessModelOutputException("模型返回内容不符合约定结构");
         }
         Iterator<String> names = value.fieldNames();
         while (names.hasNext()) {
             String field = names.next();
             if (!FIELDS.contains(field) && !"processPlan".equals(field)) {
-                throw new BusinessModelException("模型返回内容包含未约定字段");
+                throw new BusinessModelOutputException("模型返回内容包含未约定字段");
             }
         }
     }
 
     private static List<String> textArray(JsonNode value, String field, int minSize, int maxSize) {
         if (value == null || !value.isArray() || value.size() < minSize || value.size() > maxSize) {
-            throw new BusinessModelException("模型返回字段格式不正确: " + field);
+            throw new BusinessModelOutputException("模型返回字段格式不正确: " + field);
         }
         List<String> values = new ArrayList<>();
         value.forEach(item -> values.add(textValue(item, field, 2000)));
@@ -158,7 +178,7 @@ public record BusinessHandlingDraft(String subjectKey, String objectKey, String 
 
     private static String textValue(JsonNode value, String field, int maxLength) {
         if (value == null || !value.isTextual() || value.textValue().isBlank() || value.textValue().length() > maxLength) {
-            throw new BusinessModelException("模型返回字段格式不正确: " + field);
+            throw new BusinessModelOutputException("模型返回字段格式不正确: " + field);
         }
         return value.textValue();
     }

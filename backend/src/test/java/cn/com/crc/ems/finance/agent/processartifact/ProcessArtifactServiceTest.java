@@ -25,6 +25,7 @@ import cn.com.crc.ems.finance.agent.processartifact.application.ProcessArtifactB
 import cn.com.crc.ems.finance.agent.processartifact.application.ProcessArtifactService;
 import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactPlan;
 import cn.com.crc.ems.finance.agent.scenario.application.BusinessSceneSkillRepository;
+import cn.com.crc.ems.finance.agent.scenario.application.SceneSkillAttachmentRepository;
 import cn.com.crc.ems.finance.agent.scenario.domain.BusinessSceneSkill;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 
@@ -41,9 +42,10 @@ class ProcessArtifactServiceTest {
         var model = mock(BusinessModelClient.class);
         var batches = mock(ProcessArtifactBatchRepository.class);
         var skills = mock(BusinessSceneSkillRepository.class);
+        var attachments = mock(SceneSkillAttachmentRepository.class);
         var packet = packet(taskId, "{\"guidanceDraft\":{},\"recommendedGoal\":\"方案\"}");
         when(packets.findLatestByTaskId(taskId)).thenReturn(Optional.of(packet));
-        var service = new ProcessArtifactService(packets, skills, model, batches,
+        var service = new ProcessArtifactService(packets, skills, model, batches, attachments,
                 Clock.fixed(NOW, ZoneOffset.UTC));
 
         assertThatThrownBy(() -> service.generate(taskId, packet.packetId())).isInstanceOf(IllegalStateException.class)
@@ -58,6 +60,7 @@ class ProcessArtifactServiceTest {
         var model = mock(BusinessModelClient.class);
         var batches = mock(ProcessArtifactBatchRepository.class);
         var skills = mock(BusinessSceneSkillRepository.class);
+        var attachments = mock(SceneSkillAttachmentRepository.class);
         String planJson = """
                 {"name":"测试流程","nodes":[{"id":"draft","kind":"draft","name":"起草","assignee":""}],
                  "flows":[{"source":"start","target":"draft","condition":null},
@@ -74,7 +77,11 @@ class ProcessArtifactServiceTest {
         when(model.generateProcessArtifacts(any())).thenReturn(new BusinessModelResult<>(plan,
                 new BusinessModelCallMetadata("STUB", "本地模拟模型", "a".repeat(64), "b".repeat(64), 0, 1)));
         when(batches.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        var service = new ProcessArtifactService(packets, skills, model, batches,
+        var xml = mock(cn.com.crc.ems.finance.agent.scenario.domain.SceneSkillAttachment.class);
+        when(xml.fileName()).thenReturn("sample.xml");
+        when(xml.contentText()).thenReturn("sample");
+        when(attachments.findBySkillId(SKILL_ID)).thenReturn(List.of(xml));
+        var service = new ProcessArtifactService(packets, skills, model, batches, attachments,
                 Clock.fixed(NOW, ZoneOffset.UTC));
 
         var result = service.generate(taskId, packet.packetId());

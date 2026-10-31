@@ -26,6 +26,7 @@
         <mybatis-plus.version>3.5.17</mybatis-plus.version>
         <fastexcel.version>1.3.0</fastexcel.version>
         <apache-poi.version>5.5.1</apache-poi.version>
+        <elk.version>0.9.1</elk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -106,6 +107,16 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
             <version>${apache-poi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.elk</groupId>
+            <artifactId>org.eclipse.elk.core</artifactId>
+            <version>${elk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.elk</groupId>
+            <artifactId>org.eclipse.elk.alg.layered</artifactId>
+            <version>${elk.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

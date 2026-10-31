@@ -96,4 +96,76 @@ class ProcessArtifactPlanTest {
         assertThat(artifact.importStatus()).isEqualTo("NEEDS_REPAIR");
         assertThat(artifact.missingItems()).anyMatch(item -> item.contains("档位范围"));
     }
+
+    private static final String LAYOUT_BRANCH = """
+            {"name":"分支布局测试","nodes":[
+              {"id":"draft","kind":"draft","name":"起草","assignee":""},
+              {"id":"gateway","kind":"exclusive-gateway","name":"分支判断","assignee":""},
+              {"id":"branchA","kind":"approve","name":"分支A","assignee":""},
+              {"id":"branchB","kind":"approve","name":"分支B","assignee":""}
+            ],"flows":[
+              {"source":"start","target":"draft","condition":null},
+              {"source":"draft","target":"gateway","condition":null},
+              {"source":"gateway","target":"branchA","condition":{"variable":"code","operator":"==","value":"A"}},
+              {"source":"gateway","target":"branchB","condition":{"variable":"code","operator":"!=","value":"A"}},
+              {"source":"branchA","target":"end","condition":null},
+              {"source":"branchB","target":"end","condition":null}
+            ],"nodeParameters":[],"departmentApprovals":[],"approvalRules":[],"missingItems":[],"unsupported":[]}
+            """;
+
+    @Test
+    void layeredLayoutSeparatesBranchesAndSizesGateway() {
+        var plan = ProcessArtifactPlan.fromJson(CanonicalJsonCodec.parse(LAYOUT_BRANCH));
+        var model = CanonicalJsonCodec.parse(new EmsProcessArtifactConverter().convert(plan).modelJson());
+        var shapes = new java.util.ArrayList<com.fasterxml.jackson.databind.JsonNode>();
+        model.path("childShapes").forEach(shape -> {
+            if (!shape.path("stencil").path("id").asText().equals("SequenceFlow")) {
+                shapes.add(shape);
+            }
+        });
+        var branchA = shape(shapes, "branchA");
+        var branchB = shape(shapes, "branchB");
+        var gateway = shape(shapes, "gateway");
+        assertThat(branchA.path("bounds").path("upperLeft").path("x").asInt())
+                .isEqualTo(branchB.path("bounds").path("upperLeft").path("x").asInt());
+        assertThat(branchA.path("bounds").path("upperLeft").path("y").asInt())
+                .isNotEqualTo(branchB.path("bounds").path("upperLeft").path("y").asInt());
+        assertThat(gateway.path("bounds").path("lowerRight").path("x").asInt()
+                - gateway.path("bounds").path("upperLeft").path("x").asInt()).isEqualTo(100);
+        assertThat(overlaps(shapes)).isEmpty();
+    }
+
+    private static com.fasterxml.jackson.databind.JsonNode shape(
+            java.util.List<com.fasterxml.jackson.databind.JsonNode> shapes, String id) {
+        return shapes.stream().filter(shape -> shape.path("properties").path("overrideid").asText().equals(id))
+                .findFirst().orElseThrow();
+    }
+
+    private static java.util.List<String> overlaps(java.util.List<com.fasterxml.jackson.databind.JsonNode> shapes) {
+        var overlaps = new java.util.ArrayList<String>();
+        for (int i = 0; i < shapes.size(); i++) {
+            for (int j = i + 1; j < shapes.size(); j++) {
+                if (intersects(shapes.get(i), shapes.get(j))) {
+                    overlaps.add(shapes.get(i).path("properties").path("overrideid").asText() + "/"
+                            + shapes.get(j).path("properties").path("overrideid").asText());
+                }
+            }
+        }
+        return overlaps;
+    }
+
+    private static boolean intersects(com.fasterxml.jackson.databind.JsonNode first,
+            com.fasterxml.jackson.databind.JsonNode second) {
+        var a = first.path("bounds");
+        var b = second.path("bounds");
+        int aLeft = a.path("upperLeft").path("x").asInt();
+        int aTop = a.path("upperLeft").path("y").asInt();
+        int aRight = a.path("lowerRight").path("x").asInt();
+        int aBottom = a.path("lowerRight").path("y").asInt();
+        int bLeft = b.path("upperLeft").path("x").asInt();
+        int bTop = b.path("upperLeft").path("y").asInt();
+        int bRight = b.path("lowerRight").path("x").asInt();
+        int bBottom = b.path("lowerRight").path("y").asInt();
+        return aLeft < bRight & bLeft < aRight & aTop < bBottom & bTop < aBottom;
+    }
 }

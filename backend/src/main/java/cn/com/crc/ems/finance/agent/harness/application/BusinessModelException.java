@@ -8,7 +8,7 @@ package cn.com.crc.ems.finance.agent.harness.application;
  * @Author: yigeyige99
  * @Date: 2026-10-11 21:28:41
  */
-public final class BusinessModelException extends RuntimeException {
+public class BusinessModelException extends RuntimeException {
 
     public BusinessModelException(String message) {
         super(message);
