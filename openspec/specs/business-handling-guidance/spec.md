@@ -4,7 +4,7 @@
 规定业务处理向导中受控模型初稿、会话修订、严格字段校验和人工确认的边界，使管理员能先获得可编辑建议，再安全确认对象、前提、范围和后续方案。
 ## Requirements
 ### Requirement: Controlled handling draft and chat revision
-系统 SHALL 在业务标题和业务说明创建任务后，提供受控模型交互以生成或修订业务处理草稿。草稿 MUST 包含处理对象、推荐方案、简短说明、检查结论和关联证据；模型输入 MUST 仅来自服务端任务投影、管理员明确提交的消息及白名单化草稿字段。初稿请求可以包含后端校验的受限文本附件投影；系统 MUST NOT 接受浏览器直接提交的任意附件正文、Skill 内容或其他模型上下文。
+系统 SHALL 在业务标题和业务说明创建任务后，提供受控模型交互以生成或修订业务处理草稿。草稿 MUST 包含处理对象、推荐方案、简短说明、检查结论和关联证据；模型输入 MUST 仅来自服务端任务投影、管理员明确提交的消息及白名单化草稿字段。初稿请求可以包含后端校验的受限文本附件投影；系统 MUST NOT 接受浏览器直接提交的任意附件正文、Skill 内容或其他模型上下文。任务已选择实例且该实例已有成功同步的配置结构目录时，若关键词检索未命中，系统 MUST 返回明确中文提示并终止本次模型分析，不生成或保存初稿。
 
 对于「审批流程生成-隆地」场景，若模型返回的 processPlan 存在可安全规范化的偏差（显式 start/end 节点、kind 别名、assignee 为 null、节点 ID 含非法字符、无效条件或引用），系统 SHALL 规范化后返回草稿并附带 warnings；无法安全修复时 SHALL 置空 processPlan 并返回其余草稿与 warnings，MUST NOT 因 processPlan 结构偏差丢弃整份草稿或返回模型不可用。非流程场景 MUST NOT 返回 processPlan。reply、draft、requestedAttachments 和草稿必填字段仍 MUST 严格校验。
 
@@ -43,6 +43,11 @@
 #### Scenario: Non-process scene omits process plan
 - **WHEN** OPERATOR 对未关联审批流程场景的任务请求初稿
 - **THEN** 响应不包含 processPlan，其余草稿字段保持既有严格校验
+
+#### Scenario: Synchronized directory has no keyword match
+
+- **WHEN** OPERATOR 请求模型分析且任务所选实例已有成功同步目录，但关键词检索未找到候选表
+- **THEN** 系统在模型选表、实际配置值查询和初稿生成之前终止请求，返回中文未命中提示，不保存初稿
 
 ### Requirement: Handling draft does not bypass authoritative confirmation
 模型草稿 SHALL 只用于协助管理员填写对象、前提和范围；系统 MUST 在管理员显式确认后才追加前提、创建范围修订或步骤提议。

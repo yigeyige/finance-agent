@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.emsdbconfig.domain.EmsDatabaseConnectionConfig;
+import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsSchemaCatalogRepository;
 
 /**
  *
@@ -15,10 +16,12 @@ import cn.com.crc.ems.finance.agent.emsdbconfig.domain.EmsDatabaseConnectionConf
  */
 public record EmsDatabaseConnectionConfigResponse(UUID configId, String name, String jdbcUrl, String username,
         int connectTimeoutSeconds, int queryTimeoutSeconds, int maxRows, boolean enabled, boolean passwordConfigured,
-        Instant updatedAt) {
-    public static EmsDatabaseConnectionConfigResponse from(EmsDatabaseConnectionConfig value) {
+        Instant updatedAt, Instant schemaSyncedAt, Integer schemaTableCount) {
+    public static EmsDatabaseConnectionConfigResponse from(EmsDatabaseConnectionConfig value,
+            EmsSchemaCatalogRepository.SyncStatus status) {
         return new EmsDatabaseConnectionConfigResponse(value.configId(), value.name(), value.jdbcUrl(), value.username(),
                 value.connectTimeoutSeconds(), value.queryTimeoutSeconds(), value.maxRows(), value.enabled(),
-                value.passwordCiphertext() != null && !value.passwordCiphertext().isBlank(), value.updatedAt());
+                value.passwordCiphertext() != null && !value.passwordCiphertext().isBlank(), value.updatedAt(),
+                status == null ? null : status.syncedAt(), status == null ? null : status.tableCount());
     }
 }

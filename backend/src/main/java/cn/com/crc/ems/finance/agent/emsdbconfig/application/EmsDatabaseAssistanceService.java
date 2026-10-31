@@ -24,7 +24,7 @@ import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryRequest;
 
 /**
  *
- * @Description: 将模型的可选查询建议置于连接配置与只读 SQL 守卫之后执行，支持表目录粗筛与多轮累积证据。
+ * @Description: 按实例结构目录或既有直连路径选表，再经只读 SQL 守卫查询实际配置并累积证据。
  *
  * @Version: 0.1.0
  * @Author: yigeyige99
@@ -42,15 +42,17 @@ public class EmsDatabaseAssistanceService {
     private final EmsDatabaseConnectionConfigService configService;
     private final EmsReadOnlySqlGuard sqlGuard;
     private final EmsDatabaseQueryExecutor executor;
+    private final EmsSchemaCatalogService catalogService;
 
     public EmsDatabaseAssistanceService(EmsDatabaseConnectionConfigService configService, EmsReadOnlySqlGuard sqlGuard,
-            EmsDatabaseQueryExecutor executor) {
+            EmsDatabaseQueryExecutor executor, EmsSchemaCatalogService catalogService) {
         this.configService = configService;
         this.sqlGuard = sqlGuard;
         this.executor = executor;
+        this.catalogService = catalogService;
     }
 
-    /** 无启用连接、任务未选择实例、不需查询或任一受控失败时静默降级，不影响原有模型指导；每个关键阶段回传进度文案。 */
+    /** 已同步目录未命中时明确终止分析；其他受控查询失败沿用降级行为，并回传进度文案。 */
     public List<EmsDatabaseEvidence> collect(BusinessModelClient modelClient, BusinessGuidanceContext context,
             UUID databaseConfigId, Consumer<String> progress) {
         if (databaseConfigId == null) {
@@ -59,13 +61,23 @@ public class EmsDatabaseAssistanceService {
         }
         try {
             EmsDatabaseConnectionConfig config = configService.resolveEnabled(databaseConfigId);
-        List<EmsDatabaseTableMetadata> catalog = coarseFilter(executor.listAllowedTables(config));
+        Optional<EmsSchemaCatalog> snapshot = catalogService.find(databaseConfigId);
+        String searchText = context.title() + " " + context.description()
+                + " " + (context.feedback() == null ? "" : context.feedback());
+        List<EmsSchemaTable> matches = snapshot.map(value -> value.search(searchText, 20)).orElse(List.of());
+        if (snapshot.isPresent() && matches.isEmpty()) throw new EmsSchemaCatalogNoMatchException();
+        List<EmsDatabaseTableMetadata> catalog = snapshot.isPresent()
+                ? matches.stream().map(EmsSchemaTable::metadata).toList()
+                : coarseFilter(executor.listAllowedTables(config));
         LOGGER.info("EMS 辅助查询：候选表 {} 张", catalog.size());
         if (catalog.isEmpty()) {
             return List.of();
         }
         progress.accept("正在匹配相关数据表");
-        List<String> selectedTables = modelClient.selectRelevantTables(context, catalog);
+        int maxTables = snapshot.isPresent() ? 10 : 5;
+        List<String> selectedTables = modelClient.selectRelevantTables(context, catalog, maxTables).stream()
+                .filter(name -> catalog.stream().anyMatch(item -> (item.schema() + "." + item.table()).equals(name)))
+                .distinct().limit(maxTables).toList();
         LOGGER.info("EMS 辅助查询：模型选表 {}", selectedTables);
         if (!selectedTables.isEmpty()) {
             progress.accept("正在读取数据表字段");
@@ -77,7 +89,12 @@ public class EmsDatabaseAssistanceService {
                 continue;
             }
             try {
-                tableColumns.put(table, executor.listColumns(config, parts[0], parts[1]));
+                if (snapshot.isPresent()) {
+                    matches.stream().filter(item -> item.qualifiedName().equals(table)).findFirst()
+                            .ifPresent(item -> tableColumns.put(table, snapshot.orElseThrow().relevantColumns(item, searchText)));
+                } else {
+                    tableColumns.put(table, executor.listColumns(config, parts[0], parts[1]));
+                }
             } catch (RuntimeException ignored) {
                 LOGGER.info("EMS 辅助查询：读取 {}.{} 字段失败，已跳过", parts[0], parts[1]);
             }
@@ -105,6 +122,8 @@ public class EmsDatabaseAssistanceService {
         }
         LOGGER.info("EMS 辅助查询累计证据 {} 条", evidence.size());
         return List.copyOf(evidence);
+        } catch (EmsSchemaCatalogNoMatchException exception) {
+            throw exception;
         } catch (RuntimeException exception) {
             LOGGER.warn("EMS 辅助查询降级：{} - {}", exception.getClass().getSimpleName(), exception.getMessage());
             return List.of();

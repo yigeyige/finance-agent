@@ -23,6 +23,8 @@ import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseQueryExec
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseQueryResult;
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseTableMetadata;
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseColumnMetadata;
+import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsSchemaCatalog;
+import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsSchemaTable;
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsReadOnlySqlGuard;
 import cn.com.crc.ems.finance.agent.emsdbconfig.domain.EmsDatabaseConnectionConfig;
 import cn.com.crc.ems.finance.agent.modelconfig.application.ModelApiKeyCipher;
@@ -115,6 +117,56 @@ public final class JdbcEmsDatabaseQueryExecutor implements EmsDatabaseQueryExecu
             }
         } catch (SQLException exception) {
             throw new IllegalStateException("EMS 表结构暂时不可用");
+        }
+    }
+
+    /**
+     * @description: 手动同步时读取两个配置库的表字段元数据，并以只读存在性查询排除空表。
+     * @param: config 管理员选择的数据库实例
+     * @return: 不含业务行值的完整候选目录
+     * @author: yigeyige99
+     */
+    @Override
+    public EmsSchemaCatalog listConfigurationSchema(EmsDatabaseConnectionConfig config) {
+        String tableSql = "SELECT table_schema, table_name, table_comment FROM information_schema.tables "
+                + "WHERE table_type = 'BASE TABLE' AND table_schema IN ('basedata','activiti_ems') "
+                + "ORDER BY table_schema, table_name";
+        String columnSql = "SELECT column_name, column_type, column_comment FROM information_schema.columns "
+                + "WHERE table_schema = ? AND table_name = ? ORDER BY ordinal_position";
+        try (Connection connection = open(config)) {
+            List<EmsDatabaseTableMetadata> candidates = new ArrayList<>();
+            try (PreparedStatement statement = connection.prepareStatement(tableSql)) {
+                statement.setQueryTimeout(config.queryTimeoutSeconds());
+                try (ResultSet rows = statement.executeQuery()) {
+                    while (rows.next()) candidates.add(new EmsDatabaseTableMetadata(rows.getString(1), rows.getString(2), rows.getString(3)));
+                }
+            }
+            List<EmsSchemaTable> tables = new ArrayList<>();
+            for (EmsDatabaseTableMetadata item : candidates) {
+                if (!EmsSchemaCatalog.includeName(item.schema(), item.table())) continue;
+                if (!item.table().matches("[A-Za-z0-9_]{1,128}")) throw new IllegalStateException("EMS 表名不合法");
+                String name = "`" + item.schema() + "`.`" + item.table() + "`";
+                try (Statement check = connection.createStatement()) {
+                    check.setQueryTimeout(config.queryTimeoutSeconds());
+                    try (ResultSet exists = check.executeQuery("SELECT 1 FROM " + name + " LIMIT 1")) {
+                        if (!exists.next()) continue;
+                    }
+                }
+                List<EmsDatabaseColumnMetadata> columns = new ArrayList<>();
+                try (PreparedStatement statement = connection.prepareStatement(columnSql)) {
+                    statement.setString(1, item.schema());
+                    statement.setString(2, item.table());
+                    statement.setQueryTimeout(config.queryTimeoutSeconds());
+                    try (ResultSet rows = statement.executeQuery()) {
+                        while (rows.next()) columns.add(new EmsDatabaseColumnMetadata(rows.getString(1), rows.getString(2), rows.getString(3)));
+                    }
+                }
+                tables.add(new EmsSchemaTable(item.schema(), item.table(), item.comment(), columns));
+            }
+            return new EmsSchemaCatalog(tables);
+        } catch (SQLException exception) {
+            LOGGER.warn("EMS 结构目录同步失败，异常类型={}", exception.getClass().getSimpleName());
+            throw new IllegalStateException("数据库实例结构同步失败，请检查连接和只读权限");
         }
     }
 

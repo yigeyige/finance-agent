@@ -61,6 +61,13 @@ public class EmsDatabaseConnectionConfigService {
         return config;
     }
 
+    /** 管理员同步未启用实例前，按标识读取已配置连接。 */
+    @Transactional(readOnly = true)
+    public EmsDatabaseConnectionConfig requireConfigured(UUID configId) {
+        return repository.findById(configId)
+                .orElseThrow(() -> new IllegalArgumentException("EMS 数据库配置不存在"));
+    }
+
     @Transactional
     public EmsDatabaseConnectionConfig create(String name, String jdbcUrl, String username, String password,
             int connectTimeoutSeconds, int queryTimeoutSeconds, int maxRows, UUID operator) {

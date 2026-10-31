@@ -16,5 +16,6 @@ public interface EmsDatabaseQueryExecutor {
     EmsDatabaseQueryResult execute(EmsDatabaseConnectionConfig config, String sql);
     List<EmsDatabaseTableMetadata> listAllowedTables(EmsDatabaseConnectionConfig config);
     List<EmsDatabaseColumnMetadata> listColumns(EmsDatabaseConnectionConfig config, String schema, String table);
+    EmsSchemaCatalog listConfigurationSchema(EmsDatabaseConnectionConfig config);
     boolean probe(EmsDatabaseConnectionConfig config);
 }

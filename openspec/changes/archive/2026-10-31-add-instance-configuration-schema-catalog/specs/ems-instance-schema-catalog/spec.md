@@ -17,7 +17,26 @@
 #### Scenario: Connection settings change
 
 - **WHEN** 管理员修改已有实例的 JDBC 地址、账号或其他连接属性
-- **THEN** 已成功同步的目录仍可使用，直到管理员主动再次成功同步；页面显示上次同步时间
+- **THEN** 已成功同步的目录仍可使用，直到管理员主动再次成功同步；页面以表数标识已有目录
+
+### Requirement: Administrator inspects saved schema catalog
+
+系统 SHALL 在数据库实例列表的“结构目录”列仅显示已同步目录的表数，不显示同步时间。管理员点击表数后，系统 SHALL 从本地快照按需读取该实例的表名、表注释、字段名、字段类型和字段注释，并在弹窗中通过左侧选表、右侧字段结构展示；查看操作 MUST NOT 连接 EMS 源库或返回业务行值、连接凭据。未同步实例 SHALL 显示“未同步”，不提供目录详情入口。
+
+#### Scenario: Administrator opens a synced catalog
+
+- **WHEN** `PLATFORM_ADMIN` 点击已同步实例的表数
+- **THEN** 弹窗显示该实例的表列表，选择一张表后右侧显示其字段结构，列表和弹窗均不显示同步时间
+
+#### Scenario: Empty or unavailable catalog
+
+- **WHEN** 已同步目录为空或详情读取失败
+- **THEN** 弹窗显示相应的空状态或错误与重试入口，不自动连接 EMS 源库
+
+#### Scenario: Unauthorized user requests catalog detail
+
+- **WHEN** 非 `PLATFORM_ADMIN` 身份请求目录详情
+- **THEN** 系统拒绝请求，不返回任何目录元数据
 
 ### Requirement: Administrator manually synchronizes read-only schema metadata
 
@@ -26,7 +45,7 @@
 #### Scenario: Administrator synchronizes an instance
 
 - **WHEN** `PLATFORM_ADMIN` 对已配置且可访问的实例点击“同步表结构”
-- **THEN** 系统从 `basedata`、`activiti_ems` 收集并过滤表字段元数据，整份更新该实例目录，页面显示新的成功同步时间
+- **THEN** 系统从 `basedata`、`activiti_ems` 收集并过滤表字段元数据，整份更新该实例目录，页面显示新的表数
 
 #### Scenario: Empty table is excluded
 

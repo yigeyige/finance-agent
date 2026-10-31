@@ -44,6 +44,8 @@ public final class DatabaseConfiguredBusinessModelClient implements BusinessMode
     }
     @Override public List<String> selectRelevantTables(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog) { return live().selectRelevantTables(context, tableCatalog); }
+    @Override public List<String> selectRelevantTables(BusinessGuidanceContext context,
+            List<EmsDatabaseTableMetadata> tableCatalog, int maxTables) { return live().selectRelevantTables(context, tableCatalog, maxTables); }
 
     @Override public Optional<EmsDatabaseQueryRequest> planEmsDatabaseQuery(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog, List<EmsDatabaseEvidence> priorEvidence,

@@ -84,8 +84,15 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
     @Override
     public List<String> selectRelevantTables(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog) {
+        return selectRelevantTables(context, tableCatalog, 5);
+    }
+
+    @Override
+    public List<String> selectRelevantTables(BusinessGuidanceContext context,
+            List<EmsDatabaseTableMetadata> tableCatalog, int maxTables) {
         ObjectNode input = databaseQueryInput(context);
         input.set("tableCatalog", catalogJson(tableCatalog));
+        input.put("maxTables", maxTables);
         String instruction = instruction("SELECT_TABLES", input);
         try {
             ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER).textContent(instruction).build()),
@@ -99,7 +106,7 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
             if (tables == null || !tables.isArray()) return List.of();
             List<String> result = new ArrayList<>();
             tables.forEach(item -> { if (item.isTextual() && item.textValue().contains(".")) result.add(item.textValue()); });
-            return result.stream().distinct().limit(5).toList();
+            return result.stream().distinct().limit(maxTables).toList();
         } catch (RuntimeException exception) {
             return List.of();
         }

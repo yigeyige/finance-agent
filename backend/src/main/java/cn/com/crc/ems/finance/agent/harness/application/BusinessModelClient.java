@@ -25,6 +25,12 @@ public interface BusinessModelClient {
         return List.of();
     }
 
+    /** 按所选目录路径的上限选表，旧实现仍可使用原有选表入口。 */
+    default List<String> selectRelevantTables(BusinessGuidanceContext context,
+            List<EmsDatabaseTableMetadata> tableCatalog, int maxTables) {
+        return selectRelevantTables(context, tableCatalog).stream().limit(maxTables).toList();
+    }
+
     /** 仅生成可选查询建议；真正执行前仍由 EMS SQL 守卫与只读执行器控制。 */
     default Optional<EmsDatabaseQueryRequest> planEmsDatabaseQuery(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog, List<EmsDatabaseEvidence> priorEvidence,

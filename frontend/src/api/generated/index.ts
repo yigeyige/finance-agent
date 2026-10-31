@@ -93,7 +93,7 @@ export interface ModelConnectionConfig { configId: string; name: string; provide
 export interface ModelConnectionConfigPayload { name: string; provider: string; apiUrl: string; modelName: string; reasoningEffort: string; apiKey?: string }
 
 /** EMS MySQL 连接安全视图；密码仅允许通过写入载荷传入。 */
-export interface EmsDatabaseConnectionConfig { configId: string; name: string; jdbcUrl: string; username: string; connectTimeoutSeconds: number; queryTimeoutSeconds: number; maxRows: number; enabled: boolean; passwordConfigured: boolean; updatedAt: string }
+export interface EmsDatabaseConnectionConfig { configId: string; name: string; jdbcUrl: string; username: string; connectTimeoutSeconds: number; queryTimeoutSeconds: number; maxRows: number; enabled: boolean; passwordConfigured: boolean; updatedAt: string; schemaSyncedAt: string | null; schemaTableCount: number | null }
 export interface EmsDatabaseConnectionConfigPayload { name: string; jdbcUrl: string; username: string; password?: string; connectTimeoutSeconds: number; queryTimeoutSeconds: number; maxRows: number }
 /** 供业务处理选择的启用数据库实例只读视图。 */
 export interface EmsDatabaseInstance { configId: string; name: string }
@@ -101,6 +101,9 @@ export interface EmsDatabaseInstance { configId: string; name: string }
 /** 数据探索仅返回已启用数据源的结构元数据与受限查询结果。 */
 export interface EmsDatabaseTableMetadata { schema: string; table: string; comment: string }
 export interface EmsDatabaseColumnMetadata { name: string; type: string; comment: string }
+/** 管理员查看的实例结构目录快照，仅含表和字段元数据。 */
+export interface EmsSchemaCatalog { tables: EmsSchemaTable[] }
+export interface EmsSchemaTable extends EmsDatabaseTableMetadata { columns: EmsDatabaseColumnMetadata[] }
 export interface DataExplorationCatalog { dataSourceName: string; maxRows: number; tables: EmsDatabaseTableMetadata[] }
 export interface DataExplorationQueryRequest { sql: string; configId?: string }
 export interface DataExplorationQueryResult { columns: string[]; rows: Array<Array<string | null>>; rowCount: number; elapsedMillis: number }
@@ -151,9 +154,10 @@ const IDENTITY_FIELDS = ['userId', 'authSubject', 'displayName', 'roles', 'permi
 const BUSINESS_SCENE_SKILL_FIELDS = ['skillId', 'name', 'investigationPrompt', 'decisionPacketPrompt', 'processArtifactPrompt', 'updatedAt']
 const EMS_BUSINESS_DOMAIN_KNOWLEDGE_FIELDS = ['code', 'name', 'summary', 'schemas', 'tableCount', 'keyTables', 'knowledgeBoundary', 'verificationHint']
 const MODEL_CONFIGURATION_FIELDS = ['configId', 'name', 'provider', 'apiUrl', 'modelName', 'reasoningEffort', 'enabled', 'apiKeyConfigured', 'updatedAt']
-const EMS_DATABASE_CONFIGURATION_FIELDS = ['configId', 'name', 'jdbcUrl', 'username', 'connectTimeoutSeconds', 'queryTimeoutSeconds', 'maxRows', 'enabled', 'passwordConfigured', 'updatedAt']
+const EMS_DATABASE_CONFIGURATION_FIELDS = ['configId', 'name', 'jdbcUrl', 'username', 'connectTimeoutSeconds', 'queryTimeoutSeconds', 'maxRows', 'enabled', 'passwordConfigured', 'updatedAt', 'schemaSyncedAt', 'schemaTableCount']
 const EMS_DATABASE_TABLE_METADATA_FIELDS = ['schema', 'table', 'comment']
 const EMS_DATABASE_COLUMN_METADATA_FIELDS = ['name', 'type', 'comment']
+const EMS_SCHEMA_TABLE_FIELDS = ['schema', 'table', 'comment', 'columns']
 const DATA_EXPLORATION_CATALOG_FIELDS = ['dataSourceName', 'maxRows', 'tables']
 const DATA_EXPLORATION_QUERY_RESULT_FIELDS = ['columns', 'rows', 'rowCount', 'elapsedMillis']
 const TASK_LIST_ITEM_FIELDS = ['taskId', 'title', 'status', 'initiatorUserId', 'createdAt']
@@ -224,7 +228,7 @@ export function parseModelConnectionConfigs(value: unknown): ModelConnectionConf
 /** 校验不含密码的 EMS 数据库连接响应。 */
 export function parseEmsDatabaseConnectionConfig(value: unknown): EmsDatabaseConnectionConfig {
   const record = assertObjectFields(value, EMS_DATABASE_CONFIGURATION_FIELDS, 'EMS 数据库连接响应')
-  return { configId: requireString(record.configId, 'EMS 数据库连接标识'), name: requireString(record.name, '连接名称'), jdbcUrl: requireString(record.jdbcUrl, '数据库地址'), username: requireString(record.username, '数据库账号'), connectTimeoutSeconds: requirePositiveNumber(record.connectTimeoutSeconds, '连接超时'), queryTimeoutSeconds: requirePositiveNumber(record.queryTimeoutSeconds, '查询超时'), maxRows: requirePositiveNumber(record.maxRows, '最大返回行数'), enabled: requireBoolean(record.enabled, '启用状态'), passwordConfigured: requireBoolean(record.passwordConfigured, '密码状态'), updatedAt: requireString(record.updatedAt, '更新时间') }
+  return { configId: requireString(record.configId, 'EMS 数据库连接标识'), name: requireString(record.name, '连接名称'), jdbcUrl: requireString(record.jdbcUrl, '数据库地址'), username: requireString(record.username, '数据库账号'), connectTimeoutSeconds: requirePositiveNumber(record.connectTimeoutSeconds, '连接超时'), queryTimeoutSeconds: requirePositiveNumber(record.queryTimeoutSeconds, '查询超时'), maxRows: requirePositiveNumber(record.maxRows, '最大返回行数'), enabled: requireBoolean(record.enabled, '启用状态'), passwordConfigured: requireBoolean(record.passwordConfigured, '密码状态'), updatedAt: requireString(record.updatedAt, '更新时间'), schemaSyncedAt: nullableString(record.schemaSyncedAt), schemaTableCount: nullableNonNegativeNumber(record.schemaTableCount, '结构目录表数') }
 }
 
 /** 校验 EMS 数据库连接列表响应。 */
@@ -250,6 +254,20 @@ export function parseEmsDatabaseTableMetadata(value: unknown): EmsDatabaseTableM
 export function parseEmsDatabaseColumnMetadata(value: unknown): EmsDatabaseColumnMetadata {
   const record = assertObjectFields(value, EMS_DATABASE_COLUMN_METADATA_FIELDS, 'EMS 字段结构响应')
   return { name: requireString(record.name, '字段名'), type: requireString(record.type, '字段类型'), comment: requireDisplayString(record.comment, '字段注释') }
+}
+
+/** 校验管理员查看的实例结构目录，拒绝连接凭据和业务行等额外字段。 */
+export function parseEmsSchemaCatalog(value: unknown): EmsSchemaCatalog {
+  const record = assertObjectFields(value, ['tables'], '结构目录响应')
+  return { tables: requireArray(record.tables, '结构目录表列表').map((item) => {
+    const table = assertObjectFields(item, EMS_SCHEMA_TABLE_FIELDS, '结构目录表')
+    return {
+      schema: requireString(table.schema, '数据库名称'),
+      table: requireString(table.table, '表名'),
+      comment: requireDisplayString(table.comment, '表注释'),
+      columns: requireArray(table.columns, '字段列表').map(parseEmsDatabaseColumnMetadata),
+    }
+  }) }
 }
 
 /** 校验数据探索目录响应。 */

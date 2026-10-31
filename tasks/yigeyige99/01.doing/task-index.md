@@ -171,7 +171,7 @@ source: development-workplan
 |  147 | P0 自定义需求 | [20261031-briefing-validation-relaxation-valueset](../03.achieved/20261031-修复业务处理初稿校验与值集查询.md) | 修复业务处理初稿严格校验与值集查询问题 | [20261031-修复业务处理初稿校验与值集查询.md](../03.achieved/20261031-修复业务处理初稿校验与值集查询.md) | 已完成 | `20261030-generate-process-artifacts` |
 |  148 | P0 自定义需求 | [20261031-improve-process-layout-bpmn-reference](../03.achieved/20261031-优化流程图布局与BPMN必读附件.md) | 优化流程图布局与BPMN必读附件 | [20261031-优化流程图布局与BPMN必读附件.md](../03.achieved/20261031-优化流程图布局与BPMN必读附件.md) | 已完成 | 无 |
 |  149 | P0 自定义需求 | [20261031-fix-cross-round-evidence-and-scene-prompt](../03.achieved/20261031-修复跨轮证据与场景提示词.md) | 修复跨轮证据语义与审批流程场景提示词 | [20261031-修复跨轮证据与场景提示词.md](../03.achieved/20261031-修复跨轮证据与场景提示词.md) | 已完成 | 无 |
-|  149 | P1 自定义需求 | [20261031-instance-configuration-schema-catalog](20261031-数据库实例配置结构目录.md) | 数据库实例关联配置结构知识目录并供模型检索 | [20261031-数据库实例配置结构目录.md](20261031-数据库实例配置结构目录.md) | 进行中 | 无 |
+|  149 | P1 自定义需求 | [20261031-instance-configuration-schema-catalog](../03.achieved/20261031-数据库实例配置结构目录.md) | 数据库实例关联配置结构知识目录并供模型检索 | [20261031-数据库实例配置结构目录.md](../03.achieved/20261031-数据库实例配置结构目录.md) | 已完成 | 无 |
 |  150 | P1 自定义需求 | [20261031-task-detail-artifact-dialog](../03.achieved/20261031-决策包页签新增流程产物下载弹窗.md) | 决策包页签新增流程产物下载弹窗 | [20261031-决策包页签新增流程产物下载弹窗.md](../03.achieved/20261031-决策包页签新增流程产物下载弹窗.md) | 已完成 | 无 |
 |  151 | P1 自定义需求 | [20261031-process-input-budget-scene-prompt](../03.achieved/20261031-模型输入预算与场景提示词.md) | 模型输入预算与审批流程场景提示词修正 | [20261031-模型输入预算与场景提示词.md](../03.achieved/20261031-模型输入预算与场景提示词.md) | 已完成 | 无 |
 

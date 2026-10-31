@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelException;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelOutputException;
+import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsSchemaCatalogNoMatchException;
 
 /**
  *
@@ -21,6 +22,12 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessModelOutputExcep
  */
 @RestControllerAdvice(assignableTypes = BusinessModelController.class)
 public final class BusinessModelExceptionHandler {
+
+    @ExceptionHandler(EmsSchemaCatalogNoMatchException.class)
+    public ResponseEntity<Map<String, String>> schemaCatalogNoMatch(EmsSchemaCatalogNoMatchException exception) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(Map.of("code", "SCHEMA_CATALOG_NO_MATCH", "message", exception.getMessage()));
+    }
 
     @ExceptionHandler(BusinessModelOutputException.class)
     public ResponseEntity<Map<String, String>> outputInvalid(BusinessModelOutputException exception) {
