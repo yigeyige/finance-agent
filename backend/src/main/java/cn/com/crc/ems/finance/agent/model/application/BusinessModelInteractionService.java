@@ -151,6 +151,12 @@ public final class BusinessModelInteractionService {
                     new BusinessGuidanceContext(task.taskId(), task.title(), task.originalQuestion(), feedback, currentDraft,
                             findSceneSkill(taskId), attachments, evidence, attachmentCatalog, bodies));
         }
+        if (taskBusinessSceneSkillRepository != null
+                && taskBusinessSceneSkillRepository.findSkillIdByTaskId(taskId)
+                        .filter(id -> "a6a050ae-b699-4ca0-af72-4381e990eda0".equals(id.toString())).isPresent()
+                && result.value().draft().processPlan() == null) {
+            throw new IllegalStateException("模型未形成流程调查结构，请调整说明后重新调查");
+        }
         progress.accept("初稿生成完成");
         if (guidanceDraftRepository != null) {
             guidanceDraftRepository.save(taskId, result.value().draft().toJson().toString(), task.initiatorUserId());

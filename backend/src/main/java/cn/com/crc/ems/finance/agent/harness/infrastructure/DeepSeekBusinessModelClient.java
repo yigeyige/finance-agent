@@ -40,6 +40,9 @@ import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseColumnMet
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseTableMetadata;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
+import cn.com.crc.ems.finance.agent.processartifact.domain.ModelInputBudget;
+import cn.com.crc.ems.finance.agent.processartifact.application.ProcessArtifactModelContext;
+import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactPlan;
 
 /**
  *
@@ -63,9 +66,11 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
 
     /** 从提示词模板读取正文并拼接运行时输入，模板缺失时快速失败。 */
     private String instruction(String templateCode, ObjectNode input) {
-        return promptTemplates.findByCode(templateCode).map(PromptTemplate::content)
+        String instruction = promptTemplates.findByCode(templateCode).map(PromptTemplate::content)
                 .orElseThrow(() -> new IllegalStateException("prompt template missing: " + templateCode))
                 + CanonicalJsonCodec.canonicalize(input);
+        ModelInputBudget.requireWithinLimit(adapter.modelName(), instruction);
+        return instruction;
     }
 
     /**
@@ -84,7 +89,7 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         String instruction = instruction("SELECT_TABLES", input);
         try {
             ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER).textContent(instruction).build()),
-                    List.of(), adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, 256000)).blockLast(TIMEOUT.plusSeconds(2));
+                    List.of(), adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, 16384)).blockLast(TIMEOUT.plusSeconds(2));
             if (response == null) return List.of();
             String text = response.getContent().stream().filter(TextBlock.class::isInstance)
                     .map(TextBlock.class::cast).map(TextBlock::getText).collect(Collectors.joining());
@@ -116,7 +121,7 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         String instruction = instruction("PLAN_QUERY", input);
         try {
             ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER).textContent(instruction).build()), List.of(),
-                    adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, 256000)).blockLast(TIMEOUT.plusSeconds(2));
+                    adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, 16384)).blockLast(TIMEOUT.plusSeconds(2));
             if (response == null) return Optional.empty();
             String text = response.getContent().stream().filter(TextBlock.class::isInstance)
                     .map(TextBlock.class::cast).map(TextBlock::getText).collect(Collectors.joining());
@@ -196,13 +201,27 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         return invoke(instruction, input, BusinessPacketAnalysisSuggestion::fromJson);
     }
 
+    @Override
+    public BusinessModelResult<ProcessArtifactPlan> generateProcessArtifacts(ProcessArtifactModelContext context) {
+        ObjectNode input = context.toInputJson();
+        String instruction = context.prompt() + CanonicalJsonCodec.canonicalize(input);
+        ModelInputBudget.requireWithinLimit(adapter.modelName(), instruction);
+        return invoke(instruction, input, output -> {
+            try {
+                return ProcessArtifactPlan.fromJson(output);
+            } catch (IllegalArgumentException exception) {
+                throw new BusinessModelException("模型生成的流程结构不符合约定，请调整调查结论后重试", exception);
+            }
+        });
+    }
+
     private <T> BusinessModelResult<T> invoke(String instruction, ObjectNode input,
             java.util.function.Function<JsonNode, T> parser) {
         long started = System.nanoTime();
         try {
             ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER)
                             .textContent(instruction).build()), List.of(),
-                    adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, 256000)).blockLast(TIMEOUT.plusSeconds(2));
+                    adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, 16384)).blockLast(TIMEOUT.plusSeconds(2));
             if (response == null) {
                 throw new BusinessModelException("模型暂时没有返回结果，请稍后重试");
             }

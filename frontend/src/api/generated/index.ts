@@ -72,8 +72,8 @@ export interface TaskDiagnosticLease { status: 'NONE' | 'ACTIVE' | 'EXPIRED'; he
 export interface TaskDiagnosticResponse { taskId: string; taskStatus: TaskStatus; currentStep: TaskDiagnosticStep | null; lease: TaskDiagnosticLease; approvalValid: boolean; pauseReason: string | null; lastErrorCode: string | null; manualReconciliationRequired: boolean; recoveryActions: string[] }
 
 /** 业务场景 Skill 的契约枚举与读写模型。 */
-export interface BusinessSceneSkill { skillId: string; name: string; investigationPrompt: string; decisionPacketPrompt: string; updatedAt: string }
-export interface BusinessSceneSkillPayload { name: string; investigationPrompt: string; decisionPacketPrompt: string }
+export interface BusinessSceneSkill { skillId: string; name: string; investigationPrompt: string; decisionPacketPrompt: string; processArtifactPrompt: string; updatedAt: string }
+export interface BusinessSceneSkillPayload { name: string; investigationPrompt: string; decisionPacketPrompt: string; processArtifactPrompt: string }
 export interface SceneSkillAttachment { attachmentId: string; skillId: string; fileName: string; contentType: string; summary: string; createdAt: string }
 
 /** EMS 结构快照形成的只读业务域目录，不包含实时业务数据。 */
@@ -139,7 +139,8 @@ export function parseModelRuntimeSummary(value: unknown): ModelRuntimeSummary {
 export interface ModelPlanResponse { recommendedGoal: string; alternativeGoals: string[]; reason: string; metadata: ModelCallMetadata }
 export interface ModelEvidenceAnalysisResponse { summary: string; riskLevel: 'LOW' | 'MEDIUM' | 'HIGH'; riskExplanation: string; recommendations: string[]; metadata: ModelCallMetadata }
 export interface DraftEvidence { schema: string; table: string; purpose: string; columns: string[]; rows: string[][] }
-export interface BusinessHandlingDraft { subjectKey: string; objectKey: string; recommendedGoal: string; alternativeGoals: string[]; reason: string; conclusion: string; evidence: DraftEvidence[] }
+export interface ProcessArtifactPlan { name: string; nodes: Array<{ id: string; kind: string; name: string; assignee: string }>; flows: Array<{ source: string; target: string; condition: { variable: string; operator: string; value: string } | null }>; nodeParameters: Record<string, unknown>[]; departmentApprovals: Record<string, unknown>[]; approvalRules: Record<string, unknown>[]; missingItems: string[]; unsupported: string[] }
+export interface BusinessHandlingDraft { subjectKey: string; objectKey: string; recommendedGoal: string; alternativeGoals: string[]; reason: string; conclusion: string; evidence: DraftEvidence[]; processPlan?: ProcessArtifactPlan }
 export interface BusinessGuidanceRequest { message?: string; currentDraft?: BusinessHandlingDraft }
 export interface BusinessGuidanceResponse { reply: string; draft: BusinessHandlingDraft; metadata: ModelCallMetadata }
 export interface TaskDraftRequest { title: string; originalQuestion: string; initiatorUserId: string; runtimeBundleId: string; businessSceneSkillId?: string; databaseConfigId?: string }
@@ -147,7 +148,7 @@ export interface TaskDraftRequest { title: string; originalQuestion: string; ini
 const TASK_RESPONSE_FIELDS = ['taskId', 'title', 'status', 'rowVersion', 'currentScopeRevisionId', 'createdAt', 'premiseId', 'scopeRevisionNo', 'scopeDigest']
 const PUBLIC_EVENT_FIELDS = ['taskId', 'userId', 'sequence', 'eventType', 'status', 'publicReason', 'resultReference', 'occurredAt']
 const IDENTITY_FIELDS = ['userId', 'authSubject', 'displayName', 'roles', 'permissions', 'testIdentity']
-const BUSINESS_SCENE_SKILL_FIELDS = ['skillId', 'name', 'investigationPrompt', 'decisionPacketPrompt', 'updatedAt']
+const BUSINESS_SCENE_SKILL_FIELDS = ['skillId', 'name', 'investigationPrompt', 'decisionPacketPrompt', 'processArtifactPrompt', 'updatedAt']
 const EMS_BUSINESS_DOMAIN_KNOWLEDGE_FIELDS = ['code', 'name', 'summary', 'schemas', 'tableCount', 'keyTables', 'knowledgeBoundary', 'verificationHint']
 const MODEL_CONFIGURATION_FIELDS = ['configId', 'name', 'provider', 'apiUrl', 'modelName', 'reasoningEffort', 'enabled', 'apiKeyConfigured', 'updatedAt']
 const EMS_DATABASE_CONFIGURATION_FIELDS = ['configId', 'name', 'jdbcUrl', 'username', 'connectTimeoutSeconds', 'queryTimeoutSeconds', 'maxRows', 'enabled', 'passwordConfigured', 'updatedAt']
@@ -168,7 +169,7 @@ const BUSINESS_DRAFT_FIELDS = ['subjectKey', 'objectKey', 'recommendedGoal', 'al
 /** 校验业务场景 Skill 响应。 */
 export function parseBusinessSceneSkill(value: unknown): BusinessSceneSkill {
   const record = assertObjectFields(value, BUSINESS_SCENE_SKILL_FIELDS, '业务场景 Skill 响应')
-  return { skillId: requireString(record.skillId, 'Skill 标识'), name: requireString(record.name, 'Skill 名称'), investigationPrompt: requireString(record.investigationPrompt, '调查提示词'), decisionPacketPrompt: typeof record.decisionPacketPrompt === 'string' ? record.decisionPacketPrompt : '', updatedAt: requireString(record.updatedAt, '更新时间') }
+  return { skillId: requireString(record.skillId, 'Skill 标识'), name: requireString(record.name, 'Skill 名称'), investigationPrompt: requireString(record.investigationPrompt, '调查提示词'), decisionPacketPrompt: typeof record.decisionPacketPrompt === 'string' ? record.decisionPacketPrompt : '', processArtifactPrompt: typeof record.processArtifactPrompt === 'string' ? record.processArtifactPrompt : '', updatedAt: requireString(record.updatedAt, '更新时间') }
 }
 
 /** 校验业务场景 Skill 列表响应。 */
@@ -477,8 +478,28 @@ function parseModelCallMetadata(value: unknown): ModelCallMetadata {
 
 /** 校验模型业务处理草稿。 */
 function parseBusinessHandlingDraft(value: unknown): BusinessHandlingDraft {
-  const record = assertObjectFields(value, BUSINESS_DRAFT_FIELDS, '业务处理草稿')
-  return { subjectKey: requireString(record.subjectKey, '处理对象'), objectKey: requireString(record.objectKey, '对象标识'), recommendedGoal: requireString(record.recommendedGoal, '推荐方案'), alternativeGoals: requireStringArray(record.alternativeGoals, '备选方案'), reason: requireString(record.reason, '推荐理由'), conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence) }
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error('业务处理草稿格式无法识别')
+  const raw = value as Record<string, unknown>
+  const fields = raw.processPlan === undefined ? BUSINESS_DRAFT_FIELDS : [...BUSINESS_DRAFT_FIELDS, 'processPlan']
+  const record = assertObjectFields(value, fields, '业务处理草稿')
+  return { subjectKey: requireString(record.subjectKey, '处理对象'), objectKey: requireString(record.objectKey, '对象标识'), recommendedGoal: requireString(record.recommendedGoal, '推荐方案'), alternativeGoals: requireStringArray(record.alternativeGoals, '备选方案'), reason: requireString(record.reason, '推荐理由'), conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence), processPlan: record.processPlan === undefined ? undefined : parseProcessArtifactPlan(record.processPlan) }
+}
+
+/** 校验流程调查结构，逐轮反馈时原样带回已确认的节点与流转。 */
+function parseProcessArtifactPlan(value: unknown): ProcessArtifactPlan {
+  const item = assertObjectFields(value, ['name', 'nodes', 'flows', 'nodeParameters', 'departmentApprovals', 'approvalRules', 'missingItems', 'unsupported'], '流程调查结构')
+  const objects = (raw: unknown, label: string): Record<string, unknown>[] => requireArray(raw, label).map(value => {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error(`${label}格式无法识别`)
+    return value as Record<string, unknown>
+  })
+  return { name: requireString(item.name, '流程名称'), nodes: requireArray(item.nodes, '流程节点').map(value => {
+    const node = assertObjectFields(value, ['id', 'kind', 'name', 'assignee'], '流程节点')
+    return { id: requireString(node.id, '节点标识'), kind: requireString(node.kind, '节点类型'), name: requireString(node.name, '节点名称'), assignee: requireDisplayString(node.assignee, '处理人') }
+  }), flows: requireArray(item.flows, '流程流转').map(value => {
+    const flow = assertObjectFields(value, ['source', 'target', 'condition'], '流程流转')
+    const condition = flow.condition === null ? null : assertObjectFields(flow.condition, ['variable', 'operator', 'value'], '分支条件')
+    return { source: requireString(flow.source, '起点'), target: requireString(flow.target, '终点'), condition: condition ? { variable: requireString(condition.variable, '条件变量'), operator: requireString(condition.operator, '条件运算符'), value: requireString(condition.value, '条件值') } : null }
+  }), nodeParameters: objects(item.nodeParameters, '节点参数'), departmentApprovals: objects(item.departmentApprovals, '部门审批流'), approvalRules: objects(item.approvalRules, '审批规则'), missingItems: requireStringArray(item.missingItems, '待补信息'), unsupported: requireStringArray(item.unsupported, '未支持形态') }
 }
 
 /** 校验单条关联证据。 */
@@ -503,6 +524,7 @@ export interface BusinessDecisionPacketContent {
   databaseConfigId: string | null
   databaseInstanceName: string | null
   evidence: DraftEvidence[]
+  guidanceDraft: BusinessHandlingDraft | null
 }
 /** 业务决策包生成/查看响应契约。 */
 export interface BusinessDecisionPacketResponse { packetId: string; taskId: string; revision: number; createdAt: string; content: BusinessDecisionPacketContent; created: boolean; message: string | null }
@@ -522,7 +544,7 @@ export function parseBusinessDecisionPacket(value: unknown): BusinessDecisionPac
 export function parseBusinessDecisionPacketContent(value: unknown): BusinessDecisionPacketContent {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error('决策包内容格式无法识别，请联系管理员同步接口契约')
   const record = value as Record<string, unknown>
-  return { packetId: requireString(record.packetId, '决策包标识'), taskId: requireString(record.taskId, '任务标识'), revision: requirePositiveNumber(record.revision, '修订号'), createdAt: requireString(record.createdAt, '生成时间'), subjectKey: typeof record.subjectKey === 'string' ? record.subjectKey : '', conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', recommendedGoal: typeof record.recommendedGoal === 'string' ? record.recommendedGoal : '', alternativeGoals: Array.isArray(record.alternativeGoals) ? requireStringArray(record.alternativeGoals, '备选方案') : [], reason: typeof record.reason === 'string' ? record.reason : '', sceneSkillId: nullableString(record.sceneSkillId), sceneSkillName: nullableString(record.sceneSkillName), databaseConfigId: nullableString(record.databaseConfigId), databaseInstanceName: nullableString(record.databaseInstanceName), evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence) }
+  return { packetId: requireString(record.packetId, '决策包标识'), taskId: requireString(record.taskId, '任务标识'), revision: requirePositiveNumber(record.revision, '修订号'), createdAt: requireString(record.createdAt, '生成时间'), subjectKey: typeof record.subjectKey === 'string' ? record.subjectKey : '', conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', recommendedGoal: typeof record.recommendedGoal === 'string' ? record.recommendedGoal : '', alternativeGoals: Array.isArray(record.alternativeGoals) ? requireStringArray(record.alternativeGoals, '备选方案') : [], reason: typeof record.reason === 'string' ? record.reason : '', sceneSkillId: nullableString(record.sceneSkillId), sceneSkillName: nullableString(record.sceneSkillName), databaseConfigId: nullableString(record.databaseConfigId), databaseInstanceName: nullableString(record.databaseInstanceName), evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence), guidanceDraft: record.guidanceDraft === undefined ? null : parseBusinessHandlingDraft(record.guidanceDraft) }
 }
 
 /** 校验证据工作区累积证据列表响应。 */

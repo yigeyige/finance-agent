@@ -24,6 +24,7 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessPacketAnalysisSu
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceAttachment;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessSceneSkillContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessHandlingDraft;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
@@ -75,6 +76,21 @@ class BusinessModelClientTest {
         assertThat(initial.value().draft().subjectKey()).isEqualTo("待管理员确认的业务对象");
         assertThat(revised.value().reply()).contains("更新");
         assertThat(revised.value().draft().recommendedGoal()).contains("管理员意见");
+    }
+
+    @Test
+    void stubKeepsProcessScenePlanAcrossRevision() {
+        StubBusinessModelClient client = new StubBusinessModelClient();
+        UUID taskId = UUID.randomUUID();
+        var scene = new BusinessSceneSkillContext("审批流程生成-隆地", "调查", "决策包");
+        var initial = client.guideBusinessHandling(new BusinessGuidanceContext(taskId, "测试流程", "建立审批流程",
+                null, null, scene));
+        var revised = client.guideBusinessHandling(new BusinessGuidanceContext(taskId, "测试流程", "建立审批流程",
+                "请补充审批节点", initial.value().draft(), scene));
+
+        assertThat(initial.value().draft().processPlan()).isNotNull();
+        assertThat(revised.value().draft().processPlan()).isNotNull();
+        assertThat(revised.value().draft().processPlan().missingItems()).isNotEmpty();
     }
 
     @Test

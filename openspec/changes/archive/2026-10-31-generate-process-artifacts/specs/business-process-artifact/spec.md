@@ -12,7 +12,7 @@
 #### Scenario: Later investigation does not change packet
 
 - **WHEN** 决策包已生成后用户继续修订调查结论
-- **THEN** 旧决策包的固定内容保持不变；基于旧包生成文件时仍使用其固定内容
+- **THEN** 旧决策包的固定内容保持不变；旧批次文件继续按其来源决策包修订下载，新文件生成必须由页面当前决策包触发
 
 ### Requirement: Scene process artifact generation
 

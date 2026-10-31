@@ -19,6 +19,7 @@
             <el-table-column prop="name" label="场景名称" min-width="160" show-overflow-tooltip />
             <el-table-column prop="investigationPrompt" label="调查提示词" min-width="320" show-overflow-tooltip />
             <el-table-column prop="decisionPacketPrompt" label="决策包提示词" min-width="320" show-overflow-tooltip />
+            <el-table-column prop="processArtifactPrompt" label="流程文件提示词" min-width="320" show-overflow-tooltip />
             <el-table-column show-overflow-tooltip label="更新时间" width="190">
               <template slot-scope="scope">{{ formatTime(scope.row.updatedAt) }}</template>
             </el-table-column>
@@ -47,6 +48,10 @@
         <el-form-item label="决策包提示词">
           <el-input v-model.trim="form.decisionPacketPrompt" type="textarea" :rows="8" :maxlength="2000" show-word-limit
             placeholder="可选，说明生成业务决策包时的结论、责任与后续处理要求" />
+        </el-form-item>
+        <el-form-item label="流程文件提示词">
+          <el-input v-model.trim="form.processArtifactPrompt" type="textarea" :rows="8" :maxlength="4000" show-word-limit
+            placeholder="可选，说明根据决策包生成流程文件的要求" />
         </el-form-item>
         <el-form-item v-if="editingId" label="场景附件">
           <div class="skill-attachments">
@@ -98,12 +103,14 @@ interface SkillForm {
   name: string
   investigationPrompt: string
   decisionPacketPrompt: string
+  processArtifactPrompt: string
 }
 
 const emptyForm = (): SkillForm => ({
   name: '',
   investigationPrompt: '',
   decisionPacketPrompt: '',
+  processArtifactPrompt: '',
 })
 
 /** 维护业务场景 Skill，供管理员集中新增、编辑与删除。 */
@@ -154,6 +161,7 @@ export default Vue.extend({
         name: skill.name,
         investigationPrompt: skill.investigationPrompt,
         decisionPacketPrompt: skill.decisionPacketPrompt,
+        processArtifactPrompt: skill.processArtifactPrompt,
       }
       this.attachments = []
       this.pendingFile = null

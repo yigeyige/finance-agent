@@ -40,8 +40,15 @@ public class BusinessSceneSkillService {
     @Transactional
     public BusinessSceneSkill create(String name, String investigationPrompt, String decisionPacketPrompt,
             UUID operatorId) {
+        return create(name, investigationPrompt, decisionPacketPrompt, null, operatorId);
+    }
+
+    /** 新增包含可选文件生成提示词的业务场景 Skill。 */
+    @Transactional
+    public BusinessSceneSkill create(String name, String investigationPrompt, String decisionPacketPrompt,
+            String processArtifactPrompt, UUID operatorId) {
         BusinessSceneSkill skill = BusinessSceneSkill.create(UuidGenerator.newUuid(), name, investigationPrompt,
-                decisionPacketPrompt, operatorId, UtcTime.now(applicationClock));
+                decisionPacketPrompt, processArtifactPrompt, operatorId, UtcTime.now(applicationClock));
         repository.insert(skill);
         return skill;
     }
@@ -50,9 +57,20 @@ public class BusinessSceneSkillService {
     @Transactional
     public BusinessSceneSkill update(UUID skillId, String name, String investigationPrompt, String decisionPacketPrompt,
             UUID operatorId) {
+        String existingPrompt = repository.findActiveById(skillId)
+                .orElseThrow(() -> new IllegalArgumentException("business scene skill is unavailable"))
+                .processArtifactPrompt();
+        return update(skillId, name, investigationPrompt, decisionPacketPrompt, existingPrompt, operatorId);
+    }
+
+    /** 更新可选文件生成提示词并保留场景审计字段。 */
+    @Transactional
+    public BusinessSceneSkill update(UUID skillId, String name, String investigationPrompt, String decisionPacketPrompt,
+            String processArtifactPrompt, UUID operatorId) {
         BusinessSceneSkill current = repository.findActiveById(skillId)
                 .orElseThrow(() -> new IllegalArgumentException("business scene skill is unavailable"));
-        BusinessSceneSkill revised = current.revise(name, investigationPrompt, decisionPacketPrompt, operatorId,
+        BusinessSceneSkill revised = current.revise(name, investigationPrompt, decisionPacketPrompt,
+                processArtifactPrompt, operatorId,
                 UtcTime.now(applicationClock));
         if (!repository.update(revised)) {
             throw new IllegalStateException("business scene skill was changed concurrently");

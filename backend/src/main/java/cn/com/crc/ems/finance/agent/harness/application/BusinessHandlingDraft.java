@@ -9,19 +9,27 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactPlan;
+
 /**
  *
- * @Description: 业务处理向导中由模型返回且可由管理员修订的受限结构化草稿。
+ * @Description: 业务处理向导中由模型返回且可由管理员修订的受限结构化草稿；流程场景可附带结构化结论。
  *
  * @Version: 0.1.0
  * @Author: yigeyige99
  * @Date: 2026-10-08 21:10:00
  */
 public record BusinessHandlingDraft(String subjectKey, String objectKey, String recommendedGoal,
-        List<String> alternativeGoals, String reason, String conclusion, List<EmsDatabaseEvidence> evidence) {
+        List<String> alternativeGoals, String reason, String conclusion, List<EmsDatabaseEvidence> evidence,
+        ProcessArtifactPlan processPlan) {
 
     private static final Set<String> FIELDS = Set.of("subjectKey", "objectKey",
             "recommendedGoal", "alternativeGoals", "reason", "conclusion", "evidence");
+
+    public BusinessHandlingDraft(String subjectKey, String objectKey, String recommendedGoal,
+            List<String> alternativeGoals, String reason, String conclusion, List<EmsDatabaseEvidence> evidence) {
+        this(subjectKey, objectKey, recommendedGoal, alternativeGoals, reason, conclusion, evidence, null);
+    }
 
     public BusinessHandlingDraft {
         requireText(subjectKey, "subjectKey", 200);
@@ -57,9 +65,11 @@ public record BusinessHandlingDraft(String subjectKey, String objectKey, String 
         List<String> alternatives = textArray(value.get("alternativeGoals"), "alternativeGoals", 0, 5);
         List<EmsDatabaseEvidence> evidence = evidenceArray(value.get("evidence"));
         try {
+            ProcessArtifactPlan processPlan = value.has("processPlan")
+                    ? ProcessArtifactPlan.fromJson(value.get("processPlan")) : null;
             return new BusinessHandlingDraft(text(value, "subjectKey", 200), text(value, "objectKey", 200),
                     text(value, "recommendedGoal", 2000), alternatives, text(value, "reason", 2000),
-                    textValue(value.get("conclusion"), "conclusion", 2000), evidence);
+                    textValue(value.get("conclusion"), "conclusion", 2000), evidence, processPlan);
         } catch (IllegalArgumentException exception) {
             throw new BusinessModelException("模型返回的业务处理初稿格式不正确", exception);
         }
@@ -114,16 +124,20 @@ public record BusinessHandlingDraft(String subjectKey, String objectKey, String 
         node.put("reason", reason);
         node.put("conclusion", conclusion);
         node.putPOJO("evidence", evidence);
+        if (processPlan != null) {
+            node.set("processPlan", processPlan.toJson());
+        }
         return node;
     }
 
     private static void requireExactObject(JsonNode value) {
-        if (value == null || !value.isObject() || value.size() != FIELDS.size()) {
+        if (value == null || !value.isObject() || value.size() != FIELDS.size() + (value.has("processPlan") ? 1 : 0)) {
             throw new BusinessModelException("模型返回内容不符合约定结构");
         }
         Iterator<String> names = value.fieldNames();
         while (names.hasNext()) {
-            if (!FIELDS.contains(names.next())) {
+            String field = names.next();
+            if (!FIELDS.contains(field) && !"processPlan".equals(field)) {
                 throw new BusinessModelException("模型返回内容包含未约定字段");
             }
         }

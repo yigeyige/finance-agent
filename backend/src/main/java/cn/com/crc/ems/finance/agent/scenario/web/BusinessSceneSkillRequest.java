@@ -17,7 +17,8 @@ import jakarta.validation.constraints.Size;
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record BusinessSceneSkillRequest(@NotBlank @Size(max = 100) String name,
         @NotBlank @Size(max = 2000) String investigationPrompt,
-        @Size(max = 2000) String decisionPacketPrompt) {
+        @Size(max = 2000) String decisionPacketPrompt,
+        @Size(max = 4000) String processArtifactPrompt) {
 
     @JsonAnySetter
     public void rejectUnknown(String name, Object value) {

@@ -20,6 +20,8 @@ import cn.com.crc.ems.finance.agent.harness.application.ModelPlanContext;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanSuggestion;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 import cn.com.crc.ems.finance.agent.shared.domain.Sha256Digest;
+import cn.com.crc.ems.finance.agent.processartifact.application.ProcessArtifactModelContext;
+import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactPlan;
 
 /**
  *
@@ -97,6 +99,15 @@ public final class StubBusinessModelClient implements BusinessModelClient {
         return result(packetInput(context), packetJson(value), value, started);
     }
 
+    @Override
+    public BusinessModelResult<ProcessArtifactPlan> generateProcessArtifacts(ProcessArtifactModelContext context) {
+        long started = System.nanoTime();
+        var raw = context.packetContent().path("guidanceDraft").path("processPlan");
+        if (raw.isMissingNode()) throw new IllegalStateException("决策包缺少结构化流程调查结论");
+        ProcessArtifactPlan value = ProcessArtifactPlan.fromJson(raw);
+        return result(context.toInputJson(), value.toJson(), value, started);
+    }
+
     private static <T> BusinessModelResult<T> result(ObjectNode input, ObjectNode output, T value, long started) {
         return new BusinessModelResult<>(value, new BusinessModelCallMetadata("STUB", MODEL_NAME,
                 Sha256Digest.hex(CanonicalJsonCodec.canonicalize(input)),
@@ -118,10 +129,14 @@ public final class StubBusinessModelClient implements BusinessModelClient {
         boolean adjust = context.description().contains("调整") || context.description().contains("修改")
                 || context.title().contains("调整");
         String action = adjust ? "梳理调整影响范围并形成可执行处理方案" : "核对已授权范围内的现状并形成可复核结论";
+        ProcessArtifactPlan processPlan = context.sceneSkill() != null
+                && "审批流程生成-隆地".equals(context.sceneSkill().name())
+                ? new ProcessArtifactPlan(context.title(), List.of(), List.of(), List.of(), List.of(), List.of(),
+                        List.of("待确认审批节点、流转和处理人"), List.of()) : null;
         return new BusinessHandlingDraft("待管理员确认的业务对象", "待管理员确认的系统对象", action,
                 List.of("复核对象关联关系和责任归属", "核对时间范围内的变更及待处理事项"),
                 "本地模拟模型已根据业务说明形成初稿，管理员确认后才会写入业务范围。",
-                "本地模拟模型未查询 EMS 数据库，暂无检查结论。", List.of());
+                "本地模拟模型未查询 EMS 数据库，暂无检查结论。", List.of(), processPlan);
     }
 
     private static BusinessHandlingDraft revisedDraft(BusinessGuidanceContext context) {
@@ -129,7 +144,8 @@ public final class StubBusinessModelClient implements BusinessModelClient {
         String goal = current.recommendedGoal() + "；已纳入管理员意见：" + context.feedback();
         return new BusinessHandlingDraft(current.subjectKey(), current.objectKey(),
                 goal.length() > 2000 ? goal.substring(0, 2000) : goal, current.alternativeGoals(),
-                "本地模拟模型已根据管理员的本次意见更新初稿，请再次核对。", current.conclusion(), current.evidence());
+                "本地模拟模型已根据管理员的本次意见更新初稿，请再次核对。", current.conclusion(),
+                current.evidence(), current.processPlan());
     }
 
     private static ObjectNode contextJson(BusinessGuidanceContext context) {

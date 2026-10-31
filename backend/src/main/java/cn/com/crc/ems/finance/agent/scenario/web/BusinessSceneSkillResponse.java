@@ -14,11 +14,11 @@ import cn.com.crc.ems.finance.agent.scenario.domain.BusinessSceneSkill;
  * @Date: 2026-10-27 11:20:00
  */
 public record BusinessSceneSkillResponse(UUID skillId, String name, String investigationPrompt,
-        String decisionPacketPrompt, Instant updatedAt) {
+        String decisionPacketPrompt, String processArtifactPrompt, Instant updatedAt) {
 
     /** 将领域对象转换为前端需要的安全视图。 */
     public static BusinessSceneSkillResponse from(BusinessSceneSkill skill) {
         return new BusinessSceneSkillResponse(skill.skillId(), skill.name(), skill.investigationPrompt(),
-                skill.decisionPacketPrompt(), skill.updatedAt());
+                skill.decisionPacketPrompt(), skill.processArtifactPrompt(), skill.updatedAt());
     }
 }

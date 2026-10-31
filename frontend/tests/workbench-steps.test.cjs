@@ -13,6 +13,7 @@ function fixture(generate, update = async () => ({ taskId: 'test-task' }), runti
     '../services/ems-database-config-api': { listEnabledDatabaseInstances: async () => [] },
     '../services/task-api': { isStaleError: () => false, updateTask: update },
     '../services/model-api': { generateBusinessDecisionPacket: generate, getBusinessEvidenceAccums: async () => [], getModelRuntimeSummary: runtime },
+    '../services/process-artifact-api': { generateProcessArtifacts: async () => ({}), listProcessArtifacts: async () => [], downloadProcessArtifact: async () => {} },
   })
   const vm = new Workbench()
   vm.task = { taskId: 'test-task' }

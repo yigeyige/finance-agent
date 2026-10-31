@@ -56,7 +56,8 @@ public final class BusinessSceneSkillController {
     @PostMapping
     public ResponseEntity<BusinessSceneSkillResponse> create(@Valid @RequestBody BusinessSceneSkillRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(BusinessSceneSkillResponse.from(skillService.create(
-                request.name(), request.investigationPrompt(), request.decisionPacketPrompt(), requireOperator())));
+                request.name(), request.investigationPrompt(), request.decisionPacketPrompt(),
+                request.processArtifactPrompt(), requireOperator())));
     }
 
     /** 编辑业务场景 Skill。 */
@@ -64,7 +65,7 @@ public final class BusinessSceneSkillController {
     public BusinessSceneSkillResponse update(@PathVariable UUID skillId,
             @Valid @RequestBody BusinessSceneSkillRequest request) {
         return BusinessSceneSkillResponse.from(skillService.update(skillId, request.name(), request.investigationPrompt(),
-                request.decisionPacketPrompt(), requireOperator()));
+                request.decisionPacketPrompt(), request.processArtifactPrompt(), requireOperator()));
     }
 
     /** 删除业务场景 Skill，保留必要操作审计。 */

@@ -5,14 +5,21 @@ import java.util.UUID;
 
 /**
  *
- * @Description: 可复用业务处理场景的受控领域对象，仅保留场景名称与调查/决策包两类提示词。
+ * @Description: 可复用业务处理场景的受控领域对象，文件生成提示词仅在对应场景配置时启用。
  *
  * @Version: 0.1.0
  * @Author: yigeyige99
  * @Date: 2026-10-27 11:20:00
  */
 public record BusinessSceneSkill(UUID skillId, String name, String investigationPrompt, String decisionPacketPrompt,
+        String processArtifactPrompt,
         UUID createdBy, Instant createdAt, UUID updatedBy, Instant updatedAt) {
+
+    public BusinessSceneSkill(UUID skillId, String name, String investigationPrompt, String decisionPacketPrompt,
+            UUID createdBy, Instant createdAt, UUID updatedBy, Instant updatedAt) {
+        this(skillId, name, investigationPrompt, decisionPacketPrompt, null,
+                createdBy, createdAt, updatedBy, updatedAt);
+    }
 
     public BusinessSceneSkill {
         if (skillId == null || createdBy == null || createdAt == null || updatedBy == null || updatedAt == null) {
@@ -21,6 +28,7 @@ public record BusinessSceneSkill(UUID skillId, String name, String investigation
         validateText(name, 100, "name");
         validateText(investigationPrompt, 2000, "investigationPrompt");
         validateOptionalText(decisionPacketPrompt, 2000, "decisionPacketPrompt");
+        validateOptionalText(processArtifactPrompt, 4000, "processArtifactPrompt");
     }
 
     /**
@@ -38,7 +46,13 @@ public record BusinessSceneSkill(UUID skillId, String name, String investigation
      */
     public static BusinessSceneSkill create(UUID skillId, String name, String investigationPrompt,
             String decisionPacketPrompt, UUID operatorId, Instant now) {
-        return new BusinessSceneSkill(skillId, name, investigationPrompt, decisionPacketPrompt, operatorId, now,
+        return create(skillId, name, investigationPrompt, decisionPacketPrompt, null, operatorId, now);
+    }
+
+    public static BusinessSceneSkill create(UUID skillId, String name, String investigationPrompt,
+            String decisionPacketPrompt, String processArtifactPrompt, UUID operatorId, Instant now) {
+        return new BusinessSceneSkill(skillId, name, investigationPrompt, decisionPacketPrompt,
+                processArtifactPrompt, operatorId, now,
                 operatorId, now);
     }
 
@@ -56,7 +70,13 @@ public record BusinessSceneSkill(UUID skillId, String name, String investigation
      */
     public BusinessSceneSkill revise(String name, String investigationPrompt, String decisionPacketPrompt,
             UUID operatorId, Instant now) {
-        return new BusinessSceneSkill(skillId, name, investigationPrompt, decisionPacketPrompt, createdBy, createdAt,
+        return revise(name, investigationPrompt, decisionPacketPrompt, processArtifactPrompt, operatorId, now);
+    }
+
+    public BusinessSceneSkill revise(String name, String investigationPrompt, String decisionPacketPrompt,
+            String processArtifactPrompt, UUID operatorId, Instant now) {
+        return new BusinessSceneSkill(skillId, name, investigationPrompt, decisionPacketPrompt,
+                processArtifactPrompt, createdBy, createdAt,
                 operatorId, now);
     }
 

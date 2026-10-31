@@ -6,6 +6,8 @@ import java.util.Optional;
 
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseColumnMetadata;
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseTableMetadata;
+import cn.com.crc.ems.finance.agent.processartifact.application.ProcessArtifactModelContext;
+import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactPlan;
 
 /**
  *
@@ -55,4 +57,7 @@ public interface BusinessModelClient {
      * @author: yigeyige99
      */
     BusinessModelResult<BusinessPacketAnalysisSuggestion> analyzeDecisionPacket(BusinessPacketAnalysisContext context);
+
+    /** 仅依据指定决策包快照和场景提示词生成受限流程中间表示。 */
+    BusinessModelResult<ProcessArtifactPlan> generateProcessArtifacts(ProcessArtifactModelContext context);
 }
