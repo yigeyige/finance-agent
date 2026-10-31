@@ -1,0 +1,18 @@
+[
+   {
+      "head":
+      {
+         "rulesHeadId":442,"processId":"crc_ems-091d3277-f92f-4880-9b14-e45d9da73d2a","processName":"测试流程","categoryCode":"","categoryName":"","businessLineCode":"","businessLineName":"","orgTypeCode":"","orgTypeName":"","orgCode":"","orgName":"","workflowLineKey":"applyAmount","workflowLineKey1":"","ouCode":"","ouName":"","createdBy":"adminJw","updatedBy":"adminJw","isDelete":"0","areaValue":""
+      },"lineList":
+      [
+         {
+            "rulesLineId":1374,"rulesHeadId":442,"workflowLineValue":"A001","applyAmountMin":-99.00,"applyAmountMax":10000.00,"isDelete":"0","currency":"HKD"
+         },{
+            "rulesLineId":1375,"rulesHeadId":442,"workflowLineValue":"A002","applyAmountMin":10000.01,"applyAmountMax":1000000.00,"isDelete":"0","currency":"HKD"
+         }
+
+      ]
+
+   }
+
+]
