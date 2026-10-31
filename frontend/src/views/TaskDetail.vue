@@ -49,7 +49,10 @@
 
         <!-- 第三步：业务决策包。 -->
         <section v-else class="guidance-result-panel">
-          <div class="card-heading"><h4>业务决策包</h4></div>
+          <div class="card-heading">
+            <h4>业务决策包</h4>
+            <el-button v-if="detail.decisionPacket" type="primary" plain @click="openArtifactDialog">流程产物</el-button>
+          </div>
           <p v-if="!detail.decisionPacket" class="readonly-empty">尚未生成业务决策包</p>
           <template v-else>
             <!-- 四个独立卡片紧凑排列：数据对象、操作、结论、证据。 -->
@@ -95,6 +98,29 @@
           </template>
         </section>
       </el-card>
+
+      <el-dialog title="流程产物" :visible.sync="artifactDialogVisible" width="760px" append-to-body>
+        <div v-loading="artifactLoading" class="artifact-dialog">
+          <p v-if="!artifactLoading && !artifactBatches.length" class="readonly-empty">暂无流程产物</p>
+          <el-card v-for="batch in artifactBatches" :key="batch.batchId" shadow="never" class="artifact-batch">
+            <div class="artifact-batch__header">
+              <strong>批次 {{ batch.batchId.slice(0, 8) }}</strong>
+              <span>决策包修订 {{ batch.packetRevision }}</span>
+              <el-tag :type="batch.importStatus === 'IMPORT_CANDIDATE' ? 'success' : 'warning'">
+                {{ batch.importStatus === 'IMPORT_CANDIDATE' ? '可作为导入候选' : '结构待修复' }}
+              </el-tag>
+            </div>
+            <p class="artifact-meta">生成时间：{{ formatTime(batch.createdAt) }}</p>
+            <p v-if="batch.missingItems.length" class="artifact-missing">待补信息：{{ batch.missingItems.join('；') }}</p>
+            <div v-for="file in batch.files" :key="file.fileId" class="artifact-file">
+              <span>{{ file.fileName }}</span>
+              <el-button type="text" :disabled="artifactDownloading" @click="downloadArtifactFile(batch, file)">重新下载</el-button>
+            </div>
+            <el-button :disabled="batch.importStatus !== 'IMPORT_CANDIDATE' || artifactDownloading" @click="downloadArtifactZip(batch)">下载 ZIP</el-button>
+          </el-card>
+        </div>
+        <span slot="footer"><el-button @click="artifactDialogVisible = false">关闭</el-button></span>
+      </el-dialog>
     </template>
   </section>
 </template>
@@ -102,12 +128,16 @@
 import Vue from 'vue'
 import { DraftEvidence } from '../api/generated'
 import { getTaskDetail, TaskDetail } from '../services/task-list-api'
+import { ProcessArtifactBatch, ProcessArtifactFileInfo, listProcessArtifacts, downloadProcessArtifact } from '../services/process-artifact-api'
 /** 任务只读详情页，双击任务列表行进入，以三步布局展示且仅步骤可切换。 */
-export default Vue.extend({ name: 'TaskDetail', data: () => ({ detail: null as TaskDetail | null, loading: false, errorMessage: '', activeStep: 0 }), computed: { /** 将调查结论按分号/句号换行，便于管理员逐条阅读。 */ conclusionText(): string { const packet = this.detail && this.detail.decisionPacket ? this.detail.decisionPacket : null; const text = packet ? packet.conclusion : ''; return text.replace(/([；;。])\s*/g, '$1\n').trim() } }, created() { void this.loadDetail() }, methods: {
+export default Vue.extend({ name: 'TaskDetail', data: () => ({ detail: null as TaskDetail | null, loading: false, errorMessage: '', activeStep: 0, artifactDialogVisible: false, artifactLoading: false, artifactDownloading: false, artifactBatches: [] as ProcessArtifactBatch[] }), computed: { /** 将调查结论按分号/句号换行，便于管理员逐条阅读。 */ conclusionText(): string { const packet = this.detail && this.detail.decisionPacket ? this.detail.decisionPacket : null; const text = packet ? packet.conclusion : ''; return text.replace(/([；;。])\s*/g, '$1\n').trim() } }, created() { void this.loadDetail() }, methods: {
   /** 加载路由参数指向的只读详情。 */ async loadDetail(): Promise<void> { const taskId = this.$route.params.taskId; if (!taskId) { this.errorMessage = '未识别任务标识'; return } this.loading = true; try { this.detail = await getTaskDetail(taskId) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '任务详情暂时无法读取' } finally { this.loading = false } },
   /** 转换状态为业务中文。 */ statusLabel(status: string): string { return ({ DRAFT: '草稿', WAITING_SCOPE_CONFIRMATION: '待确认范围', READY: '待生成方案', WAITING_STEP_APPROVAL: '待处理', RUNNING_STEP: '处理中', ANALYZING: '分析中', WAITING_PROFESSIONAL_CONFIRMATION: '待专业确认', DRAFT_PACKET: '决策包草稿', WAITING_REVIEW: '待复核', RECHECKING_SCOPE: '重新核查范围', READY_TO_PUBLISH: '待发布', PUBLISHED: '已发布', HANDED_OFF: '已移交', CLOSED: '已关闭', PAUSED_MODEL_UNAVAILABLE: '模型暂不可用', PAUSED_BUDGET: '预算已暂停', PAUSED_SOURCE_UNAVAILABLE: '来源暂不可用', STALE_APPROVAL: '审批已失效', FAILED_RECOVERABLE: '处理失败，可重试', CANCELLED: '已取消' } as Record<string, string>)[status] || '状态待确认' },
   /** 以中文地区格式展示创建时间。 */ formatTime(value: string): string { const date = new Date(value); return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN', { hour12: false }) },
   /** 把二维证据行转换为 el-table 可用的对象数组。 */ evidenceRowObjects(item: DraftEvidence): Array<Record<string, string>> { return item.rows.map((row) => { const record: Record<string, string> = {}; row.forEach((cell, index) => { record[String(index)] = cell }); return record }) },
+  /** 打开流程产物弹窗并加载最近批次。 */ async openArtifactDialog(): Promise<void> { this.artifactDialogVisible = true; this.artifactLoading = true; this.errorMessage = ''; try { this.artifactBatches = await listProcessArtifacts(String(this.$route.params.taskId)) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '流程产物加载失败' } finally { this.artifactLoading = false } },
+  /** 重新下载指定批次中的单个流程文件。 */ async downloadArtifactFile(batch: ProcessArtifactBatch, file: ProcessArtifactFileInfo): Promise<void> { if (this.artifactDownloading) return; this.artifactDownloading = true; this.errorMessage = ''; try { await downloadProcessArtifact(String(this.$route.params.taskId), batch.batchId, file.fileId, undefined, file.fileName) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '文件下载失败' } finally { this.artifactDownloading = false } },
+  /** 下载导入候选批次的模型文件 ZIP。 */ async downloadArtifactZip(batch: ProcessArtifactBatch): Promise<void> { if (this.artifactDownloading) return; this.artifactDownloading = true; this.errorMessage = ''; try { await downloadProcessArtifact(String(this.$route.params.taskId), batch.batchId, undefined, ['MODEL'], `流程产物-${batch.batchId.slice(0, 8)}.zip`) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : 'ZIP 下载失败' } finally { this.artifactDownloading = false } },
 } })
 </script>
 <style scoped>
@@ -136,4 +166,12 @@ export default Vue.extend({ name: 'TaskDetail', data: () => ({ detail: null as T
 .packet-alternatives { margin: 0; padding: 0; list-style: none; }
 .packet-alternatives li { display: flex; gap: 8px; padding: 6px 0; color: #4b5563; line-height: 1.6; border-top: 1px dashed #ede6db; }
 .packet-alternatives__index { flex: none; width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 50%; background: #f3ede3; color: #dd7a13; font-size: 12px; }
+.packet-alternatives__index { flex: none; width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 50%; background: #f3ede3; color: #dd7a13; font-size: 12px; }
+.artifact-dialog { min-height: 80px; }
+.artifact-batch { margin-bottom: 12px; border: 1px solid #e7dfd4; border-radius: 10px; }
+.artifact-batch__header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: #4a4640; }
+.artifact-batch__header strong { font-size: 15px; }
+.artifact-meta { margin: 8px 0 4px; color: #817b73; font-size: 13px; }
+.artifact-missing { margin: 4px 0; color: #b26a00; font-size: 13px; line-height: 1.6; }
+.artifact-file { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-top: 1px dashed #ede6db; }
 </style>
