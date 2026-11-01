@@ -34,7 +34,7 @@ public final class EmsReadOnlySqlGuard {
         if (sql == null || sql.isBlank() || sql.length() > 4_000) {
             throw rejected();
         }
-        String value = sql.trim();
+        String value = sql.trim().replaceAll("(?i)\\s+FETCH\\s+FIRST\\s+(\\d+)\\s+ROWS\\s+ONLY\\s*$", " LIMIT $1");
         String lower = value.toLowerCase(Locale.ROOT);
         if (!lower.startsWith("select ") || value.indexOf(';') >= 0 || UNSAFE_COMMENT.matcher(value).find()
                 || FORBIDDEN.matcher(value).find() || COMMA_JOIN.matcher(value).find()) {
