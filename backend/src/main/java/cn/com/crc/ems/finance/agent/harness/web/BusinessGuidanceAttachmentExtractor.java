@@ -34,7 +34,6 @@ public final class BusinessGuidanceAttachmentExtractor {
 
     static final int MAX_ATTACHMENT_COUNT = 3;
     static final long MAX_ATTACHMENT_BYTES = 1_024L * 1_024L;
-    static final int MAX_MODEL_CONTENT_CHARS = 24_000;
     static final long MAX_SCENE_ATTACHMENT_BYTES = 100L * 1_024L;
     private static final int MAX_EXCEL_SHEET_COUNT = 5;
     private static final int MAX_EXCEL_ROWS_PER_SHEET = 200;
@@ -56,7 +55,6 @@ public final class BusinessGuidanceAttachmentExtractor {
             throw new BusinessGuidanceAttachmentException("最多可上传 3 个附件");
         }
         List<BusinessGuidanceAttachment> attachments = new ArrayList<>();
-        int remaining = MAX_MODEL_CONTENT_CHARS;
         for (MultipartFile file : files) {
             String fileName = requireFileName(file);
             if (file.isEmpty() || file.getSize() <= 0) {
@@ -69,16 +67,7 @@ public final class BusinessGuidanceAttachmentExtractor {
             if (text.isBlank()) {
                 throw new BusinessGuidanceAttachmentException("附件不能为空");
             }
-            boolean truncated = text.length() > remaining;
-            String content = text.substring(0, Math.min(text.length(), remaining));
-            if (content.isBlank()) {
-                break;
-            }
-            attachments.add(new BusinessGuidanceAttachment(fileName, content, truncated));
-            remaining -= content.length();
-            if (remaining == 0) {
-                break;
-            }
+            attachments.add(new BusinessGuidanceAttachment(fileName, text, false));
         }
         if (attachments.isEmpty()) {
             throw new BusinessGuidanceAttachmentException("附件内容超出模型分析限制");

@@ -16,7 +16,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 import cn.com.crc.ems.finance.agent.model.application.BusinessModelInteractionService;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceAttachment;
 import cn.com.crc.ems.finance.agent.model.application.GuidanceProgressStore;
+import cn.com.crc.ems.finance.agent.task.application.TaskAttachmentService;
 
 /**
  *
@@ -33,18 +35,26 @@ public final class BusinessModelController {
     private final BusinessModelInteractionService interactionService;
     private final BusinessGuidanceAttachmentExtractor attachmentExtractor;
     private final GuidanceProgressStore progressStore;
+    private final TaskAttachmentService taskAttachmentService;
 
     @Autowired
     public BusinessModelController(BusinessModelInteractionService interactionService,
-            GuidanceProgressStore progressStore) {
-        this(interactionService, new BusinessGuidanceAttachmentExtractor(), progressStore);
+            TaskAttachmentService taskAttachmentService, GuidanceProgressStore progressStore) {
+        this(interactionService, new BusinessGuidanceAttachmentExtractor(), progressStore, taskAttachmentService);
     }
 
     BusinessModelController(BusinessModelInteractionService interactionService,
             BusinessGuidanceAttachmentExtractor attachmentExtractor, GuidanceProgressStore progressStore) {
+        this(interactionService, attachmentExtractor, progressStore, null);
+    }
+
+    BusinessModelController(BusinessModelInteractionService interactionService,
+            BusinessGuidanceAttachmentExtractor attachmentExtractor, GuidanceProgressStore progressStore,
+            TaskAttachmentService taskAttachmentService) {
         this.interactionService = interactionService;
         this.attachmentExtractor = attachmentExtractor;
         this.progressStore = progressStore;
+        this.taskAttachmentService = taskAttachmentService;
     }
 
     /**
@@ -76,8 +86,12 @@ public final class BusinessModelController {
     @PostMapping(value = "/guidance/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BusinessModelResponse.Guidance guidanceWithAttachments(@PathVariable UUID taskId,
             @RequestParam("files") List<MultipartFile> files) {
+        List<BusinessGuidanceAttachment> attachments = attachmentExtractor.extract(files);
+        if (taskAttachmentService != null) {
+            taskAttachmentService.persist(taskId, files, attachments);
+        }
         return BusinessModelResponse.Guidance.from(interactionService.guideBusinessHandling(taskId, null, null,
-                attachmentExtractor.extract(files)));
+                attachments));
     }
 
     /**

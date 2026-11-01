@@ -37,7 +37,12 @@ public final class BpmnStructureProjector {
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             factory.setExpandEntityReferences(false);
-            Document document = factory.newDocumentBuilder().parse(new InputSource(new StringReader(xml)));
+            String sanitized = xml == null ? "" : xml.replace("\uFEFF", "").stripLeading();
+            int firstTag = sanitized.indexOf('<');
+            if (firstTag > 0) {
+                sanitized = sanitized.substring(firstTag);
+            }
+            Document document = factory.newDocumentBuilder().parse(new InputSource(new StringReader(sanitized)));
             ObjectNode root = JsonNodeFactory.instance.objectNode();
             Element process = first(document, "process");
             root.put("processName", process == null ? "" : attribute(process, "name"));

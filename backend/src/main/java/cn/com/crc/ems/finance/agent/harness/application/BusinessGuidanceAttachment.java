@@ -14,7 +14,7 @@ public record BusinessGuidanceAttachment(String fileName, String content, boolea
         if (fileName == null || fileName.isBlank() || fileName.length() > 255) {
             throw new IllegalArgumentException("attachment fileName is invalid");
         }
-        if (content == null || content.isBlank() || content.length() > 24_000) {
+        if (content == null || content.isBlank() || content.length() > 1_000_000) {
             throw new IllegalArgumentException("attachment content is invalid");
         }
     }
