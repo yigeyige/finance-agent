@@ -62,8 +62,11 @@ public class EmsDatabaseAssistanceService {
         try {
             EmsDatabaseConnectionConfig config = configService.resolveEnabled(databaseConfigId);
         Optional<EmsSchemaCatalog> snapshot = catalogService.find(databaseConfigId);
+        String sceneHint = approvalScene(context)
+                ? " act_re_model act_re_procdef psc_act_re_procdef psc_act_config psc_act_sequence_flow approval_config_role sys_value_set_item"
+                : "";
         String searchText = context.title() + " " + context.description()
-                + " " + (context.feedback() == null ? "" : context.feedback());
+                + " " + (context.feedback() == null ? "" : context.feedback()) + sceneHint;
         List<EmsSchemaTable> matches = snapshot.map(value -> value.search(searchText, 20)).orElse(List.of());
         if (snapshot.isPresent() && matches.isEmpty()) throw new EmsSchemaCatalogNoMatchException();
         List<EmsDatabaseTableMetadata> catalog = snapshot.isPresent()
@@ -131,6 +134,14 @@ public class EmsDatabaseAssistanceService {
     }
 
     /** 配置类数据只在 basedata；其他库仅保留人员定位所需表。 */
+    private static boolean approvalScene(cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext context) {
+        if (context.sceneSkill() == null) {
+            return false;
+        }
+        String text = context.sceneSkill().name() + " " + context.sceneSkill().investigationPrompt();
+        return text.contains("审批流程");
+    }
+
     static List<EmsDatabaseTableMetadata> coarseFilter(List<EmsDatabaseTableMetadata> catalog) {
         return catalog.stream()
                 .filter(item -> {

@@ -26,7 +26,7 @@ public record BusinessSceneSkill(UUID skillId, String name, String investigation
             throw new IllegalArgumentException("business scene skill audit fields are required");
         }
         validateText(name, 100, "name");
-        validateText(investigationPrompt, 2000, "investigationPrompt");
+        validateText(investigationPrompt, 8000, "investigationPrompt");
         validateOptionalText(decisionPacketPrompt, 2000, "decisionPacketPrompt");
         validateOptionalText(processArtifactPrompt, 4000, "processArtifactPrompt");
     }

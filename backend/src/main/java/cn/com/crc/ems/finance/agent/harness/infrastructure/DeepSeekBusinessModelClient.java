@@ -237,6 +237,11 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
 
     private <T> BusinessModelResult<T> invokeInternal(String instruction, ObjectNode input,
             java.util.function.Function<JsonNode, ParsedModelOutput<T>> parser) {
+        return invokeInternal(instruction, input, parser, true);
+    }
+
+    private <T> BusinessModelResult<T> invokeInternal(String instruction, ObjectNode input,
+            java.util.function.Function<JsonNode, ParsedModelOutput<T>> parser, boolean retryOnTimeout) {
         long started = System.nanoTime();
         try {
             ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER)
@@ -258,9 +263,23 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
             LOGGER.warn("业务模型输出不符合契约: {}", describe(exception));
             throw exception;
         } catch (RuntimeException exception) {
+            if (retryOnTimeout && gatewayTimeout(exception)) {
+                LOGGER.warn("模型网关 504，重试一次: {}", describe(exception));
+                return invokeInternal(instruction, input, parser, false);
+            }
             LOGGER.warn("业务模型调用失败: {}", describe(exception));
             throw new BusinessModelException("模型分析暂时不可用，请稍后重试", exception);
         }
+    }
+
+    private static boolean gatewayTimeout(Throwable exception) {
+        for (Throwable current = exception; current != null; current = current.getCause()) {
+            String message = current.getMessage();
+            if (message != null && message.contains("status 504")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private record ParsedModelOutput<T>(T value, List<String> warnings) {
