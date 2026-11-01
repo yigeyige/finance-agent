@@ -54,12 +54,17 @@ TBD - created by archiving change test-identity-permission-navigation. Update Pu
 
 ### Requirement: EMS business knowledge navigation
 
-前端 SHALL 仅向具有 `TASK_READ` 权限的身份显示“EMS业务知识域”左侧菜单，并将该菜单路由至受权限守卫保护的业务知识域页面。
+前端 SHALL 在左侧菜单隐藏“EMS业务知识域”入口；已存在的业务知识域路由 SHALL 继续按 `TASK_READ` 权限保护。左侧业务场景入口 SHALL 显示“业务场景技能”。
 
-#### Scenario: Authorized user opens EMS business knowledge
+#### Scenario: Authorized user opens workbench navigation
 
 - **WHEN** 具有 `TASK_READ` 权限的用户打开工作台左侧导航
-- **THEN** 页面显示“EMS业务知识域”菜单，用户可进入业务知识域页面
+- **THEN** 页面显示“业务场景技能”，不显示“EMS业务知识域”菜单
+
+#### Scenario: Authorized user opens knowledge deep link
+
+- **WHEN** 具有 `TASK_READ` 权限的用户访问已有 EMS业务知识域深链
+- **THEN** 前端仍允许访问原页面
 
 #### Scenario: Unauthorized user opens knowledge deep link
 

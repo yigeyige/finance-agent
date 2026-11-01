@@ -109,12 +109,12 @@ export interface DataExplorationQueryRequest { sql: string; configId?: string }
 export interface DataExplorationQueryResult { columns: string[]; rows: Array<Array<string | null>>; rowCount: number; elapsedMillis: number }
 
 /** 任务列表与只读详情的契约模型。 */
-export interface TaskListItem { taskId: string; title: string; status: string; initiatorUserId: string; createdAt: string }
+export interface TaskListItem { taskId: string; title: string; description: string; status: string; initiatorUserId: string; initiatorName: string; businessSceneName: string | null; databaseInstanceName: string | null; createdAt: string }
 export interface TaskListPage { items: TaskListItem[]; total: number; page: number; pageSize: number }
 export interface TaskPremise { subjectKey: string }
 export interface TaskScope { objectSelector: string; revisionNo: number }
 export interface TaskPlan { sequenceNo: number; goal: string; recommended: boolean; status: string }
-export interface TaskDetail { taskId: string; title: string; description: string; status: string; initiatorUserId: string; createdAt: string; premises: TaskPremise[]; scope: TaskScope | null; plans: TaskPlan[]; conclusion: string; evidence: DraftEvidence[]; decisionPacket: TaskDecisionPacket | null }
+export interface TaskDetail { taskId: string; title: string; description: string; status: string; initiatorUserId: string; initiatorName: string; businessSceneName: string | null; databaseInstanceName: string | null; createdAt: string; premises: TaskPremise[]; scope: TaskScope | null; plans: TaskPlan[]; conclusion: string; evidence: DraftEvidence[]; decisionPacket: TaskDecisionPacket | null }
 export interface TaskDecisionPacket {
   revision: number
   subjectKey: string
@@ -160,9 +160,9 @@ const EMS_DATABASE_COLUMN_METADATA_FIELDS = ['name', 'type', 'comment']
 const EMS_SCHEMA_TABLE_FIELDS = ['schema', 'table', 'comment', 'columns']
 const DATA_EXPLORATION_CATALOG_FIELDS = ['dataSourceName', 'maxRows', 'tables']
 const DATA_EXPLORATION_QUERY_RESULT_FIELDS = ['columns', 'rows', 'rowCount', 'elapsedMillis']
-const TASK_LIST_ITEM_FIELDS = ['taskId', 'title', 'status', 'initiatorUserId', 'createdAt']
+const TASK_LIST_ITEM_FIELDS = ['taskId', 'title', 'description', 'status', 'initiatorUserId', 'initiatorName', 'businessSceneName', 'databaseInstanceName', 'createdAt']
 const TASK_LIST_PAGE_FIELDS = ['items', 'total', 'page', 'pageSize']
-const TASK_DETAIL_FIELDS = ['taskId', 'title', 'description', 'status', 'initiatorUserId', 'createdAt', 'premises', 'scope', 'plans', 'conclusion', 'evidence', 'decisionPacket']
+const TASK_DETAIL_FIELDS = ['taskId', 'title', 'description', 'status', 'initiatorUserId', 'initiatorName', 'businessSceneName', 'databaseInstanceName', 'createdAt', 'premises', 'scope', 'plans', 'conclusion', 'evidence', 'decisionPacket']
 const TASK_PREMISE_FIELDS = ['subjectKey']
 const TASK_SCOPE_FIELDS = ['objectSelector', 'revisionNo']
 const TASK_PLAN_FIELDS = ['sequenceNo', 'goal', 'recommended', 'status']
@@ -283,10 +283,20 @@ export function parseDataExplorationQueryResult(value: unknown): DataExploration
   return { columns: requireStringArray(record.columns, '查询结果列'), rows, rowCount: requireNonNegativeNumber(record.rowCount, '返回行数'), elapsedMillis: requireNonNegativeNumber(record.elapsedMillis, '执行耗时') }
 }
 
-/** 校验任务列表项。 */
+/** 校验任务列表项；旧后端缺少新增展示字段时保留基础记录与分页。 */
 export function parseTaskListItem(value: unknown): TaskListItem {
   const record = assertObjectFields(value, TASK_LIST_ITEM_FIELDS, '任务列表项')
-  return { taskId: requireString(record.taskId, '任务标识'), title: requireString(record.title, '任务标题'), status: requireString(record.status, '任务状态'), initiatorUserId: requireString(record.initiatorUserId, '发起人标识'), createdAt: requireString(record.createdAt, '创建时间') }
+  return {
+    taskId: requireString(record.taskId, '任务标识'),
+    title: requireString(record.title, '任务标题'),
+    description: record.description === undefined ? '—' : requireString(record.description, '业务说明'),
+    status: requireString(record.status, '任务状态'),
+    initiatorUserId: requireString(record.initiatorUserId, '发起人标识'),
+    initiatorName: record.initiatorName === undefined ? '—' : requireString(record.initiatorName, '发起人名称'),
+    businessSceneName: nullableString(record.businessSceneName),
+    databaseInstanceName: nullableString(record.databaseInstanceName),
+    createdAt: requireString(record.createdAt, '创建时间'),
+  }
 }
 
 /** 校验任务列表响应。 */
@@ -306,7 +316,7 @@ export function parseTaskDetail(value: unknown): TaskDetail {
   const record = assertObjectFields(value, TASK_DETAIL_FIELDS, '任务详情')
   const scope = record.scope === null ? null : parseTaskScope(record.scope)
   const decisionPacket = record.decisionPacket === null || record.decisionPacket === undefined ? null : parseTaskDecisionPacket(record.decisionPacket)
-  return { taskId: requireString(record.taskId, '任务标识'), title: requireString(record.title, '任务标题'), description: requireString(record.description, '业务说明'), status: requireString(record.status, '任务状态'), initiatorUserId: requireString(record.initiatorUserId, '发起人标识'), createdAt: requireString(record.createdAt, '创建时间'), premises: requireArray(record.premises, '任务前提').map(parseTaskPremise), scope, plans: requireArray(record.plans, '推荐方案').map(parseTaskPlan), conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence), decisionPacket }
+  return { taskId: requireString(record.taskId, '任务标识'), title: requireString(record.title, '任务标题'), description: requireString(record.description, '业务说明'), status: requireString(record.status, '任务状态'), initiatorUserId: requireString(record.initiatorUserId, '发起人标识'), initiatorName: record.initiatorName === undefined ? '—' : requireString(record.initiatorName, '发起人名称'), businessSceneName: record.businessSceneName === undefined || record.businessSceneName === null ? null : requireString(record.businessSceneName, '业务场景名称'), databaseInstanceName: record.databaseInstanceName === undefined || record.databaseInstanceName === null ? null : requireString(record.databaseInstanceName, '数据库实例名称'), createdAt: requireString(record.createdAt, '创建时间'), premises: requireArray(record.premises, '任务前提').map(parseTaskPremise), scope, plans: requireArray(record.plans, '推荐方案').map(parseTaskPlan), conclusion: typeof record.conclusion === 'string' ? record.conclusion : '', evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence), decisionPacket }
 }
 
 /** 校验业务决策包投影，历史包缺失的新增字段按空值容错。 */

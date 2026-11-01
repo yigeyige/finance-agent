@@ -40,17 +40,19 @@ public class TaskDetailService {
     private final InvestigationStepRepository stepRepository;
     private final GuidanceDraftRepository guidanceDraftRepository;
     private final BusinessDecisionPacketRepository decisionPacketRepository;
+    private final TaskListRowService taskListRowService;
 
     public TaskDetailService(InvestigationTaskRepository taskRepository, TaskPremiseRepository premiseRepository,
             ScopeRevisionRepository scopeRevisionRepository, InvestigationStepRepository stepRepository,
             GuidanceDraftRepository guidanceDraftRepository,
-            BusinessDecisionPacketRepository decisionPacketRepository) {
+            BusinessDecisionPacketRepository decisionPacketRepository, TaskListRowService taskListRowService) {
         this.taskRepository = taskRepository;
         this.premiseRepository = premiseRepository;
         this.scopeRevisionRepository = scopeRevisionRepository;
         this.stepRepository = stepRepository;
         this.guidanceDraftRepository = guidanceDraftRepository;
         this.decisionPacketRepository = decisionPacketRepository;
+        this.taskListRowService = taskListRowService;
     }
 
     /**
@@ -70,13 +72,15 @@ public class TaskDetailService {
         if (!identity.hasRole(RoleCode.PLATFORM_ADMIN) && !task.initiatorUserId().equals(identity.userId())) {
             throw new RepositoryEntityNotFoundException("业务处理任务不存在或无权查看");
         }
+        TaskListRowService.DisplayNames names = taskListRowService.displayNames(task);
         ScopeRevision scope = task.currentScopeRevisionId() == null ? null
                 : scopeRevisionRepository.findById(task.currentScopeRevisionId()).orElse(null);
         GuidanceDraftProjection guidance = guidanceDraftRepository.findLatestDraftJsonByTaskId(task.taskId())
                 .map(TaskDetailService::projectGuidance).orElse(GuidanceDraftProjection.EMPTY);
         DecisionPacket decisionPacket = decisionPacketRepository.findLatestByTaskId(task.taskId())
                 .map(TaskDetailService::projectDecisionPacket).orElse(null);
-        return new Detail(task.taskId(), task.title(), task.originalQuestion(), task.status().name(), task.initiatorUserId(), task.createdAt(),
+        return new Detail(task.taskId(), task.title(), task.originalQuestion(), task.status().name(), task.initiatorUserId(),
+                names.initiatorName(), names.businessSceneName(), names.databaseInstanceName(), task.createdAt(),
                 premiseRepository.findByTaskId(task.taskId()).stream().map(Premise::from).toList(), Scope.from(scope),
                 stepRepository.findByTaskId(task.taskId()).stream().map(PlanStep::from).toList(),
                 guidance.conclusion(), guidance.evidence(), decisionPacket);
@@ -127,7 +131,8 @@ public class TaskDetailService {
         return List.copyOf(result);
     }
 
-    public record Detail(UUID taskId, String title, String description, String status, UUID initiatorUserId, Instant createdAt,
+    public record Detail(UUID taskId, String title, String description, String status, UUID initiatorUserId,
+            String initiatorName, String businessSceneName, String databaseInstanceName, Instant createdAt,
             List<Premise> premises, Scope scope, List<PlanStep> plans, String conclusion, @JsonRawValue JsonNode evidence,
             DecisionPacket decisionPacket) { }
     public record DecisionPacket(int revision, String subjectKey, String conclusion, String recommendedGoal,

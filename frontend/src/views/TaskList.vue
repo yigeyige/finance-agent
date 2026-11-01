@@ -23,26 +23,25 @@
       </section>
 
       <section class="task-list-section">
-        <div class="task-list-section-heading task-list-record-heading">
-          <div><span class="task-list-section-dot" aria-hidden="true"></span><h3>业务处理记录</h3></div>
-          <span>共 {{ total }} 项</span>
-        </div>
         <div class="standard-table-panel task-list-table-panel">
-          <el-table v-workbench-table="'TaskList-1'" v-loading="loading" :data="tasks" row-key="taskId" class="standard-data-table" border stripe
+          <el-table v-workbench-table="'TaskList-1'" v-loading="loading" :data="tasks" :max-height="tableMaxHeight" row-key="taskId" class="standard-data-table" border stripe
             @row-dblclick="openDetail"
             empty-text="暂无任务">
-            <el-table-column prop="title" label="业务标题" min-width="320" show-overflow-tooltip />
-            <el-table-column show-overflow-tooltip label="处理状态" width="168">
+            <el-table-column prop="title" label="业务标题" min-width="240" show-overflow-tooltip />
+            <el-table-column prop="description" label="业务说明" min-width="240" show-overflow-tooltip />
+            <el-table-column show-overflow-tooltip label="处理状态" min-width="120">
               <template slot-scope="scope">
                 <el-tag :type="statusTagType(scope.row.status)" effect="plain">{{ statusLabel(scope.row.status) }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="initiatorUserId" label="发起人标识" min-width="210" show-overflow-tooltip />
-            <el-table-column show-overflow-tooltip label="创建时间" width="190">
+            <el-table-column prop="initiatorName" label="发起人" min-width="110" show-overflow-tooltip />
+            <el-table-column prop="businessSceneName" label="业务场景" min-width="150" show-overflow-tooltip><template slot-scope="scope">{{ scope.row.businessSceneName || '—' }}</template></el-table-column>
+            <el-table-column prop="databaseInstanceName" label="数据库实例" min-width="150" show-overflow-tooltip><template slot-scope="scope">{{ scope.row.databaseInstanceName || '—' }}</template></el-table-column>
+            <el-table-column show-overflow-tooltip label="创建时间" min-width="180">
               <template slot-scope="scope">{{ formatTime(scope.row.createdAt) }}</template>
             </el-table-column>
           </el-table>
-          <el-pagination class="task-list-pagination" background layout="total, sizes, prev, pager, next" :current-page="currentPage" :page-size="pageSize" :page-sizes="[10, 20, 50, 100]" :total="total" @current-change="changePage" @size-change="changePageSize" />
+          <el-pagination class="task-list-pagination" background layout="->, total, sizes, prev, pager, next" :current-page="currentPage" :page-size="pageSize" :page-sizes="[10, 20, 50, 100]" :total="total" @current-change="changePage" @size-change="changePageSize" />
         </div>
       </section>
     </template>
@@ -92,28 +91,41 @@ export default Vue.extend({
       filters: { keyword: '', status: '' },
       loading: false,
       errorMessage: '',
+      viewportHeight: typeof window === 'undefined' ? 800 : window.innerHeight,
+      requestSequence: 0,
     }
   },
+  mounted() { window.addEventListener('resize', this.updateViewportHeight) },
+  beforeDestroy() { window.removeEventListener('resize', this.updateViewportHeight) },
   created() {
     void this.loadTasks()
   },
   computed: {
     /** 提供可筛选的任务状态集合。 */
     statuses(): string[] { return Object.keys(statusLabels) },
+    /** 为表格内部滚动保留标题、筛选区和分页器的空间。 */
+    tableMaxHeight(): number { return Math.max(280, this.viewportHeight - 350) },
   },
   methods: {
+    /** 跟随视口尺寸更新表体可用高度。 */
+    updateViewportHeight(): void { this.viewportHeight = window.innerHeight },
     /** 加载当前身份范围内的任务页，并在失败时保留页面错误反馈。 */
     async loadTasks() {
+      const sequence = ++this.requestSequence
       this.loading = true
       this.errorMessage = ''
       try {
         const result: TaskListPage = await listTasks({ page: this.currentPage, pageSize: this.pageSize, status: this.filters.status || undefined, keyword: this.filters.keyword || undefined })
+        if (sequence !== this.requestSequence) return
         this.tasks = result.items
         this.total = result.total
+        this.currentPage = result.page
+        this.pageSize = result.pageSize
       } catch (error: unknown) {
+        if (sequence !== this.requestSequence) return
         this.errorMessage = error instanceof Error ? error.message : '任务列表暂时无法读取'
       } finally {
-        this.loading = false
+        if (sequence === this.requestSequence) this.loading = false
       }
     },
     /** 使用当前筛选条件从第一页重新查询。 */
@@ -121,7 +133,7 @@ export default Vue.extend({
     /** 清除筛选条件并恢复第一页。 */
     resetFilters() { this.filters = { keyword: '', status: '' }; this.currentPage = 1; void this.loadTasks() },
     /** 切换任务页码。 */
-    changePage(page: number) { this.currentPage = page; void this.loadTasks() },
+    changePage(page: number) { if (page === this.currentPage) return; this.currentPage = page; void this.loadTasks() },
     /** 调整每页条数并回到第一页。 */
     changePageSize(pageSize: number) { this.pageSize = pageSize; this.currentPage = 1; void this.loadTasks() },
     /** 进入全新的业务处理草稿，不复用缓存向导中的上一份任务内容。 */
@@ -160,39 +172,8 @@ export default Vue.extend({
   margin-bottom: 18px;
 }
 
-.task-list-record-heading > span {
-  color: #817b73;
-  font-size: 14px;
-}
-
 .task-list-section + .task-list-section {
-  margin-top: 28px;
-}
-
-.task-list-section-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.task-list-section-heading > div {
-  display: flex;
-  align-items: center;
-}
-
-.task-list-section-heading h3 {
-  margin: 0;
-  color: #2e2c29;
-  font-size: 20px;
-}
-
-.task-list-section-dot {
-  width: 6px;
-  height: 6px;
-  margin-right: 10px;
-  background: #dd7a13;
-  border-radius: 50%;
+  margin-top: 16px;
 }
 
 .task-list-toolbar {
@@ -238,8 +219,8 @@ export default Vue.extend({
 }
 
 .task-list-pagination {
-  margin: 18px 20px;
-  text-align: right;
+  margin: 12px 16px;
+  white-space: nowrap;
 }
 
 @media (max-width: 980px) {

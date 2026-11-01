@@ -5,12 +5,16 @@
   "x-contract-version": "1.0.0",
   "type": "object",
   "additionalProperties": false,
-  "required": ["taskId", "title", "status", "initiatorUserId", "createdAt"],
+  "required": ["taskId", "title", "description", "status", "initiatorUserId", "initiatorName", "businessSceneName", "databaseInstanceName", "createdAt"],
   "properties": {
     "taskId": {"type": "string", "format": "uuid"},
     "title": {"type": "string", "minLength": 1, "maxLength": 300},
+    "description": {"type": "string", "minLength": 1, "maxLength": 8000},
     "status": {"type": "string", "minLength": 1, "maxLength": 100},
     "initiatorUserId": {"type": "string", "format": "uuid"},
+    "initiatorName": {"type": "string", "minLength": 1},
+    "businessSceneName": {"type": ["string", "null"]},
+    "databaseInstanceName": {"type": ["string", "null"]},
     "createdAt": {"type": "string", "format": "date-time"}
   }
 }

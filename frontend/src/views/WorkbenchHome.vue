@@ -1,6 +1,6 @@
 <!-- 业务处理工作台：业务说明、模型协作与决策包三步，复用受控分析与会话组件。 -->
 <template>
-  <section class="task-workbench">
+  <section class="task-workbench" :class="{ 'task-workbench--viewport': activeStep < 2, 'task-workbench--intake': activeStep === 0 }">
     <div class="page-heading entry-page-heading"><h2>业务处理</h2></div>
     <!-- 顶部步骤条：与任务信息分区一致的三步骤风格，替代原任务标题/内容摘要。 -->
     <div class="workflow-steps-bar">
@@ -28,7 +28,7 @@
               <el-input v-model.trim="form.title" />
             </el-form-item>
             <el-form-item label="业务说明" class="task-intake-form__wide">
-              <el-input v-model.trim="form.question" type="textarea" :rows="4" />
+              <el-input v-model.trim="form.question" type="textarea" :rows="8" />
             </el-form-item>
             <el-form-item label="业务场景 Skill">
               <el-select v-model="selectedSkillId" clearable filterable placeholder="选择业务场景 Skill（可选）" :loading="sceneSkillsLoading">
@@ -40,7 +40,7 @@
                 <el-option v-for="instance in databaseInstances" :key="instance.configId" :label="instance.name" :value="instance.configId" />
               </el-select>
             </el-form-item>
-            <el-form-item label="附件材料（可选）" class="task-intake-form__wide">
+            <el-form-item label="附件材料（可选）" class="task-intake-form__wide task-intake-form__attachments">
               <el-upload action="#" :auto-upload="false" :file-list="attachmentFiles" :on-change="selectAttachment" :on-remove="removeAttachment" accept=".txt,.md,.csv,.json,.xls,.xlsx" multiple>
                 <el-button type="primary" plain>选择附件</el-button>
               </el-upload>
@@ -252,12 +252,27 @@ export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }
 } })
 </script>
 <style scoped>
-/* 输入阶段两列选择项，长文本和附件横跨整行；窄屏自动回到单列。 */
+/* 输入阶段两列选择项，说明输入框保持自然高度；按钮靠右，窄屏回到单列。 */
 .task-intake-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; }
 .task-intake-form__wide { grid-column: 1 / -1; }
 .task-workbench .el-select { width: 100%; }
-.task-intake-form .form-actions { justify-content: flex-start; }
+.task-intake-form .form-actions { justify-content: flex-end; }
+.task-intake-form__attachments ::v-deep .el-form-item__label { display: block; width: 100%; text-align: right; }
+.task-intake-form__attachments ::v-deep .el-upload { display: block; text-align: right; }
+.task-intake-form__attachments .attachment-note { text-align: right; }
 .workbench-conversation { position: sticky; top: 14px; }
+/* 宽屏双栏下缘对齐；业务说明自然延展，模型协作左侧内容独立滚动。 */
+@media (min-width: 1001px) and (min-height: 620px) {
+  .task-workbench--viewport { display: flex; flex-direction: column; height: calc(100vh - 92px); min-height: 0; }
+  .task-workbench--viewport .workbench-columns { flex: 1 1 auto; min-height: 0; }
+  .task-workbench--viewport .workbench-primary,
+  .task-workbench--viewport .workbench-conversation { height: 100%; min-height: 0; }
+  .task-workbench--viewport .guided-workflow { height: 100%; min-height: 0; }
+  .task-workbench--viewport .guided-workflow ::v-deep .el-card__body { height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+  .task-workbench--intake .guided-workflow { display: flex; flex-direction: column; height: auto; min-height: 100%; }
+  .task-workbench--intake .guided-workflow ::v-deep .el-card__body { display: flex; flex: 1 1 auto; flex-direction: column; height: auto; overflow: visible; }
+  .task-workbench--intake .task-intake-form { flex: 1 1 auto; min-height: 0; margin-top: 0; align-content: space-between; }
+}
 .collaboration-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .collaboration-actions .el-button + .el-button { margin-left: 0; }
 .packet-result-panel { margin-top: 14px; }

@@ -2,12 +2,11 @@ package cn.com.crc.ems.finance.agent.task.infrastructure;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 import cn.com.crc.ems.finance.agent.task.application.InvestigationTaskRepository;
 import cn.com.crc.ems.finance.agent.task.application.TaskPage;
@@ -18,11 +17,11 @@ import cn.com.crc.ems.finance.agent.task.infrastructure.mapper.InvestigationTask
 
 /**
  *
- * @Description: 使用 MyBatis-Plus Mapper 访问调查任务并执行乐观版本更新。
+ * @Description: 使用 MyBatis-Plus Mapper 访问调查任务，以绑定查询执行列表分页及乐观版本更新。
  *
  * @Version: 0.1.0
  * @Author: yigeyige99
- * @Date: 2026-10-11 21:28:41
+ * @Date: 2026-11-01 00:00:00
  */
 @Repository
 public class MybatisInvestigationTaskRepository implements InvestigationTaskRepository {
@@ -49,13 +48,12 @@ public class MybatisInvestigationTaskRepository implements InvestigationTaskRepo
 
     @Override
     public TaskPage findPageByInitiator(UUID initiatorUserId, int page, int pageSize, TaskStatus status, String keyword) {
-        return findPage(new QueryWrapper<InvestigationTaskEntity>().eq("initiator_user_id", initiatorUserId), page,
-                pageSize, status, keyword);
+        return findPage(initiatorUserId, page, pageSize, status, keyword);
     }
 
     @Override
     public TaskPage findPage(int page, int pageSize, TaskStatus status, String keyword) {
-        return findPage(new QueryWrapper<>(), page, pageSize, status, keyword);
+        return findPage(null, page, pageSize, status, keyword);
     }
 
     @Override
@@ -71,13 +69,26 @@ public class MybatisInvestigationTaskRepository implements InvestigationTaskRepo
                 .eq("row_version", expectedRowVersion)) == 1;
     }
 
-    private TaskPage findPage(QueryWrapper<InvestigationTaskEntity> query, int page, int pageSize, TaskStatus status,
+    /**
+     * @description: 在数据库端执行同条件计数与有界查询，不依赖未配置的分页拦截器。
+     * @param: initiatorUserId 普通操作人的身份范围，管理员查询时为空
+     * @param: page 从一开始的页码
+     * @param: pageSize 每页条数，不超过一百
+     * @param: status 可选任务状态
+     * @param: keyword 可选标题关键字
+     * @return: 含真实总数和当前页记录的结果
+     * @author: yigeyige99
+     */
+    private TaskPage findPage(UUID initiatorUserId, int page, int pageSize, TaskStatus status,
             String keyword) {
-        if (status != null) query.eq("status", status.name());
-        if (keyword != null) query.like("title", keyword);
-        query.orderByDesc("created_at").orderByDesc("task_id");
-        Page<InvestigationTaskEntity> result = mapper.selectPage(new Page<>(page, pageSize), query);
-        return new TaskPage(result.getRecords().stream().map(MybatisTaskMappings::toDomain).toList(), result.getTotal(),
-                page, pageSize);
+        if (page < 1 || pageSize < 1 || pageSize > 100) {
+            throw new IllegalArgumentException("任务分页参数不合法");
+        }
+        String statusName = status == null ? null : status.name();
+        long total = mapper.countPageRows(initiatorUserId, statusName, keyword);
+        long offset = ((long) page - 1) * pageSize;
+        List<InvestigationTaskEntity> records = total == 0 ? List.of()
+                : mapper.selectPageRows(initiatorUserId, statusName, keyword, pageSize, offset);
+        return new TaskPage(records.stream().map(MybatisTaskMappings::toDomain).toList(), total, page, pageSize);
     }
 }

@@ -3,6 +3,7 @@ const fs = require('node:fs')
 const path = require('node:path')
 const Module = require('node:module')
 const ts = require('typescript')
+require('./load-typescript.cjs')
 
 /** 编译并加载 Vue 文件的脚本部分，保留相对模块解析并显式隔离外部 API。 */
 module.exports = function loadVueScript(relativePath, ports = {}) {

@@ -4,6 +4,20 @@
 
 让平台管理员受控维护 EMS MySQL 连接，并让业务处理模型仅通过后端只读工具取得有限的辅助查询结果。
 ## Requirements
+### Requirement: Database instance page compact header and responsive table
+
+数据库实例页面 SHALL 将现有只读安全提醒放在页面标题右侧同一栏。宽屏下配置表格 SHALL 使用可用宽度，避免无意义的横向滚动；窄屏下 SHALL 保留表格内横向滚动与可读列宽。
+
+#### Scenario: Wide administrator viewport
+
+- **WHEN** 管理员在可容纳全部列的宽屏打开数据库实例页面
+- **THEN** 提醒位于标题右侧，表格不出现横向滚动条
+
+#### Scenario: Narrow administrator viewport
+
+- **WHEN** 管理员在窄屏打开数据库实例页面
+- **THEN** 提醒可换行且表格列保持可读，通过表格区域横向滚动访问
+
 ### Requirement: Managed EMS database configuration
 
 系统 SHALL 允许具有 `PLATFORM_ADMIN` 角色的身份维护 EMS MySQL 数据库连接配置，并且允许同时启用多条配置。密码 MUST 使用应用密钥加密保存，任何响应、日志和模型上下文 MUST NOT 返回密码或密文。未配置或长度不足的加密主密钥时，系统 MUST 拒绝保存并返回安全、可操作的配置不可用错误，MUST NOT 将其映射为业务状态冲突。

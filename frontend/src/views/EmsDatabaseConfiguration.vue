@@ -1,8 +1,7 @@
 <!-- 业务工作区页面，复用公共表格与弹窗交互，保持既有业务流程。 -->
 <template>
   <section class="evidence-page list-page entry-page">
-    <div class="page-heading entry-page-heading"><h2>数据库实例</h2></div>
-    <el-alert title="仅用于业务处理模型的受控只读分析。系统代码拦截非 SELECT、多语句、写入、DDL 和危险语法；数据库账号仍应只授予业务库 SELECT 权限。" type="warning" :closable="false" show-icon />
+    <div class="page-heading entry-page-heading database-page-heading"><h2>数据库实例</h2><el-alert class="database-page-warning" title="仅用于业务处理模型的受控只读分析。系统代码拦截非 SELECT、多语句、写入、DDL 和危险语法；数据库账号仍应只授予业务库 SELECT 权限。" type="warning" :closable="false" show-icon /></div>
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
     <section class="entry-content-card">
       <div class="entry-content-toolbar"><span class="entry-content-toolbar__meta">共 {{ items.length }} 项</span><el-button type="primary" @click="openCreate">新增连接</el-button></div>
@@ -10,7 +9,7 @@
         <el-table-column show-overflow-tooltip prop="name" label="配置名称" min-width="140" /><el-table-column show-overflow-tooltip prop="username" label="数据库账号" min-width="130" /><el-table-column show-overflow-tooltip label="超时" width="160"><template slot-scope="scope">连接 {{ scope.row.connectTimeoutSeconds }} 秒 / 查询 {{ scope.row.queryTimeoutSeconds }} 秒</template></el-table-column><el-table-column show-overflow-tooltip prop="maxRows" label="最大返回行数" width="120" />
         <el-table-column show-overflow-tooltip label="状态" width="110"><template slot-scope="scope"><el-tag :type="scope.row.enabled ? 'success' : 'info'">{{ scope.row.enabled ? '已启用' : '未启用' }}</el-tag></template></el-table-column><el-table-column show-overflow-tooltip label="密码" width="100"><template slot-scope="scope">{{ scope.row.passwordConfigured ? '已配置' : '未配置' }}</template></el-table-column>
         <el-table-column label="结构目录" min-width="120"><template slot-scope="scope"><el-button v-if="scope.row.schemaSyncedAt" type="text" @click="openCatalog(scope.row)">{{ scope.row.schemaTableCount }} 张表</el-button><span v-else>未同步</span></template></el-table-column>
-        <el-table-column label="操作" width="350"><template slot-scope="scope"><el-button type="text" :disabled="scope.row.enabled" @click="enable(scope.row)">启用</el-button><el-button type="text" :disabled="!scope.row.enabled" @click="disable(scope.row)">停用</el-button><el-button type="text" @click="test(scope.row)">测试</el-button><el-button type="text" :loading="syncingId === scope.row.configId" :disabled="Boolean(syncingId)" @click="syncSchema(scope.row)">同步表结构</el-button><el-button type="text" @click="openEdit(scope.row)">编辑</el-button></template></el-table-column>
+        <el-table-column label="操作" min-width="280"><template slot-scope="scope"><el-button type="text" :disabled="scope.row.enabled" @click="enable(scope.row)">启用</el-button><el-button type="text" :disabled="!scope.row.enabled" @click="disable(scope.row)">停用</el-button><el-button type="text" @click="test(scope.row)">测试</el-button><el-button type="text" :loading="syncingId === scope.row.configId" :disabled="Boolean(syncingId)" @click="syncSchema(scope.row)">同步表结构</el-button><el-button type="text" @click="openEdit(scope.row)">编辑</el-button></template></el-table-column>
       </el-table></div>
     </section>
     <el-dialog v-workbench-dialog custom-class="workbench-dialog" :title="editing ? '编辑 EMS 数据库连接' : '新增 EMS 数据库连接'" :visible.sync="dialogVisible" width="600px" :close-on-click-modal="false"><el-form :model="form" label-position="top" class="workbench-dialog-form">
@@ -39,3 +38,11 @@ export default Vue.extend({ name: 'EmsDatabaseConfiguration', components: { EmsS
   /** 手动同步选中实例的只读表字段目录，并阻止重复提交。 */ async syncSchema(item: EmsDatabaseConnectionConfig): Promise<void> { if (this.syncingId) return; this.syncingId = item.configId; try { await syncEmsDatabaseSchema(item.configId); await this.load(); this.$message.success('表结构目录已同步') } catch (error: unknown) { this.$message.error(error instanceof Error ? error.message : '表结构同步失败，原目录已保留') } finally { this.syncingId = '' } },
 } })
 </script>
+<style scoped>
+.database-page-heading { display: flex; align-items: center; flex-wrap: wrap; }
+.database-page-heading h2 { flex: none; margin: 0; }
+.database-page-warning { flex: 1 1 660px; min-width: 0; padding: 6px 10px; }
+.database-page-warning ::v-deep .el-alert__title { font-size: 14px; line-height: 20px; }
+.model-config-table { overflow-x: auto; }
+@media (max-width: 900px) { .database-page-warning { flex-basis: 100%; } }
+</style>

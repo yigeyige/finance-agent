@@ -19,15 +19,17 @@
 
       <el-card shadow="never" class="form-card guided-workflow">
         <!-- 第一步：业务说明只读信息。 -->
-        <section v-if="activeStep === 0" class="handling-form-panel">
+        <section v-if="activeStep === 0" class="readonly-intake-panel">
           <div class="card-heading"><h4>业务说明</h4></div>
-          <dl class="readonly-detail-list">
-            <dt>业务标题</dt><dd>{{ detail.title }}</dd>
-            <dt>处理状态</dt><dd>{{ statusLabel(detail.status) }}</dd>
-            <dt>发起人标识</dt><dd>{{ detail.initiatorUserId }}</dd>
-            <dt>创建时间</dt><dd>{{ formatTime(detail.createdAt) }}</dd>
-            <dt>业务说明</dt><dd>{{ detail.description }}</dd>
-          </dl>
+          <el-form :model="detail" label-position="top" class="task-form readonly-intake-form">
+            <el-form-item label="业务标题" class="readonly-intake-form__wide"><div class="readonly-field">{{ detail.title }}</div></el-form-item>
+            <el-form-item label="业务说明" class="readonly-intake-form__wide"><div class="readonly-field readonly-field--multiline">{{ detail.description }}</div></el-form-item>
+            <el-form-item label="业务场景"><div class="readonly-field">{{ detail.businessSceneName || '—' }}</div></el-form-item>
+            <el-form-item label="数据库实例"><div class="readonly-field">{{ detail.databaseInstanceName || '—' }}</div></el-form-item>
+            <el-form-item label="发起人"><div class="readonly-field">{{ detail.initiatorName }}</div></el-form-item>
+            <el-form-item label="处理状态"><div class="readonly-field">{{ statusLabel(detail.status) }}</div></el-form-item>
+            <el-form-item label="创建时间" class="readonly-intake-form__wide"><div class="readonly-field">{{ formatTime(detail.createdAt) }}</div></el-form-item>
+          </el-form>
         </section>
 
         <!-- 第二步：检查结论与关联证据。 -->
@@ -49,7 +51,7 @@
 
         <!-- 第三步：业务决策包。 -->
         <section v-else class="guidance-result-panel">
-          <div class="card-heading">
+          <div class="card-heading packet-heading">
             <h4>业务决策包</h4>
             <el-button v-if="detail.decisionPacket" type="primary" plain @click="openArtifactDialog">流程产物</el-button>
           </div>
@@ -147,10 +149,13 @@ export default Vue.extend({ name: 'TaskDetail', data: () => ({ detail: null as T
 </script>
 <style scoped>
 .task-detail-page ::v-deep .el-step { cursor: pointer; }
-.readonly-detail-list { display: grid; grid-template-columns: 112px 1fr; margin: 14px 0 0; border-top: 1px solid #ebeef5; }
-.readonly-detail-list dt, .readonly-detail-list dd { margin: 0; padding: 12px; border-bottom: 1px solid #ebeef5; }
-.readonly-detail-list dt { background: #f8fafc; color: #687386; }
-.readonly-detail-list dd { white-space: pre-wrap; line-height: 1.6; }
+.readonly-intake-panel { padding: 16px; border: 1px solid #dce7e4; border-radius: 12px; background: #fff; }
+.readonly-intake-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; }
+.readonly-intake-form__wide { grid-column: 1 / -1; }
+.readonly-field { min-height: 40px; padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; background: #f8fafc; color: #303133; line-height: 22px; overflow-wrap: anywhere; }
+.readonly-field--multiline { min-height: 94px; white-space: pre-wrap; }
+.packet-heading { margin-bottom: 16px; }
+@media (max-width: 600px) { .readonly-intake-form { grid-template-columns: minmax(0, 1fr); } }
 .readonly-empty { color: #909399; margin: 8px 0; }
 .conclusion-text { white-space: pre-wrap; line-height: 1.6; margin: 10px 0 16px; }
 .evidence-item { margin-bottom: 12px; }
