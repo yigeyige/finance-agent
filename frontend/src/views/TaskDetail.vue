@@ -60,7 +60,7 @@
               <el-card shadow="never" class="packet-card packet-card--object">
                 <div slot="header" class="packet-card__header">数据对象</div>
                 <div class="packet-object">
-                  <span class="packet-object__item"><span class="packet-object__label">处理对象</span><span class="packet-object__value">{{ detail.decisionPacket.subjectKey || '—' }}</span></span>
+                  <span class="packet-object__item"><span class="packet-object__label">处理对象 <span class="field-path">{{ fieldAnnotation('subjectKey') }}</span></span><span class="packet-object__value">{{ detail.decisionPacket.subjectKey || '—' }}</span></span>
                   <span class="packet-object__item"><span class="packet-object__label">数据库实例</span><span class="packet-object__value">{{ detail.decisionPacket.databaseInstanceName || '—' }}</span></span>
                 </div>
               </el-card>
@@ -68,10 +68,10 @@
               <el-card shadow="never" class="packet-card packet-card--action">
                 <div slot="header" class="packet-card__header">操作</div>
                 <div class="packet-recommend__goal">
-                  <el-tag type="primary" effect="dark" size="small">推荐</el-tag>
+                  <el-tag type="primary" effect="dark" size="small">推荐</el-tag> <span class="field-path">{{ fieldAnnotation('recommendedGoal') }}</span>
                   <p>{{ detail.decisionPacket.recommendedGoal || '暂无' }}</p>
                 </div>
-                <p v-if="detail.decisionPacket.reason" class="packet-recommend__reason">推荐理由：{{ detail.decisionPacket.reason }}</p>
+                <p v-if="detail.decisionPacket.reason" class="packet-recommend__reason">推荐理由 <span class="field-path">{{ fieldAnnotation('reason') }}</span>：{{ detail.decisionPacket.reason }}</p>
                 <ul v-if="detail.decisionPacket.alternativeGoals.length" class="packet-alternatives">
                   <li v-for="(goal, gi) in detail.decisionPacket.alternativeGoals" :key="gi">
                     <span class="packet-alternatives__index">{{ gi + 1 }}</span>
@@ -81,12 +81,12 @@
               </el-card>
 
               <el-card shadow="never" class="packet-card packet-card--conclusion">
-                <div slot="header" class="packet-card__header">结论 <span class="packet-card__revision">修订 {{ detail.decisionPacket.revision }}</span></div>
+                <div slot="header" class="packet-card__header">结论 <span class="field-path">{{ fieldAnnotation('conclusion') }}</span> <span class="packet-card__revision">修订 {{ detail.decisionPacket.revision }}</span></div>
                 <p class="packet-conclusion">{{ conclusionText }}</p>
               </el-card>
 
               <el-card v-if="detail.decisionPacket.evidence.length" shadow="never" class="packet-card packet-card--evidence">
-                <div slot="header" class="packet-card__header">证据</div>
+                <div slot="header" class="packet-card__header">证据 <span class="field-path">{{ fieldAnnotation('evidence') }}</span></div>
                 <div v-for="(item, ei) in detail.decisionPacket.evidence" :key="ei" class="evidence-item">
                   <p class="evidence-meta">{{ item.schema }}.{{ item.table }} · {{ item.purpose }}</p>
                   <el-table v-workbench-table="'TaskDetail-2:' + item.schema + '.' + item.table" :data="evidenceRowObjects(item)" border size="mini">
@@ -129,8 +129,13 @@ import Vue from 'vue'
 import { DraftEvidence } from '../api/generated'
 import { getTaskDetail, TaskDetail } from '../services/task-list-api'
 import { ProcessArtifactBatch, ProcessArtifactFileInfo, listProcessArtifacts, downloadProcessArtifact } from '../services/process-artifact-api'
+import { fieldAnnotation, fieldTooltip } from '../constants/field-labels'
 /** 任务只读详情页，双击任务列表行进入，以三步布局展示且仅步骤可切换。 */
-export default Vue.extend({ name: 'TaskDetail', data: () => ({ detail: null as TaskDetail | null, loading: false, errorMessage: '', activeStep: 0, artifactDialogVisible: false, artifactLoading: false, artifactDownloading: false, artifactBatches: [] as ProcessArtifactBatch[] }), computed: { /** 将调查结论按分号/句号换行，便于管理员逐条阅读。 */ conclusionText(): string { const packet = this.detail && this.detail.decisionPacket ? this.detail.decisionPacket : null; const text = packet ? packet.conclusion : ''; return text.replace(/([；;。])\s*/g, '$1\n').trim() } }, created() { void this.loadDetail() }, methods: {
+export default Vue.extend({ name: 'TaskDetail', data: () => ({ detail: null as TaskDetail | null, loading: false, errorMessage: '', activeStep: 0, artifactDialogVisible: false, artifactLoading: false, artifactDownloading: false, artifactBatches: [] as ProcessArtifactBatch[] }), computed: { /** 将调查结论按分号/句号换行，便于管理员逐条阅读。 */ conclusionText(): string { const packet = this.detail && this.detail.decisionPacket ? this.detail.decisionPacket : null; const text = packet ? packet.conclusion : ''; return text.replace(/([；;。])\s*/g, '$1\n').trim() } }, created() { void this.loadDetail() },   methods: {
+    /** 返回字段路径与中文注释。 */
+    fieldAnnotation,
+    /** 返回字段中文说明，用于提示。 */
+    fieldTooltip,
   /** 加载路由参数指向的只读详情。 */ async loadDetail(): Promise<void> { const taskId = this.$route.params.taskId; if (!taskId) { this.errorMessage = '未识别任务标识'; return } this.loading = true; try { this.detail = await getTaskDetail(taskId) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '任务详情暂时无法读取' } finally { this.loading = false } },
   /** 转换状态为业务中文。 */ statusLabel(status: string): string { return ({ DRAFT: '草稿', WAITING_SCOPE_CONFIRMATION: '待确认范围', READY: '待生成方案', WAITING_STEP_APPROVAL: '待处理', RUNNING_STEP: '处理中', ANALYZING: '分析中', WAITING_PROFESSIONAL_CONFIRMATION: '待专业确认', DRAFT_PACKET: '决策包草稿', WAITING_REVIEW: '待复核', RECHECKING_SCOPE: '重新核查范围', READY_TO_PUBLISH: '待发布', PUBLISHED: '已发布', HANDED_OFF: '已移交', CLOSED: '已关闭', PAUSED_MODEL_UNAVAILABLE: '模型暂不可用', PAUSED_BUDGET: '预算已暂停', PAUSED_SOURCE_UNAVAILABLE: '来源暂不可用', STALE_APPROVAL: '审批已失效', FAILED_RECOVERABLE: '处理失败，可重试', CANCELLED: '已取消' } as Record<string, string>)[status] || '状态待确认' },
   /** 以中文地区格式展示创建时间。 */ formatTime(value: string): string { const date = new Date(value); return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN', { hour12: false }) },
@@ -174,4 +179,5 @@ export default Vue.extend({ name: 'TaskDetail', data: () => ({ detail: null as T
 .artifact-meta { margin: 8px 0 4px; color: #817b73; font-size: 13px; }
 .artifact-missing { margin: 4px 0; color: #b26a00; font-size: 13px; line-height: 1.6; }
 .artifact-file { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-top: 1px dashed #ede6db; }
+.field-path { margin-left: 6px; color: #9b948a; font-size: 12px; font-weight: 400; }
 </style>

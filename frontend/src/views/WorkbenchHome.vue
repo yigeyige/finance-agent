@@ -84,19 +84,19 @@
 
               <section v-if="guidance" class="guidance-result-panel">
                 <div class="card-heading">
-                  <h4>检查结论</h4>
+                  <h4>检查结论 <span class="field-path" :title="fieldTooltip('guidanceDraft.conclusion')">{{ fieldAnnotation('guidanceDraft.conclusion') }}</span></h4>
                   <div class="collaboration-actions"><el-button v-if="decisionPacket" :disabled="modelLoading || chatLoading || saving || packetLoading" @click="activeStep = 2">查看决策包</el-button><el-button type="primary" :loading="packetLoading" :disabled="modelLoading || chatLoading || saving" @click="generateDecisionPacket">生成决策包</el-button></div>
                 </div>
                 <p class="conclusion-text">{{ guidance.draft.conclusion || '暂无结论' }}</p>
                 <template v-if="guidance.draft.processPlan">
-                  <h4>流程事实</h4>
+                  <h4>流程事实 <span class="field-path" :title="fieldTooltip('guidanceDraft.processPlan')">{{ fieldAnnotation('guidanceDraft.processPlan') }}</span></h4>
                   <p class="conclusion-text">{{ guidance.draft.processPlan.name }}：{{ guidance.draft.processPlan.nodes.map(node => node.name).join('、') || '尚无已确认节点' }}</p>
                   <p v-for="(flow, fi) in guidance.draft.processPlan.flows" :key="fi" class="conclusion-text">{{ flowNodeName(guidance.draft.processPlan, flow.source) }} → {{ flowNodeName(guidance.draft.processPlan, flow.target) }}{{ flow.condition ? '（' + flow.condition.variable + ' ' + flow.condition.operator + ' ' + flow.condition.value + '）' : '' }}</p>
                   <p v-if="guidance.draft.processPlan.missingItems.length" class="conclusion-text">待补信息：{{ guidance.draft.processPlan.missingItems.join('；') }}</p>
                   <p v-if="guidance.draft.processPlan.unsupported.length" class="conclusion-text">暂未支持：{{ guidance.draft.processPlan.unsupported.join('；') }}</p>
                 </template>
                 <template v-if="accumulatedEvidence.length">
-                  <h4>关联证据（跨轮累积）</h4>
+                  <h4>关联证据（跨轮累积） <span class="field-path" :title="fieldTooltip('evidence')">{{ fieldAnnotation('evidence') }}</span></h4>
                   <div v-for="round in accumulatedEvidence" :key="round.roundNo" class="evidence-item">
                     <p class="evidence-meta">第 {{ round.roundNo }} 轮</p>
                     <div v-for="(item, ei) in round.evidence" :key="`${round.roundNo}-${ei}`" class="evidence-item">
@@ -126,7 +126,7 @@
               <el-card shadow="never" class="packet-card packet-card--object">
                 <div slot="header" class="packet-card__header">数据对象</div>
                 <div class="packet-object">
-                  <span class="packet-object__item"><span class="packet-object__label">处理对象</span><span class="packet-object__value">{{ decisionPacket.content.subjectKey || '—' }}</span></span>
+                  <span class="packet-object__item"><span class="packet-object__label">处理对象 <span class="field-path">{{ fieldAnnotation('subjectKey') }}</span></span><span class="packet-object__value">{{ decisionPacket.content.subjectKey || '—' }}</span></span>
                   <span class="packet-object__item"><span class="packet-object__label">数据库实例</span><span class="packet-object__value">{{ decisionPacket.content.databaseInstanceName || '—' }}</span></span>
                 </div>
               </el-card>
@@ -134,10 +134,10 @@
               <el-card shadow="never" class="packet-card packet-card--action">
                 <div slot="header" class="packet-card__header">操作</div>
                 <div class="packet-recommend__goal">
-                  <el-tag type="primary" effect="dark" size="small">推荐</el-tag>
+                  <el-tag type="primary" effect="dark" size="small">推荐</el-tag> <span class="field-path">{{ fieldAnnotation('recommendedGoal') }}</span>
                   <p>{{ decisionPacket.content.recommendedGoal || '暂无' }}</p>
                 </div>
-                <p v-if="decisionPacket.content.reason" class="packet-recommend__reason">推荐理由：{{ decisionPacket.content.reason }}</p>
+                <p v-if="decisionPacket.content.reason" class="packet-recommend__reason">推荐理由 <span class="field-path">{{ fieldAnnotation('reason') }}</span>：{{ decisionPacket.content.reason }}</p>
                 <ul v-if="decisionPacket.content.alternativeGoals.length" class="packet-alternatives">
                   <li v-for="(goal, gi) in decisionPacket.content.alternativeGoals" :key="gi">
                     <span class="packet-alternatives__index">{{ gi + 1 }}</span>
@@ -147,12 +147,12 @@
               </el-card>
 
               <el-card shadow="never" class="packet-card packet-card--conclusion">
-                <div slot="header" class="packet-card__header">结论</div>
+                <div slot="header" class="packet-card__header">结论 <span class="field-path">{{ fieldAnnotation('conclusion') }}</span></div>
                 <p class="packet-conclusion">{{ conclusionText }}</p>
               </el-card>
 
               <el-card v-if="decisionPacket.content.evidence.length" shadow="never" class="packet-card packet-card--evidence">
-                <div slot="header" class="packet-card__header">证据</div>
+                <div slot="header" class="packet-card__header">证据 <span class="field-path">{{ fieldAnnotation('evidence') }}</span></div>
                 <div v-for="(item, ei) in decisionPacket.content.evidence" :key="ei" class="evidence-item">
                   <p class="evidence-meta">{{ item.schema }}.{{ item.table }} · {{ item.purpose }}</p>
                   <el-table v-workbench-table="'WorkbenchHome-2:' + item.schema + '.' + item.table" :data="evidenceRowObjects(item)" border size="mini">
@@ -162,7 +162,7 @@
               </el-card>
             </div>
             <div v-if="decisionPacket.content.guidanceDraft && decisionPacket.content.guidanceDraft.processPlan" class="evidence-item">
-              <h4>本次采用的流程调查结论</h4>
+              <h4>本次采用的流程调查结论 <span class="field-path" :title="fieldTooltip('guidanceDraft.processPlan')">{{ fieldAnnotation('guidanceDraft.processPlan') }}</span></h4>
               <p class="conclusion-text">{{ decisionPacket.content.guidanceDraft.processPlan.name }}：{{ decisionPacket.content.guidanceDraft.processPlan.nodes.map(node => node.name).join('、') || '尚无已确认节点' }}</p>
               <p v-if="decisionPacket.content.guidanceDraft.processPlan.missingItems.length" class="conclusion-text">待补信息：{{ decisionPacket.content.guidanceDraft.processPlan.missingItems.join('；') }}</p>
             </div>
@@ -211,6 +211,7 @@ import { BusinessSceneSkill, listBusinessSceneSkills } from '../services/busines
 import { EmsDatabaseInstance, listEnabledDatabaseInstances } from '../services/ems-database-config-api'
 import { createTask, isStaleError, updateTask } from '../services/task-api'
 import { ProcessArtifactBatch, ProcessArtifactFileInfo, generateProcessArtifacts, listProcessArtifacts, downloadProcessArtifact } from '../services/process-artifact-api'
+import { fieldAnnotation, fieldTooltip } from '../constants/field-labels'
 interface Form { title: string; question: string; subjectKey: string }
 interface Chat { id: string; role: 'operator' | 'model'; content: string }
 interface AttachmentFile { name: string; size?: number; raw?: File }
@@ -220,7 +221,11 @@ const PROCESS_SKILL_ID = 'a6a050ae-b699-4ca0-af72-4381e990eda0'
 const createInitialForm = (): Form => ({ title: '', question: '', subjectKey: '' })
 /** 仅接受后端可受控分析的文本附件，避免浏览器选择无效格式。 */
 const isSupportedAttachment = (file: AttachmentFile): boolean => { const extension = file.name.split('.').pop()?.toLowerCase(); return Boolean(file.raw) && file.size !== 0 && file.size !== undefined && file.size <= 1024 * 1024 && Boolean(extension && ATTACHMENT_EXTENSIONS.includes(extension)) }
-export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }, data() { return { PROCESS_SKILL_ID, artifactBatches: [] as ProcessArtifactBatch[], artifactLoading: false, selectedKinds: ['MODEL'] as string[], showPrevious: false, runtimeModel: null as ModelRuntimeSummary | null, runtimeModelLoading: false, lastModelMetadata: null as ModelCallMetadata | null, activeStep: 0, saving: false, modelLoading: false, chatLoading: false, task: null as TaskResponse | null, guidance: null as BusinessGuidanceResponse | null, chatMessage: '', chatMessages: [] as Chat[], attachmentFiles: [] as AttachmentFile[], sceneSkills: [] as BusinessSceneSkill[], selectedSkillId: '', sceneSkillsLoading: false, databaseInstances: [] as EmsDatabaseInstance[], selectedDatabaseConfigId: '', progressStage: '', progressTimer: null as ReturnType<typeof setInterval> | null, errorMessage: '', accumulatedEvidence: [] as BusinessEvidenceAccumResponse[], decisionPacket: null as BusinessDecisionPacketResponse | null, packetLoading: false, form: createInitialForm() } }, computed: { /** 返回本次模型输出规范化警告，供页面提示使用。 */ guidanceWarnings(): string[] { return this.guidance?.warnings ?? [] }, /** 将调查结论按分号/句号换行，便于管理员逐条阅读。 */ conclusionText(): string { const text = this.decisionPacket && this.decisionPacket.content ? this.decisionPacket.content.conclusion : ''; return text.replace(/([；;。])\s*/g, '$1\n').trim() } }, created() { void this.loadSceneSkills(); void this.loadDatabaseInstances(); void this.loadRuntimeModel() }, /** 返回缓存页时刷新当前启用的模型摘要。 */ activated() { void this.loadRuntimeModel() }, /** 组件销毁前清理进度轮询定时器，避免离开页面产生僵尸请求。 */ beforeDestroy() { this.stopProgressPolling() }, watch: { /** 仅响应显式新建入口的草稿标识，普通导航继续保留当前向导状态。 */ '$route.query.draft'(): void { this.resetDraft() } }, methods: {
+export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }, data() { return { PROCESS_SKILL_ID, artifactBatches: [] as ProcessArtifactBatch[], artifactLoading: false, selectedKinds: ['MODEL'] as string[], showPrevious: false, runtimeModel: null as ModelRuntimeSummary | null, runtimeModelLoading: false, lastModelMetadata: null as ModelCallMetadata | null, activeStep: 0, saving: false, modelLoading: false, chatLoading: false, task: null as TaskResponse | null, guidance: null as BusinessGuidanceResponse | null, chatMessage: '', chatMessages: [] as Chat[], attachmentFiles: [] as AttachmentFile[], sceneSkills: [] as BusinessSceneSkill[], selectedSkillId: '', sceneSkillsLoading: false, databaseInstances: [] as EmsDatabaseInstance[], selectedDatabaseConfigId: '', progressStage: '', progressTimer: null as ReturnType<typeof setInterval> | null, errorMessage: '', accumulatedEvidence: [] as BusinessEvidenceAccumResponse[], decisionPacket: null as BusinessDecisionPacketResponse | null, packetLoading: false, form: createInitialForm() } }, computed: { /** 返回本次模型输出规范化警告，供页面提示使用。 */ guidanceWarnings(): string[] { return this.guidance?.warnings ?? [] }, /** 将调查结论按分号/句号换行，便于管理员逐条阅读。 */ conclusionText(): string { const text = this.decisionPacket && this.decisionPacket.content ? this.decisionPacket.content.conclusion : ''; return text.replace(/([；;。])\s*/g, '$1\n').trim() } }, created() { void this.loadSceneSkills(); void this.loadDatabaseInstances(); void this.loadRuntimeModel() }, /** 返回缓存页时刷新当前启用的模型摘要。 */ activated() { void this.loadRuntimeModel() }, /** 组件销毁前清理进度轮询定时器，避免离开页面产生僵尸请求。 */ beforeDestroy() { this.stopProgressPolling() }, watch: { /** 仅响应显式新建入口的草稿标识，普通导航继续保留当前向导状态。 */ '$route.query.draft'(): void { this.resetDraft() } },   methods: {
+    /** 返回字段路径与中文注释。 */
+    fieldAnnotation,
+    /** 返回字段中文说明，用于提示。 */
+    fieldTooltip,
   /** 在无进行中写请求时清空本地草稿和待分析附件，不删除已创建的后端任务。 */ resetDraft(): void { if (this.saving || this.modelLoading || this.chatLoading || this.packetLoading || this.artifactLoading) return; this.activeStep = 0; this.task = null; this.guidance = null; this.chatMessage = ''; this.chatMessages = []; this.attachmentFiles = []; this.selectedSkillId = ''; this.progressStage = ''; this.stopProgressPolling(); this.errorMessage = ''; this.accumulatedEvidence = []; this.decisionPacket = null; this.artifactBatches = []; this.selectedKinds = ['MODEL']; this.showPrevious = false; this.lastModelMetadata = null; this.form = createInitialForm() },
   /** 读取安全运行摘要，失败不阻断业务表单，也不访问管理员配置列表。 */ async loadRuntimeModel(): Promise<void> { if (this.runtimeModelLoading) return; this.runtimeModelLoading = true; try { this.runtimeModel = await getModelRuntimeSummary() } catch { this.runtimeModel = null } finally { this.runtimeModelLoading = false } },
   /** 加载业务场景 Skill 列表供第一步选择，失败时保留空列表并提示。 */ async loadSceneSkills(): Promise<void> { this.sceneSkillsLoading = true; this.errorMessage = ''; try { this.sceneSkills = await listBusinessSceneSkills() } catch (error: unknown) { this.sceneSkills = []; this.errorMessage = error instanceof Error ? error.message : '业务场景列表暂时无法读取' } finally { this.sceneSkillsLoading = false } },
@@ -286,4 +291,5 @@ export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }
 .packet-alternatives__index { flex: none; width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 50%; background: #f3ede3; color: #dd7a13; font-size: 12px; }
 .guidance-warning-alert { margin-bottom: 14px; }
 .guidance-warning-list { margin: 6px 0 0; padding-left: 18px; line-height: 1.6; }
+.field-path { margin-left: 6px; color: #9b948a; font-size: 12px; font-weight: 400; }
 </style>
