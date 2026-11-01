@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -20,7 +21,7 @@ import cn.com.crc.ems.finance.agent.emsdbconfig.domain.EmsDatabaseConnectionConf
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
-import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryRequest;
+import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryPlan;
 
 /**
  *
@@ -43,6 +44,7 @@ public class EmsDatabaseAssistanceService {
     private final EmsReadOnlySqlGuard sqlGuard;
     private final EmsDatabaseQueryExecutor executor;
     private final EmsSchemaCatalogService catalogService;
+    private final Map<UUID, CachedSelection> selectionCache = new ConcurrentHashMap<>();
 
     public EmsDatabaseAssistanceService(EmsDatabaseConnectionConfigService configService, EmsReadOnlySqlGuard sqlGuard,
             EmsDatabaseQueryExecutor executor, EmsSchemaCatalogService catalogService) {
@@ -73,12 +75,21 @@ public class EmsDatabaseAssistanceService {
         if (catalog.isEmpty()) {
             return List.of();
         }
-        progress.accept("正在匹配相关数据表");
-        int maxTables = snapshot.isPresent() ? 10 : 5;
-        List<String> selectedTables = modelClient.selectRelevantTables(context, catalog, maxTables).stream()
-                .filter(name -> catalog.stream().anyMatch(item -> (item.schema() + "." + item.table()).equals(name)))
-                .distinct().limit(maxTables).toList();
-        LOGGER.info("EMS 辅助查询：模型选表 {}", selectedTables);
+        List<String> catalogNames = catalog.stream().map(item -> item.schema() + "." + item.table()).toList();
+        CachedSelection cached = selectionCache.get(context.taskId());
+        List<String> selectedTables;
+        if (cached != null && cached.configId().equals(databaseConfigId) && cached.catalogNames().equals(catalogNames)) {
+            selectedTables = cached.selectedTables();
+            LOGGER.info("EMS 辅助查询：复用选表缓存 {}", selectedTables);
+        } else {
+            progress.accept("正在匹配相关数据表");
+            int maxTables = snapshot.isPresent() ? 10 : 5;
+            selectedTables = modelClient.selectRelevantTables(context, catalog, maxTables).stream()
+                    .filter(name -> catalogNames.contains(name))
+                    .distinct().limit(maxTables).toList();
+            selectionCache.put(context.taskId(), new CachedSelection(databaseConfigId, catalogNames, selectedTables));
+            LOGGER.info("EMS 辅助查询：模型选表 {}", selectedTables);
+        }
         if (!selectedTables.isEmpty()) {
             progress.accept("正在读取数据表字段");
         }
@@ -103,22 +114,67 @@ public class EmsDatabaseAssistanceService {
         if (context.databaseEvidence() != null) {
             evidence.addAll(context.databaseEvidence());
         }
-        for (int round = 0; round < MAX_ROUNDS; round++) {
-            progress.accept("正在规划只读查询（第 " + (round + 1) + " 轮）");
-            Optional<EmsDatabaseQueryRequest> request = modelClient.planEmsDatabaseQuery(context, catalog, evidence,
-                    tableColumns);
-            LOGGER.info("EMS 辅助查询第 {} 轮：needQuery={}", round + 1, request.isPresent());
-            if (request.isEmpty()) {
-                break;
+        progress.accept("正在规划只读查询");
+        EmsDatabaseQueryPlan plan = modelClient.planEmsDatabaseQuery(context, catalog, evidence, tableColumns);
+        LOGGER.info("EMS 辅助查询：计划步骤 {} 个", plan.steps().size());
+        Map<String, EmsDatabaseQueryResult> results = new LinkedHashMap<>();
+        Set<String> completed = new java.util.HashSet<>();
+        Set<String> noDataTables = new java.util.HashSet<>();
+        int stepIndex = 0;
+        for (EmsDatabaseQueryPlan.Step step : orderedSteps(plan.steps())) {
+            stepIndex++;
+            if (!completed.containsAll(step.dependsOn())) {
+                LOGGER.info("EMS 辅助查询：跳过依赖未完成的步骤 {}", step.id());
+                continue;
             }
-            String sql = sqlGuard.validate(request.get().sql());
-            EmsDatabaseQueryResult result = executor.execute(config, sql);
-            progress.accept("已获取第 " + (round + 1) + " 轮查询证据");
-            String[] source = sourceTable(sql);
-            evidence.add(new EmsDatabaseEvidence(source[0], source[1], request.get().purpose(), result.columns(),
-                    result.rows()));
-            LOGGER.info("EMS 辅助查询第 {} 轮完成：{}.{} 返回 {} 行", round + 1, source[0], source[1],
-                    result.rows().size());
+            Map<String, Object> parameters = new LinkedHashMap<>();
+            boolean bindingMissing = false;
+            for (Map.Entry<String, EmsDatabaseQueryPlan.Binding> entry : step.bindings().entrySet()) {
+                EmsDatabaseQueryPlan.Binding binding = entry.getValue();
+                if (binding.value() != null) {
+                    parameters.put(entry.getKey(), binding.value());
+                    continue;
+                }
+                EmsDatabaseQueryResult sourceResult = results.get(binding.stepId());
+                int columnIndex = sourceResult == null ? -1 : sourceResult.columns().indexOf(binding.column());
+                if (columnIndex < 0 || sourceResult.rows().isEmpty()) {
+                    bindingMissing = true;
+                    break;
+                }
+                parameters.put(entry.getKey(), sourceResult.rows().get(0).get(columnIndex));
+            }
+            if (bindingMissing) {
+                LOGGER.info("EMS 辅助查询：步骤 {} 绑定值缺失，已跳过", step.id());
+                continue;
+            }
+            progress.accept("正在执行第 " + stepIndex + " 步查询");
+            try {
+                String sql = sqlGuard.validate(step.sql());
+                String[] source = sourceTable(sql);
+                String qualified = source[0] + "." + source[1];
+                if (noDataTables.contains(qualified)) {
+                    LOGGER.info("EMS 辅助查询：{} 已确认无数据，跳过重复查询", qualified);
+                    continue;
+                }
+                EmsDatabaseQueryResult result = executor.execute(config, sql, parameters);
+                results.put(step.id(), result);
+                if (result.rows().isEmpty()) {
+                    noDataTables.add(qualified);
+                    evidence.add(new EmsDatabaseEvidence(source[0], source[1],
+                            "该表已确认无数据，请勿重复查询", List.of(), List.of()));
+                    LOGGER.info("EMS 辅助查询：步骤 {} {}.{} 返回 0 行", step.id(), source[0], source[1]);
+                    continue;
+                }
+                evidence.add(new EmsDatabaseEvidence(source[0], source[1], step.purpose(), result.columns(),
+                        result.rows()));
+                completed.add(step.id());
+                LOGGER.info("EMS 辅助查询：步骤 {} {}.{} 返回 {} 行", step.id(), source[0], source[1],
+                        result.rows().size());
+            } catch (RuntimeException exception) {
+                String[] source = sourceTable(step.sql());
+                evidence.add(new EmsDatabaseEvidence(source[0], source[1], "该步骤查询失败，已跳过", List.of(), List.of()));
+                LOGGER.warn("EMS 辅助查询步骤 {} 失败：{}", step.id(), exception.getClass().getSimpleName());
+            }
         }
         LOGGER.info("EMS 辅助查询累计证据 {} 条", evidence.size());
         return List.copyOf(evidence);
@@ -144,6 +200,35 @@ public class EmsDatabaseAssistanceService {
     }
 
     /** 从 SQL 的 FROM 子句提取首个 schema.table 作为证据溯源。 */
+    private static List<EmsDatabaseQueryPlan.Step> orderedSteps(List<EmsDatabaseQueryPlan.Step> steps) {
+        List<EmsDatabaseQueryPlan.Step> remaining = new ArrayList<>(steps);
+        List<EmsDatabaseQueryPlan.Step> ordered = new ArrayList<>();
+        Set<String> done = new java.util.HashSet<>();
+        while (!remaining.isEmpty()) {
+            boolean progressed = false;
+            for (java.util.Iterator<EmsDatabaseQueryPlan.Step> iterator = remaining.iterator(); iterator.hasNext();) {
+                EmsDatabaseQueryPlan.Step step = iterator.next();
+                if (done.containsAll(step.dependsOn())) {
+                    ordered.add(step);
+                    done.add(step.id());
+                    iterator.remove();
+                    progressed = true;
+                }
+            }
+            if (!progressed) {
+                break;
+            }
+        }
+        return ordered;
+    }
+
+    public void invalidateSelection(UUID taskId) {
+        selectionCache.remove(taskId);
+    }
+
+    private record CachedSelection(UUID configId, List<String> catalogNames, List<String> selectedTables) {
+    }
+
     private static String[] sourceTable(String sql) {
         Matcher matcher = FROM_SOURCE.matcher(sql);
         if (matcher.find()) {

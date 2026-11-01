@@ -109,7 +109,7 @@ public record BusinessHandlingDraft(String subjectKey, String objectKey, String 
                 String schema = textValue(item.get("schema"), "evidence.schema", 100);
                 String table = textValue(item.get("table"), "evidence.table", 100);
                 String purpose = textValue(item.get("purpose"), "evidence.purpose", 300);
-                List<String> columns = textArray(item.get("columns"), "evidence.columns", 1, 20);
+                List<String> columns = textArray(item.get("columns"), "evidence.columns", 0, 20);
                 List<List<String>> rows = new ArrayList<>();
                 if (item.has("rows") && item.get("rows").isArray()) {
                     item.get("rows").forEach(row -> {
@@ -151,13 +151,14 @@ public record BusinessHandlingDraft(String subjectKey, String objectKey, String 
     }
 
     private static void requireExactObject(JsonNode value) {
-        if (value == null || !value.isObject() || value.size() != FIELDS.size() + (value.has("processPlan") ? 1 : 0)) {
+        if (value == null || !value.isObject() || value.size() != FIELDS.size() + (value.has("processPlan") ? 1 : 0) + (value.has("needMoreEvidence") ? 1 : 0) + (value.has("needTableReselection") ? 1 : 0)) {
             throw new BusinessModelOutputException("模型返回内容不符合约定结构");
         }
         Iterator<String> names = value.fieldNames();
         while (names.hasNext()) {
             String field = names.next();
-            if (!FIELDS.contains(field) && !"processPlan".equals(field)) {
+            if (!FIELDS.contains(field) && !"processPlan".equals(field)
+                    && !"needMoreEvidence".equals(field) && !"needTableReselection".equals(field)) {
                 throw new BusinessModelOutputException("模型返回内容包含未约定字段");
             }
         }

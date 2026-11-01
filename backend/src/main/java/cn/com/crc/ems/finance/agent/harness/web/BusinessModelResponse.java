@@ -39,12 +39,13 @@ public final class BusinessModelResponse {
     }
 
     public record Guidance(String reply, BusinessHandlingDraftResponse draft, List<String> warnings,
-            Metadata metadata) {
+            boolean needMoreEvidence, boolean needTableReselection, int evidenceRound, Metadata metadata) {
         static Guidance from(BusinessModelResult<BusinessGuidanceSuggestion> result) {
             var draft = result.value().draft();
             return new Guidance(result.value().reply(), new BusinessHandlingDraftResponse(draft.subjectKey(), draft.objectKey(),
                     draft.recommendedGoal(), draft.alternativeGoals(), draft.reason(), draft.conclusion(),
-                    draft.evidence(), draft.processPlan()), result.warnings(), Metadata.from(result.metadata()));
+                    draft.evidence(), draft.processPlan()), result.warnings(), result.value().needMoreEvidence(),
+                    result.value().needTableReselection(), result.evidenceRound(), Metadata.from(result.metadata()));
         }
     }
 

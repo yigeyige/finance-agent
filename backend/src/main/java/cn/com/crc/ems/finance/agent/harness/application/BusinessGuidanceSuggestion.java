@@ -8,18 +8,24 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  *
- * @Description: 业务处理模型回复及完整结构化草稿，附带模型声明的需要进一步注入正文的场景附件文件名。
+ * @Description: 业务处理模型回复及完整结构化草稿，附带附件请求和继续分析标志。
  *
  * @Version: 0.1.0
  * @Author: yigeyige99
  * @Date: 2026-10-08 21:10:00
  */
-public record BusinessGuidanceSuggestion(String reply, BusinessHandlingDraft draft, List<String> requestedAttachments) {
+public record BusinessGuidanceSuggestion(String reply, BusinessHandlingDraft draft, List<String> requestedAttachments,
+        boolean needMoreEvidence, boolean needTableReselection) {
 
-    private static final Set<String> FIELDS = Set.of("reply", "draft", "requestedAttachments");
+    private static final Set<String> FIELDS = Set.of("reply", "draft", "requestedAttachments",
+            "needMoreEvidence", "needTableReselection");
 
     public BusinessGuidanceSuggestion(String reply, BusinessHandlingDraft draft) {
-        this(reply, draft, List.of());
+        this(reply, draft, List.of(), false, false);
+    }
+
+    public BusinessGuidanceSuggestion(String reply, BusinessHandlingDraft draft, List<String> requestedAttachments) {
+        this(reply, draft, requestedAttachments, false, false);
     }
 
     public BusinessGuidanceSuggestion {
@@ -35,11 +41,11 @@ public record BusinessGuidanceSuggestion(String reply, BusinessHandlingDraft dra
 
     /**
      *
-     * @description: 从严格模型 JSON 读取会话回复、完整业务草稿及按需请求的附件文件名。
+     * @description: 从严格模型 JSON 读取会话回复、完整业务草稿、附件请求和继续分析标志。
      *
      * @param: value 模型返回 JSON
      * @return: 经校验的业务处理建议
-     * @throws: BusinessModelException 输出字段不符合契约时抛出
+     * @throws: BusinessModelOutputException 输出字段不符合契约时抛出
      * @author: yigeyige99
      */
     public static BusinessGuidanceSuggestion fromJson(JsonNode value) {
@@ -57,8 +63,8 @@ public record BusinessGuidanceSuggestion(String reply, BusinessHandlingDraft dra
      * @author: yigeyige99
      */
     public static BusinessGuidanceSuggestion fromJson(JsonNode value, List<String> warnings) {
-        if (value == null || !value.isObject() || value.size() != FIELDS.size() || !value.has("reply")
-                || !value.has("draft") || !value.has("requestedAttachments")) {
+        if (value == null || !value.isObject() || !value.has("reply") || !value.has("draft")
+               ) {
             throw new BusinessModelOutputException("模型返回内容不符合约定结构");
         }
         value.fieldNames().forEachRemaining(field -> {
@@ -71,17 +77,22 @@ public record BusinessGuidanceSuggestion(String reply, BusinessHandlingDraft dra
             throw new BusinessModelOutputException("模型返回字段格式不正确: reply");
         }
         JsonNode requested = value.get("requestedAttachments");
-        if (!requested.isArray() || requested.size() > 2) {
+        if (requested != null && !requested.isNull() && (!requested.isArray() || requested.size() > 2)) {
             throw new BusinessModelOutputException("模型返回字段格式不正确: requestedAttachments");
         }
         List<String> fileNames = new ArrayList<>();
-        requested.forEach(item -> {
+        if (requested != null && requested.isArray()) requested.forEach(item -> {
             if (!item.isTextual() || item.textValue().isBlank() || item.textValue().length() > 255) {
                 throw new BusinessModelOutputException("模型返回字段格式不正确: requestedAttachments");
             }
             fileNames.add(item.textValue());
         });
-        return new BusinessGuidanceSuggestion(reply.textValue(), BusinessHandlingDraft.fromJson(value.get("draft"), warnings),
-                fileNames);
+        boolean needMoreEvidence = value.path("needMoreEvidence")
+                .asBoolean(value.path("draft").path("needMoreEvidence").asBoolean(false));
+        boolean needTableReselection = value.path("needTableReselection")
+                .asBoolean(value.path("draft").path("needTableReselection").asBoolean(false));
+        return new BusinessGuidanceSuggestion(reply.textValue(),
+                BusinessHandlingDraft.fromJson(value.get("draft"), warnings), fileNames,
+                needMoreEvidence, needTableReselection);
     }
 }

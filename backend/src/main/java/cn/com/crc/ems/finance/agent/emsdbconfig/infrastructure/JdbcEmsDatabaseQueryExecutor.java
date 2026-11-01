@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -65,6 +67,49 @@ public final class JdbcEmsDatabaseQueryExecutor implements EmsDatabaseQueryExecu
             LOGGER.warn("EMS 数据查询失败", exception);
             throw new IllegalStateException("EMS 数据查询暂时不可用");
         }
+    }
+
+    /**
+     *
+     * @description: 使用命名参数执行只读查询，参数通过 PreparedStatement 绑定。
+     *
+     * @param: config 当前启用的 EMS 连接
+     * @param: sql 已通过守卫的 SQL，包含 :param 占位符
+     * @param: parameters 参数名到值的映射
+     * @return: 限制行列后的查询结果
+     * @author: yigeyige99
+     */
+    @Override
+    public EmsDatabaseQueryResult execute(EmsDatabaseConnectionConfig config, String sql,
+            Map<String, Object> parameters) {
+        String guardedSql = sqlGuard.validate(sql);
+        List<String> names = new ArrayList<>();
+        String jdbcSql = namedParameters(guardedSql, names);
+        try (Connection connection = open(config); PreparedStatement statement = connection.prepareStatement(jdbcSql)) {
+            statement.setQueryTimeout(config.queryTimeoutSeconds());
+            statement.setMaxRows(config.maxRows());
+            Map<String, Object> values = parameters == null ? Map.of() : parameters;
+            for (int index = 0; index < names.size(); index++) {
+                statement.setObject(index + 1, values.get(names.get(index)));
+            }
+            try (ResultSet result = statement.executeQuery()) {
+                return project(result, config.maxRows());
+            }
+        } catch (SQLException exception) {
+            LOGGER.warn("EMS 参数化查询失败", exception);
+            throw new IllegalStateException("EMS 数据查询暂时不可用");
+        }
+    }
+
+    private static String namedParameters(String sql, List<String> names) {
+        Matcher matcher = Pattern.compile(":([A-Za-z][A-Za-z0-9_]{0,63})").matcher(sql);
+        StringBuilder builder = new StringBuilder();
+        while (matcher.find()) {
+            names.add(matcher.group(1));
+            matcher.appendReplacement(builder, "?");
+        }
+        matcher.appendTail(builder);
+        return builder.toString();
     }
 
     /**

@@ -31,7 +31,7 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggesti
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
-import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryRequest;
+import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryPlan;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanContext;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.PromptTemplate;
@@ -55,7 +55,7 @@ import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactPlan;
 public final class DeepSeekBusinessModelClient implements BusinessModelClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeepSeekBusinessModelClient.class);
-    private static final Duration TIMEOUT = Duration.ofSeconds(180);
+    private static final Duration TIMEOUT = Duration.ofSeconds(240);
     private final DeepSeekOpenAiAdapter adapter;
     private final PromptTemplateRepository promptTemplates;
 
@@ -113,7 +113,7 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
     }
 
     @Override
-    public Optional<EmsDatabaseQueryRequest> planEmsDatabaseQuery(BusinessGuidanceContext context,
+    public EmsDatabaseQueryPlan planEmsDatabaseQuery(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog, List<EmsDatabaseEvidence> priorEvidence,
             Map<String, List<EmsDatabaseColumnMetadata>> tableColumns) {
         ObjectNode input = databaseQueryInput(context);
@@ -129,14 +129,14 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         try {
             ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER).textContent(instruction).build()), List.of(),
                     adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, 16384)).blockLast(TIMEOUT.plusSeconds(2));
-            if (response == null) return Optional.empty();
+            if (response == null) return new EmsDatabaseQueryPlan(List.of());
             String text = response.getContent().stream().filter(TextBlock.class::isInstance)
                     .map(TextBlock.class::cast).map(TextBlock::getText).collect(Collectors.joining());
             LOGGER.info("查询规划返回 finishReason={} content={}", response.getFinishReason(),
                     text.substring(0, Math.min(300, text.length())));
-            return EmsDatabaseQueryRequest.fromJson(CanonicalJsonCodec.parse(text));
+            return EmsDatabaseQueryPlan.fromJson(CanonicalJsonCodec.parse(text));
         } catch (RuntimeException exception) {
-            return Optional.empty();
+            return new EmsDatabaseQueryPlan(List.of());
         }
     }
 

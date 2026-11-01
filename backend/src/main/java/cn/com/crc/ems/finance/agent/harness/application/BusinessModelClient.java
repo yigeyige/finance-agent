@@ -2,7 +2,6 @@ package cn.com.crc.ems.finance.agent.harness.application;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseColumnMetadata;
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseTableMetadata;
@@ -31,11 +30,11 @@ public interface BusinessModelClient {
         return selectRelevantTables(context, tableCatalog).stream().limit(maxTables).toList();
     }
 
-    /** 仅生成可选查询建议；真正执行前仍由 EMS SQL 守卫与只读执行器控制。 */
-    default Optional<EmsDatabaseQueryRequest> planEmsDatabaseQuery(BusinessGuidanceContext context,
+    /** 仅生成可选查询计划；真正执行前仍由 EMS SQL 守卫与只读执行器控制。 */
+    default EmsDatabaseQueryPlan planEmsDatabaseQuery(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog, List<EmsDatabaseEvidence> priorEvidence,
             Map<String, List<EmsDatabaseColumnMetadata>> tableColumns) {
-        return Optional.empty();
+        return new EmsDatabaseQueryPlan(List.of());
     }
 
     /**

@@ -19,6 +19,8 @@
       </ul>
     </el-alert>
 
+    <el-alert v-if="guidance && guidance.needMoreEvidence" class="guidance-warning-alert" type="info" :closable="false" show-icon title="可继续在聊天框发送修改意见补充证据" />
+
     <el-row :gutter="16" class="workbench-columns">
       <el-col :span="16" class="workbench-primary">
         <el-card shadow="never" class="form-card guided-workflow">

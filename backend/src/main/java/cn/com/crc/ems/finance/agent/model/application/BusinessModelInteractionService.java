@@ -1,10 +1,15 @@
 package cn.com.crc.ems.finance.agent.model.application;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -56,6 +61,8 @@ import org.slf4j.LoggerFactory;
  */
 @Service
 public final class BusinessModelInteractionService {
+
+    private final Map<UUID, ReentrantLock> taskLocks = new ConcurrentHashMap<>();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BusinessModelInteractionService.class);
     private static final String PROCESS_SCENE_SKILL_ID = "a6a050ae-b699-4ca0-af72-4381e990eda0";
@@ -137,6 +144,17 @@ public final class BusinessModelInteractionService {
      */
     public BusinessModelResult<BusinessGuidanceSuggestion> guideBusinessHandling(UUID taskId, String feedback,
             BusinessHandlingDraft currentDraft, List<BusinessGuidanceAttachment> attachments) {
+        ReentrantLock lock = taskLocks.computeIfAbsent(taskId, id -> new ReentrantLock());
+        lock.lock();
+        try {
+            return guideBusinessHandlingLocked(taskId, feedback, currentDraft, attachments);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private BusinessModelResult<BusinessGuidanceSuggestion> guideBusinessHandlingLocked(UUID taskId, String feedback,
+            BusinessHandlingDraft currentDraft, List<BusinessGuidanceAttachment> attachments) {
         var task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalStateException("业务处理任务不存在或已失效"));
         Consumer<String> progress = progressStore == null ? stage -> { } : stage -> progressStore.record(task.taskId(), stage);
@@ -149,6 +167,10 @@ public final class BusinessModelInteractionService {
         List<EmsDatabaseEvidence> collected = emsDatabaseAssistanceService == null ? List.of()
                 : emsDatabaseAssistanceService.collect(modelClient, base, task.databaseConfigId(), progress);
         List<EmsDatabaseEvidence> evidence = mergeEvidence(previousEvidence, collected);
+        if (hasNewEvidence(previousEvidence, collected)) {
+            accumulateEvidence(task.taskId(), evidence);
+        }
+        int evidenceRound = currentEvidenceRound(task.taskId());
         progress.accept("正在生成业务处理初稿");
         BusinessModelResult<BusinessGuidanceSuggestion> result = modelClient.guideBusinessHandling(
                 new BusinessGuidanceContext(task.taskId(), task.title(), task.originalQuestion(), feedback, currentDraft,
@@ -161,6 +183,9 @@ public final class BusinessModelInteractionService {
                     new BusinessGuidanceContext(task.taskId(), task.title(), task.originalQuestion(), feedback, currentDraft,
                             findSceneSkill(taskId), attachments, evidence, attachmentCatalog, bodies));
         }
+        if (result.value().needTableReselection() && emsDatabaseAssistanceService != null) {
+            emsDatabaseAssistanceService.invalidateSelection(taskId);
+        }
         if (isProcessScene(taskId) && result.value().draft().processPlan() == null) {
             result = result.withWarning("模型未形成可用的流程结构，请补充说明后重新分析");
         }
@@ -168,10 +193,7 @@ public final class BusinessModelInteractionService {
         if (guidanceDraftRepository != null) {
             guidanceDraftRepository.save(taskId, result.value().draft().toJson().toString(), task.initiatorUserId());
         }
-        if (!collected.isEmpty()) {
-            accumulateEvidence(task.taskId(), evidence);
-        }
-        return result;
+        return result.withEvidenceRound(evidenceRound);
     }
 
     /** 读取任务关联场景的附件清单（文件名+摘要），供模型第一轮判断是否需要正文。 */
@@ -215,6 +237,27 @@ public final class BusinessModelInteractionService {
                 .map(skillId -> sceneSkillAttachmentRepository.findBySkillIdAndFileNames(skillId, requestedFileNames))
                 .orElse(List.of()).stream()
                 .map(item -> new SceneSkillAttachmentBody(item.fileName(), item.contentText())).toList();
+    }
+
+    private static boolean hasNewEvidence(List<EmsDatabaseEvidence> previous, List<EmsDatabaseEvidence> current) {
+        Set<String> keys = new HashSet<>();
+        for (EmsDatabaseEvidence item : previous) {
+            keys.add(evidenceKey(item));
+        }
+        for (EmsDatabaseEvidence item : current) {
+            if (!keys.contains(evidenceKey(item))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private int currentEvidenceRound(UUID taskId) {
+        if (evidenceAccumRepository == null) {
+            return 0;
+        }
+        var rounds = evidenceAccumRepository.findByTaskIdOrderByRound(taskId);
+        return rounds.isEmpty() ? 0 : rounds.get(rounds.size() - 1).roundNo();
     }
 
     /** 读取任务最新一轮证据，作为本轮分析的上一轮输入。 */

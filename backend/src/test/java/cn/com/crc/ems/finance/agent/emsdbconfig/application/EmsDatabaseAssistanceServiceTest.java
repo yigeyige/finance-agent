@@ -71,14 +71,16 @@ class EmsDatabaseAssistanceServiceTest {
         when(model.selectRelevantTables(eq(context), any(), eq(10))).thenReturn(List.of("basedata.sys_value_set_item"));
         String sql = "SELECT VSI_KEY FROM basedata.sys_value_set_item LIMIT 1";
         when(model.planEmsDatabaseQuery(eq(context), any(), any(), any()))
-                .thenReturn(Optional.of(new cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryRequest("核对角色", sql)))
-                .thenReturn(Optional.empty());
+                .thenReturn(new cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryPlan(List.of(
+                        new cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryPlan.Step(
+                                "role", "核对角色", sql, List.of(), java.util.Map.of()))));
         when(guard.validate(sql)).thenReturn(sql);
-        when(executor.execute(config, sql)).thenReturn(new EmsDatabaseQueryResult(List.of("VSI_KEY"), List.of(List.of("ZYMD"))));
+        when(executor.execute(eq(config), eq(sql), any()))
+                .thenReturn(new EmsDatabaseQueryResult(List.of("VSI_KEY"), List.of(List.of("ZYMD"))));
         var service = new EmsDatabaseAssistanceService(configService, guard, executor, catalogService);
 
         assertThat(service.collect(model, context, configId, ignored -> { })).hasSize(1);
-        verify(executor).execute(config, sql);
+        verify(executor).execute(eq(config), eq(sql), any());
         verify(executor, never()).listAllowedTables(any());
         verify(executor, never()).listColumns(any(), any(), any());
     }

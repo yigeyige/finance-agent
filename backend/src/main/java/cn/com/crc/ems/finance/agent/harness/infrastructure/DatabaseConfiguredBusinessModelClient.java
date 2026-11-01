@@ -13,7 +13,7 @@ import cn.com.crc.ems.finance.agent.harness.application.BusinessPacketAnalysisSu
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisContext;
 import cn.com.crc.ems.finance.agent.harness.application.EvidenceAnalysisSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseEvidence;
-import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryRequest;
+import cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryPlan;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanContext;
 import cn.com.crc.ems.finance.agent.harness.application.ModelPlanSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.PromptTemplateRepository;
@@ -47,7 +47,7 @@ public final class DatabaseConfiguredBusinessModelClient implements BusinessMode
     @Override public List<String> selectRelevantTables(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog, int maxTables) { return live().selectRelevantTables(context, tableCatalog, maxTables); }
 
-    @Override public Optional<EmsDatabaseQueryRequest> planEmsDatabaseQuery(BusinessGuidanceContext context,
+    @Override public EmsDatabaseQueryPlan planEmsDatabaseQuery(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog, List<EmsDatabaseEvidence> priorEvidence,
             Map<String, List<EmsDatabaseColumnMetadata>> tableColumns) { return live().planEmsDatabaseQuery(context, tableCatalog, priorEvidence, tableColumns); }
     @Override public BusinessModelResult<BusinessGuidanceSuggestion> guideBusinessHandling(BusinessGuidanceContext context) { return live().guideBusinessHandling(context); }
