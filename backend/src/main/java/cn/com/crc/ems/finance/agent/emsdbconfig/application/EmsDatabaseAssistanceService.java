@@ -62,11 +62,10 @@ public class EmsDatabaseAssistanceService {
         try {
             EmsDatabaseConnectionConfig config = configService.resolveEnabled(databaseConfigId);
         Optional<EmsSchemaCatalog> snapshot = catalogService.find(databaseConfigId);
-        String sceneHint = approvalScene(context)
-                ? " act_re_model act_re_procdef psc_act_re_procdef psc_act_config psc_act_sequence_flow approval_config_role sys_value_set_item"
-                : "";
+        String sceneText = context.sceneSkill() == null ? "" : context.sceneSkill().tableHints();
         String searchText = context.title() + " " + context.description()
-                + " " + (context.feedback() == null ? "" : context.feedback()) + sceneHint;
+                + " " + (context.feedback() == null ? "" : context.feedback())
+                + " " + (sceneText == null ? "" : sceneText);
         List<EmsSchemaTable> matches = snapshot.map(value -> value.search(searchText, 20)).orElse(List.of());
         if (snapshot.isPresent() && matches.isEmpty()) throw new EmsSchemaCatalogNoMatchException();
         List<EmsDatabaseTableMetadata> catalog = snapshot.isPresent()
@@ -106,6 +105,7 @@ public class EmsDatabaseAssistanceService {
         if (context.databaseEvidence() != null) {
             evidence.addAll(context.databaseEvidence());
         }
+        java.util.Set<String> noDataTables = new java.util.HashSet<>();
         for (int round = 0; round < MAX_ROUNDS; round++) {
             progress.accept("正在规划只读查询（第 " + (round + 1) + " 轮）");
             Optional<EmsDatabaseQueryRequest> request = modelClient.planEmsDatabaseQuery(context, catalog, evidence,
@@ -115,9 +115,22 @@ public class EmsDatabaseAssistanceService {
                 break;
             }
             String sql = sqlGuard.validate(request.get().sql());
+            String[] source = sourceTable(sql);
+            String sourceQualified = source[0] + "." + source[1];
+            if (noDataTables.contains(sourceQualified)) {
+                LOGGER.info("EMS 辅助查询：{} 已确认无数据，停止重复查询", sourceQualified);
+                break;
+            }
             EmsDatabaseQueryResult result = executor.execute(config, sql);
             progress.accept("已获取第 " + (round + 1) + " 轮查询证据");
-            String[] source = sourceTable(sql);
+            if (result.rows().isEmpty()) {
+                noDataTables.add(sourceQualified);
+                evidence.add(new EmsDatabaseEvidence(source[0], source[1],
+                        "该表已确认无数据，请勿重复查询", List.of(), List.of()));
+                LOGGER.info("EMS 辅助查询第 {} 轮：{}.{} 返回 0 行，后续不再重复查询该表", round + 1,
+                        source[0], source[1]);
+                continue;
+            }
             evidence.add(new EmsDatabaseEvidence(source[0], source[1], request.get().purpose(), result.columns(),
                     result.rows()));
             LOGGER.info("EMS 辅助查询第 {} 轮完成：{}.{} 返回 {} 行", round + 1, source[0], source[1],
@@ -134,14 +147,6 @@ public class EmsDatabaseAssistanceService {
     }
 
     /** 配置类数据只在 basedata；其他库仅保留人员定位所需表。 */
-    private static boolean approvalScene(cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext context) {
-        if (context.sceneSkill() == null) {
-            return false;
-        }
-        String text = context.sceneSkill().name() + " " + context.sceneSkill().investigationPrompt();
-        return text.contains("审批流程");
-    }
-
     static List<EmsDatabaseTableMetadata> coarseFilter(List<EmsDatabaseTableMetadata> catalog) {
         return catalog.stream()
                 .filter(item -> {

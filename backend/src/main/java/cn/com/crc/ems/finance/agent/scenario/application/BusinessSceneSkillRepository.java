@@ -23,6 +23,9 @@ public interface BusinessSceneSkillRepository {
     /** 按标识查询当前有效的业务场景 Skill。 */
     Optional<BusinessSceneSkill> findActiveById(UUID skillId);
 
+    /** 查询场景配置的候选表提示，未配置时返回空。 */
+    Optional<String> findTableHints(UUID skillId);
+
     /** 新增业务场景 Skill。 */
     void insert(BusinessSceneSkill skill);
 

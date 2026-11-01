@@ -23,6 +23,7 @@ public class BusinessSceneSkillEntity {
     public String investigationPrompt;
     public String decisionPacketPrompt;
     public String processArtifactPrompt;
+    public String tableHints;
     public UUID createdBy;
     public Instant createdAt;
     public UUID updatedBy;

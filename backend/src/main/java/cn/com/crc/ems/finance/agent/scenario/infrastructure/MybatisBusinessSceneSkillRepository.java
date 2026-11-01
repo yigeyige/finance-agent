@@ -47,6 +47,15 @@ public class MybatisBusinessSceneSkillRepository implements BusinessSceneSkillRe
     }
 
     @Override
+    public Optional<String> findTableHints(UUID skillId) {
+        BusinessSceneSkillEntity entity = mapper.selectOne(new QueryWrapper<BusinessSceneSkillEntity>()
+                .select("table_hints")
+                .eq("skill_id", PersistenceUuid.toStorage(skillId)).isNull("deleted_at"));
+        return entity == null || entity.tableHints == null || entity.tableHints.isBlank()
+                ? Optional.empty() : Optional.of(entity.tableHints);
+    }
+
+    @Override
     public void insert(BusinessSceneSkill skill) {
         mapper.insert(toEntity(skill));
     }

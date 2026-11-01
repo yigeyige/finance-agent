@@ -178,7 +178,8 @@ public record BusinessHandlingDraft(String subjectKey, String objectKey, String 
 
     private static String textValue(JsonNode value, String field, int maxLength) {
         if (value == null || !value.isTextual() || value.textValue().isBlank() || value.textValue().length() > maxLength) {
-            throw new BusinessModelOutputException("模型返回字段格式不正确: " + field);
+            throw new BusinessModelOutputException("模型返回字段格式不正确: " + field
+                    + " 必须是 " + maxLength + " 字符以内的非空文本");
         }
         return value.textValue();
     }

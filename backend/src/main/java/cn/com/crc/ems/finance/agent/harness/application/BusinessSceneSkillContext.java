@@ -8,5 +8,10 @@ package cn.com.crc.ems.finance.agent.harness.application;
  * @Author: yigeyige99
  * @Date: 2026-10-27 11:20:00
  */
-public record BusinessSceneSkillContext(String name, String investigationPrompt, String decisionPacketPrompt) {
+public record BusinessSceneSkillContext(String name, String investigationPrompt, String decisionPacketPrompt,
+        String tableHints) {
+
+    public BusinessSceneSkillContext(String name, String investigationPrompt, String decisionPacketPrompt) {
+        this(name, investigationPrompt, decisionPacketPrompt, "");
+    }
 }
