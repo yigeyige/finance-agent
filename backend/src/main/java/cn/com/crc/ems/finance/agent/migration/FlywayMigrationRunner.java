@@ -30,7 +30,7 @@ public final class FlywayMigrationRunner {
      *
      * @description: 启动当前应用或诊断程序。
      *
-     * @param: args 输入参数。
+     * @param: args 输入参数，支持 --help、--validate、--repair 和无参数。
      * @author: yigeyige99
      */
     public static void main(String[] args) {
@@ -38,29 +38,32 @@ public final class FlywayMigrationRunner {
             printUsage(System.out);
             return;
         }
-        if (args.length > 1 || (args.length == 1 && !"--validate".equals(args[0]))) {
+        if (args.length > 1 || (args.length == 1 && !isSupportedArgument(args[0]))) {
             System.out.println("status=CONFIGURATION_ERROR");
             System.out.println("reason=unsupported_argument");
             System.exit(2);
         }
 
-        boolean validateOnly = args.length == 1;
-        int exitCode = execute(System.getenv(), System.out, validateOnly);
+        MigrationMode mode = args.length == 0 ? MigrationMode.MIGRATE : MigrationMode.fromArgument(args[0]);
+        int exitCode = execute(System.getenv(), System.out, mode);
         System.exit(exitCode);
+    }
+
+    private static boolean isSupportedArgument(String argument) {
+        return MigrationMode.fromArgument(argument) != null;
     }
 
     /**
      *
-     * @description: 执行当前职责所需的处理。
+     * @description: 执行迁移、校验或修复。修复只更新历史表校验和，不重跑也不删除业务数据。
      *
-     * @param: Map<String 输入参数。
-     * @param: environment 输入参数。
-     * @param: output 输入参数。
-     * @param: validateOnly 输入参数。
-     * @return: 当前处理结果。
+     * @param: environment 进程环境变量。
+     * @param: output 输出流。
+     * @param: mode 执行模式。
+     * @return: 进程退出码，0 表示成功。
      * @author: yigeyige99
      */
-    static int execute(Map<String, String> environment, PrintStream output, boolean validateOnly) {
+    static int execute(Map<String, String> environment, PrintStream output, MigrationMode mode) {
         final MigrationConfiguration configuration;
         try {
             configuration = MigrationConfiguration.fromEnvironment(environment);
@@ -81,9 +84,12 @@ public final class FlywayMigrationRunner {
                     .validateMigrationNaming(true)
                     .placeholderReplacement(false)
                     .load();
-            if (validateOnly) {
+            if (mode == MigrationMode.VALIDATE) {
                 flyway.validate();
                 output.println("status=VALID");
+            } else if (mode == MigrationMode.REPAIR) {
+                flyway.repair();
+                output.println("status=REPAIRED");
             } else {
                 int migrations = flyway.migrate().migrationsExecuted;
                 output.println("status=OK");
@@ -108,6 +114,45 @@ public final class FlywayMigrationRunner {
         output.println("Finance Agent Flyway migration runner");
         output.println("Required: FINANCE_AGENT_DB_URL, FINANCE_AGENT_DB_USERNAME, FINANCE_AGENT_DB_PASSWORD");
         output.println("Use --validate to validate installed migrations without applying DDL.");
+        output.println("Use --repair to realign checksums after editing already-applied migrations; no data is touched.");
+    }
+
+    /**
+     *
+     * @Description: 迁移执行模式。
+     *
+     * @Version: 0.1.0
+     * @Author: yigeyige99
+     * @Date: 2026-11-01 11:35:00
+     */
+    enum MigrationMode {
+
+        MIGRATE(null),
+        VALIDATE("--validate"),
+        REPAIR("--repair");
+
+        private final String argument;
+
+        MigrationMode(String argument) {
+            this.argument = argument;
+        }
+
+        /**
+         *
+         * @description: 将命令行参数解析为执行模式。
+         *
+         * @param: argument 命令行参数。
+         * @return: 对应模式；无法识别时返回 null。
+         * @author: yigeyige99
+         */
+        static MigrationMode fromArgument(String argument) {
+            for (MigrationMode mode : values()) {
+                if (mode.argument != null && mode.argument.equals(argument)) {
+                    return mode;
+                }
+            }
+            return null;
+        }
     }
 
     /**

@@ -1,6 +1,7 @@
 param(
     [string]$MavenCommand = "mvn",
-    [switch]$ValidateOnly
+    [switch]$ValidateOnly,
+    [switch]$Repair
 )
 
 $ErrorActionPreference = "Stop"
@@ -13,6 +14,9 @@ $execArguments = @(
 )
 if ($ValidateOnly) {
     $execArguments += "-Dexec.args=--validate"
+}
+if ($Repair) {
+    $execArguments += "-Dexec.args=--repair"
 }
 
 & $MavenCommand @execArguments

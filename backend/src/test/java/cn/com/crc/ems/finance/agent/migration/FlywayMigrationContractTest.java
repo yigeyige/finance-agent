@@ -55,6 +55,15 @@ class FlywayMigrationContractTest {
                         exception -> assertThat(exception.key()).isEqualTo(FlywayMigrationRunner.DB_PASSWORD));
     }
 
+    @Test
+    void repairArgumentIsRecognizedAndUnknownArgumentsAreRejected() {
+        assertThat(FlywayMigrationRunner.MigrationMode.fromArgument("--validate"))
+                .isEqualTo(FlywayMigrationRunner.MigrationMode.VALIDATE);
+        assertThat(FlywayMigrationRunner.MigrationMode.fromArgument("--repair"))
+                .isEqualTo(FlywayMigrationRunner.MigrationMode.REPAIR);
+        assertThat(FlywayMigrationRunner.MigrationMode.fromArgument("--unknown")).isNull();
+    }
+
     private static String read(String resource) {
         try (InputStream stream = FlywayMigrationContractTest.class.getClassLoader().getResourceAsStream(resource)) {
             if (stream == null) {
