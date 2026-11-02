@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import cn.com.crc.ems.finance.agent.diagnostics.DiagnosticContext;
 import cn.com.crc.ems.finance.agent.diagnostics.DiagnosticLogSanitizer;
+import cn.com.crc.ems.finance.agent.diagnostics.LatestExceptionStore;
 import cn.com.crc.ems.finance.agent.shared.application.DomainErrorCode;
 import cn.com.crc.ems.finance.agent.shared.application.DomainException;
 import cn.com.crc.ems.finance.agent.shared.application.RetryClass;
@@ -32,6 +33,11 @@ import cn.com.crc.ems.finance.agent.shared.application.RetryClass;
 public class GlobalApiExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalApiExceptionHandler.class);
+    private final LatestExceptionStore exceptionStore;
+
+    public GlobalApiExceptionHandler(LatestExceptionStore exceptionStore) {
+        this.exceptionStore = exceptionStore;
+    }
 
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<ApiErrorResponse> domain(DomainException exception) {
@@ -83,6 +89,7 @@ public class GlobalApiExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> unknown(Exception exception) {
         String traceId = traceId();
+        exceptionStore.recordUnhandled(exception);
         logUnknownFailure(exception);
         return response(DomainErrorCode.INTERNAL_ERROR, traceId);
     }

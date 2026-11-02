@@ -14,6 +14,7 @@ import EmsBusinessKnowledge from '../views/EmsBusinessKnowledge.vue'
 import ModelConfiguration from '../views/ModelConfiguration.vue'
 import EmsDatabaseConfiguration from '../views/EmsDatabaseConfiguration.vue'
 import DataExploration from '../views/DataExploration.vue'
+import LatestException from '../views/LatestException.vue'
 import Login from '../views/Login.vue'
 import { IdentityPermission } from '../api/generated'
 import { ensureCurrentIdentity, hasPermission } from '../services/identity'
@@ -47,6 +48,10 @@ const router = new Router({
     {
       path: '/data-exploration', name: 'data-exploration', component: DataExploration,
       meta: { title: '数据探索', permission: 'CONFIG_MANAGE' },
+    },
+    {
+      path: '/latest-exception', name: 'latest-exception', component: LatestException,
+      meta: { title: '异常堆栈', permission: 'CONFIG_MANAGE', requiredRole: 'PLATFORM_ADMIN' },
     },
     {
       path: '/tasks/:taskId/evidence',
@@ -83,7 +88,11 @@ router.beforeEach(async (to, _from, next) => {
     : typeof to.meta?.permission === 'string' ? [to.meta.permission as IdentityPermission] : []
   if (permissions.length || to.path === '/') {
     try {
-      await ensureCurrentIdentity()
+      const identity = await ensureCurrentIdentity()
+      if (to.meta?.requiredRole === 'PLATFORM_ADMIN' && !identity.roles.includes('PLATFORM_ADMIN')) {
+        next('/')
+        return
+      }
     } catch {
       next({ path: '/login', query: { redirect: to.fullPath } })
       return

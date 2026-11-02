@@ -5,10 +5,10 @@ import org.springframework.context.annotation.Configuration;
 
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.application.PromptTemplateRepository;
-import cn.com.crc.ems.finance.agent.harness.infrastructure.DeepSeekBusinessModelClient;
-import cn.com.crc.ems.finance.agent.harness.infrastructure.DeepSeekOpenAiAdapter;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.StubBusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.infrastructure.DatabaseConfiguredBusinessModelClient;
+import cn.com.crc.ems.finance.agent.diagnostics.CapturingBusinessModelClient;
+import cn.com.crc.ems.finance.agent.diagnostics.LatestExceptionStore;
 import cn.com.crc.ems.finance.agent.modelconfig.application.ModelApiKeyCipher;
 import cn.com.crc.ems.finance.agent.modelconfig.application.ModelConnectionConfigService;
 
@@ -27,10 +27,10 @@ public class BusinessModelConfiguration {
     @Bean
     public BusinessModelClient businessModelClient(FinanceAgentProperties properties,
             ModelConnectionConfigService configService, ModelApiKeyCipher cipher,
-            PromptTemplateRepository promptTemplates) {
-        if (properties.getDeepSeek().isStub()) {
-            return new StubBusinessModelClient();
-        }
-        return new DatabaseConfiguredBusinessModelClient(configService, cipher, promptTemplates);
+            PromptTemplateRepository promptTemplates, LatestExceptionStore exceptionStore) {
+        BusinessModelClient delegate = properties.getDeepSeek().isStub()
+                ? new StubBusinessModelClient()
+                : new DatabaseConfiguredBusinessModelClient(configService, cipher, promptTemplates);
+        return new CapturingBusinessModelClient(delegate, exceptionStore);
     }
 }

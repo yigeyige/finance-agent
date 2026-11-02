@@ -32,6 +32,9 @@
         <el-menu-item v-if="canManageConfig" index="/data-exploration">
           <span slot="title">数据探索</span>
         </el-menu-item>
+        <el-menu-item v-if="isPlatformAdmin" index="/latest-exception">
+          <span slot="title">异常堆栈</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>
@@ -87,6 +90,8 @@ export default Vue.extend({
     canManageConfig(): boolean {
       return this.identity?.roles.includes('PLATFORM_ADMIN') || this.identity?.permissions.includes('CONFIG_MANAGE') || false
     },
+    /** 堆栈包含内部代码位置，仅平台管理员可发现入口。 */
+    isPlatformAdmin(): boolean { return this.identity?.roles.includes('PLATFORM_ADMIN') || false },
     viewKey(): string {
       return `${this.identity?.userId || 'identity-loading'}:${this.$route.name || this.$route.path}`
     },

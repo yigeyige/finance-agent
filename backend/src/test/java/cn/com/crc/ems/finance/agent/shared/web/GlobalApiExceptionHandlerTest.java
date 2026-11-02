@@ -2,11 +2,14 @@ package cn.com.crc.ems.finance.agent.shared.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Clock;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 
 import cn.com.crc.ems.finance.agent.diagnostics.DiagnosticContext;
+import cn.com.crc.ems.finance.agent.diagnostics.LatestExceptionStore;
 import cn.com.crc.ems.finance.agent.shared.application.DomainErrorCode;
 import cn.com.crc.ems.finance.agent.shared.application.DomainException;
 
@@ -29,21 +32,26 @@ class GlobalApiExceptionHandlerTest {
     void unknownFailureReusesRequestTraceIdAndKeepsSafeResponse() {
         MDC.put(DiagnosticContext.TRACE_ID, "trace-local-001");
 
-        var response = new GlobalApiExceptionHandler().unknown(new IllegalStateException("password=not-exposed"));
+        var store = new LatestExceptionStore(Clock.systemUTC());
+        var response = new GlobalApiExceptionHandler(store).unknown(new IllegalStateException("password=not-exposed"));
 
         assertThat(response.getStatusCode().value()).isEqualTo(500);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().traceId()).isEqualTo("trace-local-001");
         assertThat(response.getBody().message()).isEqualTo("服务暂时不可用");
+        assertThat(store.latest().source()).isEqualTo(LatestExceptionStore.Source.BUSINESS_API);
+        assertThat(store.latest().stackTrace()).doesNotContain("not-exposed");
     }
 
     @Test
     void configurationFailureIsNotMappedToStateConflict() {
-        var response = new GlobalApiExceptionHandler().domain(new DomainException(DomainErrorCode.CONFIGURATION_UNAVAILABLE));
+        var store = new LatestExceptionStore(Clock.systemUTC());
+        var response = new GlobalApiExceptionHandler(store).domain(new DomainException(DomainErrorCode.CONFIGURATION_UNAVAILABLE));
 
         assertThat(response.getStatusCode().value()).isEqualTo(503);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().code()).isEqualTo("CONFIGURATION_UNAVAILABLE");
         assertThat(response.getBody().message()).doesNotContain("密码", "连接串", "密钥内容");
+        assertThat(store.latest()).isNull();
     }
 }
