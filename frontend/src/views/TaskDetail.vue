@@ -1,6 +1,6 @@
 <!-- 只读展示任务三步：业务说明、模型协作与决策包，与新建业务处理布局一致，但隐藏聊天框与操作按钮，仅步骤可切换。 -->
 <template>
-  <section class="task-workbench task-detail-page" v-loading="loading">
+  <section class="task-workbench task-detail-page" :class="{ 'task-detail-page--scrollable': detail && activeStep !== 0 }" v-loading="loading">
     <div class="page-heading entry-page-heading">
       <div><h2>{{ detail ? detail.title : '业务处理详情' }}</h2></div>
       <el-button @click="$router.push('/tasks')">返回任务列表</el-button>
@@ -17,7 +17,8 @@
         </el-steps>
       </div>
 
-      <el-card shadow="never" class="form-card guided-workflow">
+      <el-card shadow="never" class="form-card guided-workflow detail-content-card">
+        <div class="task-detail-content" tabindex="0" aria-label="任务详情内容">
         <!-- 第一步：业务说明只读信息。 -->
         <section v-if="activeStep === 0" class="readonly-intake-panel">
           <div class="card-heading"><h4>业务说明</h4></div>
@@ -33,28 +34,33 @@
         </section>
 
         <!-- 第二步：检查结论与关联证据。 -->
-        <section v-else-if="activeStep === 1" class="guidance-result-panel">
-          <div class="card-heading"><h4>检查结论</h4></div>
-          <p v-if="!detail.conclusion" class="readonly-empty">尚未生成检查结论</p>
-          <p v-else class="conclusion-text">{{ detail.conclusion }}</p>
-          <template v-if="detail.evidence.length">
-            <h4>关联证据</h4>
-            <div v-for="(item, ei) in detail.evidence" :key="ei" class="evidence-item">
-              <p class="evidence-meta">{{ item.schema }}.{{ item.table }} · {{ item.purpose }}</p>
-              <el-table v-workbench-table="'TaskDetail-1:' + item.schema + '.' + item.table" :data="evidenceRowObjects(item)" border size="mini">
-                <el-table-column show-overflow-tooltip min-width="160" v-for="(col, ci) in item.columns" :key="ci" :prop="String(ci)" :label="col" />
-              </el-table>
-            </div>
-          </template>
-          <p v-else class="readonly-empty">暂无关联证据</p>
+        <section v-else-if="activeStep === 1" class="packet-grid detail-guidance-grid">
+          <el-card shadow="never" class="packet-card">
+            <div slot="header" class="packet-card__header">检查结论</div>
+            <p v-if="!detail.conclusion" class="readonly-empty">尚未生成检查结论</p>
+            <p v-else class="packet-conclusion guidance-conclusion">{{ guidanceConclusionText }}</p>
+          </el-card>
+          <el-card shadow="never" class="packet-card">
+            <div slot="header" class="packet-card__header">关联证据</div>
+            <template v-if="detail.evidence.length">
+              <div v-for="(item, ei) in detail.evidence" :key="ei" class="evidence-item">
+                <p class="evidence-meta">{{ item.schema }}.{{ item.table }} · {{ item.purpose }}</p>
+                <el-table v-workbench-table="'TaskDetail-1:' + item.schema + '.' + item.table" :data="evidenceRowObjects(item)" border size="mini">
+                  <el-table-column show-overflow-tooltip min-width="160" v-for="(col, ci) in item.columns" :key="ci" :prop="String(ci)" :label="col" />
+                </el-table>
+              </div>
+            </template>
+            <p v-else class="readonly-empty">暂无关联证据</p>
+          </el-card>
         </section>
 
         <!-- 第三步：业务决策包。 -->
         <section v-else class="guidance-result-panel">
           <div class="card-heading packet-heading">
             <h4>业务决策包</h4>
-            <el-button v-if="detail.decisionPacket" type="primary" plain @click="openArtifactDialog">流程产物</el-button>
+            <el-button v-if="showArtifactButton" type="primary" plain @click="openArtifactDialog">流程产物</el-button>
           </div>
+          <el-alert v-if="artifactAvailabilityError" :title="artifactAvailabilityError" type="warning" :closable="false" show-icon />
           <p v-if="!detail.decisionPacket" class="readonly-empty">尚未生成业务决策包</p>
           <template v-else>
             <!-- 四个独立卡片紧凑排列：数据对象、操作、结论、证据。 -->
@@ -99,6 +105,7 @@
             </div>
           </template>
         </section>
+        </div>
       </el-card>
 
       <el-dialog title="流程产物" :visible.sync="artifactDialogVisible" width="760px" append-to-body>
@@ -129,16 +136,25 @@
 <script lang="ts">
 import Vue from 'vue'
 import { DraftEvidence } from '../api/generated'
-import { getTaskDetail, TaskDetail } from '../services/task-list-api'
+import { getTaskDetail, getTaskProcessArtifactAvailability, TaskDetail } from '../services/task-list-api'
 import { ProcessArtifactBatch, ProcessArtifactFileInfo, listProcessArtifacts, downloadProcessArtifact } from '../services/process-artifact-api'
 import { fieldAnnotation, fieldTooltip } from '../constants/field-labels'
+/** 仅为展示插入结论分句换行，保留接口原始文本与小数、字段路径中的英文句点。 */
+function formatConclusionText(text: string): string {
+  return text.replace(/([；;。])\s*/g, '$1\n').replace(/(\.)(?=\s|$)\s*/g, '$1\n').trim()
+}
 /** 任务只读详情页，双击任务列表行进入，以三步布局展示且仅步骤可切换。 */
-export default Vue.extend({ name: 'TaskDetail', data: () => ({ detail: null as TaskDetail | null, loading: false, errorMessage: '', activeStep: 0, artifactDialogVisible: false, artifactLoading: false, artifactDownloading: false, artifactBatches: [] as ProcessArtifactBatch[] }), computed: { /** 将调查结论按分号/句号换行，便于管理员逐条阅读。 */ conclusionText(): string { const packet = this.detail && this.detail.decisionPacket ? this.detail.decisionPacket : null; const text = packet ? packet.conclusion : ''; return text.replace(/([；;。])\s*/g, '$1\n').trim() } }, created() { void this.loadDetail() },   methods: {
+export default Vue.extend({ name: 'TaskDetail', data: () => ({ detail: null as TaskDetail | null, loading: false, errorMessage: '', activeStep: 0, artifactAvailable: false, artifactAvailabilityError: '', artifactDialogVisible: false, artifactLoading: false, artifactDownloading: false, artifactBatches: [] as ProcessArtifactBatch[] }), computed: {
+  /** 将模型协作检查结论按句分行，保留原始详情字段。 */ guidanceConclusionText(): string { return formatConclusionText(this.detail ? this.detail.conclusion : '') },
+  /** 将决策包结论按同一规则分行，维持原有展示。 */ conclusionText(): string { return formatConclusionText(this.detail && this.detail.decisionPacket ? this.detail.decisionPacket.conclusion : '') },
+  /** 仅在决策包和关联场景提示词均确认可用后展示入口。 */ showArtifactButton(): boolean { return Boolean(this.detail?.decisionPacket && this.artifactAvailable) },
+}, created() { void this.loadDetail() },   methods: {
     /** 返回字段路径与中文注释。 */
     fieldAnnotation,
     /** 返回字段中文说明，用于提示。 */
     fieldTooltip,
-  /** 加载路由参数指向的只读详情。 */ async loadDetail(): Promise<void> { const taskId = this.$route.params.taskId; if (!taskId) { this.errorMessage = '未识别任务标识'; return } this.loading = true; try { this.detail = await getTaskDetail(taskId) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '任务详情暂时无法读取' } finally { this.loading = false } },
+  /** 加载路由参数指向的只读详情，入口状态随后独立查询。 */ async loadDetail(): Promise<void> { const taskId = this.$route.params.taskId; if (!taskId) { this.errorMessage = '未识别任务标识'; return } this.loading = true; this.artifactAvailable = false; this.artifactAvailabilityError = ''; try { this.detail = await getTaskDetail(taskId); if (this.detail.decisionPacket) void this.loadArtifactAvailability(taskId) } catch (error: unknown) { this.errorMessage = error instanceof Error ? error.message : '任务详情暂时无法读取' } finally { this.loading = false } },
+  /** 异步确认关联场景提示词，仅接纳当前任务的响应。 */ async loadArtifactAvailability(taskId: string): Promise<void> { try { const available = await getTaskProcessArtifactAvailability(taskId); if (this.detail?.taskId === taskId) this.artifactAvailable = available } catch (_error: unknown) { if (this.detail?.taskId === taskId) this.artifactAvailabilityError = '流程产物入口暂时无法读取，请刷新页面重试' } },
   /** 转换状态为业务中文。 */ statusLabel(status: string): string { return ({ DRAFT: '草稿', WAITING_SCOPE_CONFIRMATION: '待确认范围', READY: '待生成方案', WAITING_STEP_APPROVAL: '待处理', RUNNING_STEP: '处理中', ANALYZING: '分析中', WAITING_PROFESSIONAL_CONFIRMATION: '待专业确认', DRAFT_PACKET: '决策包草稿', WAITING_REVIEW: '待复核', RECHECKING_SCOPE: '重新核查范围', READY_TO_PUBLISH: '待发布', PUBLISHED: '已发布', HANDED_OFF: '已移交', CLOSED: '已关闭', PAUSED_MODEL_UNAVAILABLE: '模型暂不可用', PAUSED_BUDGET: '预算已暂停', PAUSED_SOURCE_UNAVAILABLE: '来源暂不可用', STALE_APPROVAL: '审批已失效', FAILED_RECOVERABLE: '处理失败，可重试', CANCELLED: '已取消' } as Record<string, string>)[status] || '状态待确认' },
   /** 以中文地区格式展示创建时间。 */ formatTime(value: string): string { const date = new Date(value); return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN', { hour12: false }) },
   /** 把二维证据行转换为 el-table 可用的对象数组。 */ evidenceRowObjects(item: DraftEvidence): Array<Record<string, string>> { return item.rows.map((row) => { const record: Record<string, string> = {}; row.forEach((cell, index) => { record[String(index)] = cell }); return record }) },
@@ -154,8 +170,21 @@ export default Vue.extend({ name: 'TaskDetail', data: () => ({ detail: null as T
 .readonly-intake-form__wide { grid-column: 1 / -1; }
 .readonly-field { min-height: 40px; padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; background: #f8fafc; color: #303133; line-height: 22px; overflow-wrap: anywhere; }
 .readonly-field--multiline { min-height: 94px; white-space: pre-wrap; }
+.task-detail-content { min-width: 0; }
+.task-detail-content:focus-visible { outline: 2px solid #c87422; outline-offset: -2px; }
+.detail-guidance-grid { min-width: 0; }
+.guidance-conclusion { display: block; width: 100%; overflow-wrap: anywhere; }
 .packet-heading { margin-bottom: 16px; }
 @media (max-width: 600px) { .readonly-intake-form { grid-template-columns: minmax(0, 1fr); } }
+/* 宽屏详情长内容在卡片内部滚动，页面标题和步骤栏留在视口内。 */
+@media (min-width: 1001px) and (min-height: 620px) {
+  .task-detail-page--scrollable { display: flex; flex-direction: column; height: calc(100vh - 92px); min-height: 0; }
+  .task-detail-page--scrollable > .page-heading,
+  .task-detail-page--scrollable > .workflow-steps-bar { flex: 0 0 auto; }
+  .task-detail-page--scrollable > .detail-content-card { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
+  .task-detail-page--scrollable ::v-deep .detail-content-card > .el-card__body { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
+  .task-detail-page--scrollable .task-detail-content { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+}
 .readonly-empty { color: #909399; margin: 8px 0; }
 .conclusion-text { white-space: pre-wrap; line-height: 1.6; margin: 10px 0 16px; }
 .evidence-item { margin-bottom: 12px; }

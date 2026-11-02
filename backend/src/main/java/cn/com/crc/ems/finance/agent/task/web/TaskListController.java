@@ -13,6 +13,7 @@ import cn.com.crc.ems.finance.agent.iam.application.IdentityContext;
 import cn.com.crc.ems.finance.agent.task.application.TaskListService;
 import cn.com.crc.ems.finance.agent.task.application.TaskListRowService;
 import cn.com.crc.ems.finance.agent.task.application.TaskDetailService;
+import cn.com.crc.ems.finance.agent.task.application.TaskProcessArtifactAvailabilityService;
 import cn.com.crc.ems.finance.agent.task.domain.TaskStatus;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -33,8 +34,14 @@ public class TaskListController {
     private final TaskListService taskListService;
     private final TaskListRowService taskListRowService;
     private final TaskDetailService taskDetailService;
+    private final TaskProcessArtifactAvailabilityService artifactAvailabilityService;
     public TaskListController(TaskListService taskListService, TaskListRowService taskListRowService,
-            TaskDetailService taskDetailService) { this.taskListService = taskListService; this.taskListRowService = taskListRowService; this.taskDetailService = taskDetailService; }
+            TaskDetailService taskDetailService, TaskProcessArtifactAvailabilityService artifactAvailabilityService) {
+        this.taskListService = taskListService;
+        this.taskListRowService = taskListRowService;
+        this.taskDetailService = taskDetailService;
+        this.artifactAvailabilityService = artifactAvailabilityService;
+    }
     /** 返回当前可信身份可见的任务页，平台管理员可查看全部任务。 */
     @GetMapping
     public TaskListRowService.Page list(@RequestParam(defaultValue = "1") @Min(1) int page,
@@ -45,4 +52,10 @@ public class TaskListController {
     /** 返回任务的只读业务、范围与方案详情。 */
     @GetMapping("/{taskId}")
     public TaskDetailService.Detail detail(@PathVariable UUID taskId) { return taskDetailService.find(taskId, IdentityContext.require()); }
+
+    /** 按当前可信身份查询流程产物入口状态，不返回场景提示词正文。 */
+    @GetMapping("/{taskId}/process-artifact-availability")
+    public TaskProcessArtifactAvailabilityService.Availability processArtifactAvailability(@PathVariable UUID taskId) {
+        return artifactAvailabilityService.find(taskId, IdentityContext.require());
+    }
 }
