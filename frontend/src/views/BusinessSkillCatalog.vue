@@ -35,7 +35,7 @@
       </section>
     </template>
 
-    <el-dialog v-workbench-dialog custom-class="workbench-dialog" :title="editingId ? '编辑业务场景' : '新增业务场景'" :visible.sync="dialogVisible" width="720px"
+    <el-dialog v-workbench-dialog custom-class="workbench-dialog" :title="editingId ? '编辑业务场景' : '新增业务场景'" :visible.sync="dialogVisible" width="1000px"
       :close-on-click-modal="false" @closed="resetForm">
       <el-form :model="form" label-position="top" class="workbench-dialog-form">
         <el-form-item label="场景名称" required>
