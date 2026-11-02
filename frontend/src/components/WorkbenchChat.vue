@@ -26,7 +26,7 @@
     </div>
 
     <footer class="workbench-chat__composer">
-      <el-input :value="value" type="textarea" :rows="2" :disabled="!enabled || loading || analyzing" aria-label="模型聊天输入" placeholder="补充信息，或说说希望如何调整方案" @input="updateValue" @keydown.native.ctrl.enter.prevent="sendMessage" />
+      <el-input :value="value" type="textarea" :rows="2" :disabled="!enabled || loading || analyzing" aria-label="模型聊天输入" :placeholder="placeholder" @input="updateValue" @keydown.native.ctrl.enter.prevent="sendMessage" />
       <el-button type="primary" :loading="loading" :disabled="!canSend" @click="sendMessage">发送</el-button>
     </footer>
   </section>
@@ -44,6 +44,7 @@ export default Vue.extend({
   props: {
     messages: { type: Array as PropType<ChatMessage[]>, required: true },
     value: { type: String, default: '' },
+    placeholder: { type: String, default: '补充信息，或说说希望如何调整方案' },
     enabled: { type: Boolean, default: false },
     loading: { type: Boolean, default: false },
     analyzing: { type: Boolean, default: false },

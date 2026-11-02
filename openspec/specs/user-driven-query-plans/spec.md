@@ -9,7 +9,7 @@ TBD - created by archiving change user-driven-query-plans. Update Purpose after 
 
 #### Scenario: More evidence needed
 - **WHEN** 初稿模型返回 needMoreEvidence=true
-- **THEN** 响应带轮次和 true，前端显示继续提示
+- **THEN** 响应带轮次和 true，前端在聊天框输入框 placeholder 显示继续提示
 
 #### Scenario: Reselect tables
 - **WHEN** needTableReselection=true

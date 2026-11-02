@@ -1,6 +1,6 @@
 <!-- 业务处理工作台：业务说明、模型协作与决策包三步，复用受控分析与会话组件。 -->
 <template>
-  <section class="task-workbench" :class="{ 'task-workbench--viewport': activeStep < 2, 'task-workbench--intake': activeStep === 0 }">
+  <section class="task-workbench" :class="{ 'task-workbench--viewport': activeStep !== 0, 'task-workbench--intake': activeStep === 0 }">
     <div class="page-heading entry-page-heading"><h2>业务处理</h2></div>
     <!-- 顶部步骤条：与任务信息分区一致的三步骤风格，替代原任务标题/内容摘要。 -->
     <div class="workflow-steps-bar">
@@ -19,10 +19,8 @@
       </ul>
     </el-alert>
 
-    <el-alert v-if="guidance && guidance.needMoreEvidence" class="guidance-warning-alert" type="info" :closable="false" show-icon title="可继续在聊天框发送修改意见补充证据" />
-
     <el-row :gutter="16" class="workbench-columns">
-      <el-col :span="16" class="workbench-primary">
+      <el-col :span="activeStep === 0 ? 24 : 16" class="workbench-primary">
         <el-card shadow="never" class="form-card guided-workflow">
           <!-- 第一步：填写业务标题与说明，选择可选附件后开始模型分析。 -->
           <el-form v-if="activeStep === 0" :model="form" label-position="top" class="task-form task-intake-form">
@@ -87,7 +85,7 @@
               <section v-if="guidance" class="guidance-result-panel">
                 <div class="card-heading">
                   <h4>检查结论 <span class="field-path" :title="fieldTooltip('guidanceDraft.conclusion')">{{ fieldAnnotation('guidanceDraft.conclusion') }}</span></h4>
-                  <div class="collaboration-actions"><el-button v-if="decisionPacket" :disabled="modelLoading || chatLoading || saving || packetLoading" @click="activeStep = 2">查看决策包</el-button><el-button type="primary" :loading="packetLoading" :disabled="modelLoading || chatLoading || saving" @click="generateDecisionPacket">生成决策包</el-button></div>
+                  <div class="collaboration-actions"><el-button v-if="decisionPacket" :disabled="modelLoading || chatLoading || saving || packetLoading" @click="activeStep = 2">查看决策包</el-button><el-button size="small" type="primary" :loading="packetLoading" :disabled="modelLoading || chatLoading || saving" @click="generateDecisionPacket">生成决策包</el-button></div>
                 </div>
                 <p class="conclusion-text">{{ guidance.draft.conclusion || '暂无结论' }}</p>
                 <template v-if="guidance.draft.processPlan">
@@ -116,11 +114,11 @@
           <!-- 第三步：只展示已成功生成的决策包，可返回第二步继续协作。 -->
           <section v-else-if="decisionPacket" class="guidance-result-panel packet-result-panel">
             <div class="card-heading">
-              <h3>业务决策包</h3>
-              <div class="collaboration-actions">
+              <div class="packet-title-row">
+                <h3>业务决策包</h3>
                 <el-tag type="info" size="small">修订 {{ decisionPacket.revision }}</el-tag>
-                <el-button @click="activeStep = 1">返回模型协作</el-button>
               </div>
+              <div class="collaboration-actions"><el-button @click="activeStep = 1">返回模型协作</el-button></div>
             </div>
 
             <!-- 四个独立卡片紧凑排列：数据对象、操作、结论、证据。 -->
@@ -196,8 +194,8 @@
       </el-col>
 
       <!-- 会话独立成组件，页面继续管理模型请求与任务状态。 -->
-      <el-col :span="8" class="workbench-conversation">
-        <workbench-chat v-model="chatMessage" :messages="chatMessages" :enabled="activeStep === 1 && Boolean(guidance) && !saving && !packetLoading" :loading="chatLoading" :analyzing="modelLoading" :runtime-model="runtimeModel" :runtime-loading="runtimeModelLoading" :metadata="lastModelMetadata" @send="reviseGuidance" />
+      <el-col v-if="activeStep !== 0" :span="8" class="workbench-conversation">
+        <workbench-chat v-model="chatMessage" :messages="chatMessages" :placeholder="chatPlaceholder" :enabled="activeStep === 1 && Boolean(guidance) && !saving && !packetLoading" :loading="chatLoading" :analyzing="modelLoading" :runtime-model="runtimeModel" :runtime-loading="runtimeModelLoading" :metadata="lastModelMetadata" @send="reviseGuidance" />
       </el-col>
     </el-row>
   </section>
@@ -223,7 +221,7 @@ const PROCESS_SKILL_ID = 'a6a050ae-b699-4ca0-af72-4381e990eda0'
 const createInitialForm = (): Form => ({ title: '', question: '', subjectKey: '' })
 /** 仅接受后端可受控分析的文本附件，避免浏览器选择无效格式。 */
 const isSupportedAttachment = (file: AttachmentFile): boolean => { const extension = file.name.split('.').pop()?.toLowerCase(); return Boolean(file.raw) && file.size !== 0 && file.size !== undefined && file.size <= 1024 * 1024 && Boolean(extension && ATTACHMENT_EXTENSIONS.includes(extension)) }
-export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }, data() { return { PROCESS_SKILL_ID, artifactBatches: [] as ProcessArtifactBatch[], artifactLoading: false, selectedKinds: ['MODEL'] as string[], showPrevious: false, runtimeModel: null as ModelRuntimeSummary | null, runtimeModelLoading: false, lastModelMetadata: null as ModelCallMetadata | null, activeStep: 0, saving: false, modelLoading: false, chatLoading: false, task: null as TaskResponse | null, guidance: null as BusinessGuidanceResponse | null, chatMessage: '', chatMessages: [] as Chat[], attachmentFiles: [] as AttachmentFile[], sceneSkills: [] as BusinessSceneSkill[], selectedSkillId: '', sceneSkillsLoading: false, databaseInstances: [] as EmsDatabaseInstance[], selectedDatabaseConfigId: '', progressStage: '', progressTimer: null as ReturnType<typeof setInterval> | null, errorMessage: '', accumulatedEvidence: [] as BusinessEvidenceAccumResponse[], decisionPacket: null as BusinessDecisionPacketResponse | null, packetLoading: false, form: createInitialForm() } }, computed: { /** 返回本次模型输出规范化警告，供页面提示使用。 */ guidanceWarnings(): string[] { return this.guidance?.warnings ?? [] }, /** 将调查结论按分号/句号换行，便于管理员逐条阅读。 */ conclusionText(): string { const text = this.decisionPacket && this.decisionPacket.content ? this.decisionPacket.content.conclusion : ''; return text.replace(/([；;。])\s*/g, '$1\n').trim() } }, created() { void this.loadSceneSkills(); void this.loadDatabaseInstances(); void this.loadRuntimeModel() }, /** 返回缓存页时刷新当前启用的模型摘要。 */ activated() { void this.loadRuntimeModel() }, /** 组件销毁前清理进度轮询定时器，避免离开页面产生僵尸请求。 */ beforeDestroy() { this.stopProgressPolling() }, watch: { /** 仅响应显式新建入口的草稿标识，普通导航继续保留当前向导状态。 */ '$route.query.draft'(): void { this.resetDraft() } },   methods: {
+export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }, data() { return { PROCESS_SKILL_ID, artifactBatches: [] as ProcessArtifactBatch[], artifactLoading: false, selectedKinds: ['MODEL'] as string[], showPrevious: false, runtimeModel: null as ModelRuntimeSummary | null, runtimeModelLoading: false, lastModelMetadata: null as ModelCallMetadata | null, activeStep: 0, saving: false, modelLoading: false, chatLoading: false, task: null as TaskResponse | null, guidance: null as BusinessGuidanceResponse | null, chatMessage: '', chatMessages: [] as Chat[], attachmentFiles: [] as AttachmentFile[], sceneSkills: [] as BusinessSceneSkill[], selectedSkillId: '', sceneSkillsLoading: false, databaseInstances: [] as EmsDatabaseInstance[], selectedDatabaseConfigId: '', progressStage: '', progressTimer: null as ReturnType<typeof setInterval> | null, errorMessage: '', accumulatedEvidence: [] as BusinessEvidenceAccumResponse[], decisionPacket: null as BusinessDecisionPacketResponse | null, packetLoading: false, form: createInitialForm() } }, computed: { /** 返回本次模型输出规范化警告，供页面提示使用。 */ guidanceWarnings(): string[] { return this.guidance?.warnings ?? [] }, /** 将调查结论按分号/句号换行，便于管理员逐条阅读。 */ conclusionText(): string { const text = this.decisionPacket && this.decisionPacket.content ? this.decisionPacket.content.conclusion : ''; return text.replace(/([；;。])\s*/g, '$1\n').trim() }, /** 依据补充证据标记切换聊天框输入占位提示。 */ chatPlaceholder(): string { return this.guidance?.needMoreEvidence ? '可继续在聊天框发送修改意见补充证据' : '补充信息，或说说希望如何调整方案' } }, created() { void this.loadSceneSkills(); void this.loadDatabaseInstances(); void this.loadRuntimeModel() }, /** 返回缓存页时刷新当前启用的模型摘要。 */ activated() { void this.loadRuntimeModel() }, /** 组件销毁前清理进度轮询定时器，避免离开页面产生僵尸请求。 */ beforeDestroy() { this.stopProgressPolling() }, watch: { /** 仅响应显式新建入口的草稿标识，普通导航继续保留当前向导状态。 */ '$route.query.draft'(): void { this.resetDraft() } },   methods: {
     /** 返回字段路径与中文注释。 */
     fieldAnnotation,
     /** 返回字段中文说明，用于提示。 */
@@ -278,7 +276,10 @@ export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }
 .collaboration-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .collaboration-actions .el-button + .el-button { margin-left: 0; }
 .packet-result-panel { margin-top: 14px; }
+/* 决策包外层扁平化：去掉独立边框/背景，直接作为外壳卡片内容。 */
+.guidance-result-panel.packet-result-panel { margin-top: 0; padding: 0; border: none; border-radius: 0; background: transparent; }
 .packet-result-panel > .card-heading { align-items: center; margin-bottom: 16px; }
+.packet-title-row { display: flex; align-items: center; gap: 10px; }
 @media (max-width: 1000px) {
   .workbench-columns > .workbench-primary, .workbench-columns > .workbench-conversation { width: 100%; }
   .workbench-conversation { position: static; margin-top: 16px; }
