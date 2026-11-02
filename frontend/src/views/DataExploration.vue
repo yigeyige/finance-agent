@@ -3,7 +3,7 @@
   <section class="data-exploration-page">
     <div class="page-heading entry-page-heading"><h2>数据探索</h2></div>
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
-    <section class="data-exploration-shell" v-loading="loading">
+    <section class="data-exploration-shell" :class="{ 'is-resizing': resizingCatalog }" :style="{ '--catalog-width': `${catalogWidth}px` }" v-loading="loading">
       <aside class="data-exploration-catalog">
         <div class="catalog-heading"><span>数据库实例</span><el-button type="text" icon="el-icon-refresh" :disabled="loading" @click="loadCatalog">刷新</el-button></div>
         <el-select v-model="selectedInstanceId" size="small" placeholder="选择数据库实例" class="catalog-instance-select" @change="loadCatalog">
@@ -18,6 +18,7 @@
           </el-tree>
         </div>
       </aside>
+      <div class="catalog-resize-handle" role="separator" aria-label="调整表目录宽度" aria-orientation="vertical" :aria-valuenow="catalogWidth" aria-valuemin="220" tabindex="0" @pointerdown="startCatalogResize" @keydown.left.prevent="adjustCatalogWidth(-24)" @keydown.right.prevent="adjustCatalogWidth(24)" />
       <main class="data-exploration-workspace">
         <div class="query-tabs"><el-tabs v-model="activeQueryTab" type="card" class="query-tab-list" @tab-remove="removeQueryTab"><el-tab-pane v-for="tab in queryTabs" :key="tab.id" :label="tab.title" :name="tab.id" :closable="queryTabs.length > 1" /></el-tabs><el-button type="text" icon="el-icon-plus" aria-label="新增查询页签" @click="addQueryTab">新增查询</el-button><span v-if="catalog" class="query-source">数据源：{{ catalog.dataSourceName }}，最终行数受服务端限制</span></div>
         <div class="query-controls"><el-select v-model="requestedRows" size="small" aria-label="请求行数"><el-option v-for="limit in rowLimits" :key="limit" :label="`${limit} 行`" :value="limit" /></el-select><el-button type="primary" size="small" :loading="executing" :disabled="!catalog" @click="executeQuery">执行</el-button></div>
@@ -41,7 +42,7 @@ interface QueryTab { id: string; title: string; sql: string; result: DataExplora
 /** 平台管理员浏览 EMS 元数据并执行受控只读 SQL 的工作台页面。 */
 export default Vue.extend({
   name: 'DataExploration',
-  data: () => ({ catalog: null as DataExplorationCatalog | null, instances: [] as EmsDatabaseConnectionConfig[], selectedInstanceId: '' as string, loading: false, executing: false, columnsLoading: false, errorMessage: '', tableKeyword: '', requestedRows: 20, rowLimits: [20, 50, 100], activeResultTab: 'result', selectedTable: null as EmsDatabaseTableMetadata | null, columns: [] as EmsDatabaseColumnMetadata[], queryTabs: [{ id: 'query-1', title: '查询 1', sql: '', result: null }] as QueryTab[], activeQueryTab: 'query-1', treeProps: { children: 'children', label: 'label' } }),
+  data: () => ({ catalog: null as DataExplorationCatalog | null, instances: [] as EmsDatabaseConnectionConfig[], selectedInstanceId: '' as string, loading: false, executing: false, columnsLoading: false, errorMessage: '', tableKeyword: '', catalogWidth: 270, resizingCatalog: false, resizeStartX: 0, resizeStartWidth: 270, requestedRows: 20, rowLimits: [20, 50, 100], activeResultTab: 'result', selectedTable: null as EmsDatabaseTableMetadata | null, columns: [] as EmsDatabaseColumnMetadata[], queryTabs: [{ id: 'query-1', title: '查询 1', sql: '', result: null }] as QueryTab[], activeQueryTab: 'query-1', treeProps: { children: 'children', label: 'label' } }),
   computed: {
     /** 按库组织并筛选当前允许的表目录。 */
     schemaTree(): TreeNode[] { const keyword = this.tableKeyword.toLowerCase(); const tables = this.catalog?.tables.filter((item) => !keyword || `${item.table} ${item.comment}`.toLowerCase().includes(keyword)) || []; const groups = new Map<string, TreeNode>(); tables.forEach((item) => { const group = groups.get(item.schema) || { key: item.schema, label: item.schema, children: [] }; group.children?.push({ key: `${item.schema}.${item.table}`, label: item.table, schema: item.schema, table: item.table, comment: item.comment }); groups.set(item.schema, group) }); return Array.from(groups.values()) },
@@ -51,7 +52,19 @@ export default Vue.extend({
     activeTab(): QueryTab { return this.queryTabs.find((item) => item.id === this.activeQueryTab) || this.queryTabs[0] },
   },
   created() { void this.loadInstances() },
+  /** 离开页面时移除拖动监听，避免影响其他页面。 */
+  beforeDestroy() { this.stopCatalogResize() },
   methods: {
+    /** 开始拖动表目录分隔条，并在窗口范围内持续追踪指针。 */
+    startCatalogResize(event: PointerEvent): void { if (event.button !== 0) return; event.preventDefault(); this.resizeStartX = event.clientX; this.resizeStartWidth = this.catalogWidth; this.resizingCatalog = true; window.addEventListener('pointermove', this.moveCatalogResize); window.addEventListener('pointerup', this.stopCatalogResize); window.addEventListener('pointercancel', this.stopCatalogResize); window.addEventListener('blur', this.stopCatalogResize) },
+    /** 按指针位移调整目录宽度，始终给右侧查询区留下可用空间。 */
+    moveCatalogResize(event: PointerEvent): void { if (this.resizingCatalog) this.setCatalogWidth(this.resizeStartWidth + event.clientX - this.resizeStartX) },
+    /** 松开指针或离开页面时结束拖动并移除全局监听。 */
+    stopCatalogResize(): void { this.resizingCatalog = false; window.removeEventListener('pointermove', this.moveCatalogResize); window.removeEventListener('pointerup', this.stopCatalogResize); window.removeEventListener('pointercancel', this.stopCatalogResize); window.removeEventListener('blur', this.stopCatalogResize) },
+    /** 用方向键以固定步长调整目录宽度。 */
+    adjustCatalogWidth(step: number): void { this.setCatalogWidth(this.catalogWidth + step) },
+    /** 限制目录宽度，避免目录过窄或挤占查询区。 */
+    setCatalogWidth(width: number): void { const shell = (this.$el as HTMLElement).querySelector('.data-exploration-shell') as HTMLElement | null; const maximum = Math.max(220, Math.min(520, (shell?.clientWidth || 900) - 380)); this.catalogWidth = Math.max(220, Math.min(width, maximum)) },
     /** 加载启用实例列表并默认选择第一个启用实例。 */
     async loadInstances(): Promise<void> { this.errorMessage = ''; try { const all = await listEmsDatabaseConfigurations(); this.instances = all.filter((item) => item.enabled); this.selectedInstanceId = this.instances[0]?.configId || '' } catch (error: unknown) { this.instances = []; this.selectedInstanceId = '' } finally { await this.loadCatalog() } },
     /** 刷新所选实例的受控目录。 */
@@ -74,8 +87,13 @@ export default Vue.extend({
 
 <style scoped>
 .data-exploration-shell { display: flex; height: calc(100vh - 160px); min-height: 560px; border: 1px solid #e8dfd5; border-radius: 10px; background: #fffdfa; overflow: hidden; box-shadow: 0 8px 20px rgba(73, 49, 30, .05); }
-.data-exploration-catalog { display: flex; flex-direction: column; width: 270px; min-height: 0; flex: 0 0 270px; padding: 18px; border-right: 1px solid #e8dfd5; background: #fffaf4; }
+.data-exploration-shell.is-resizing { user-select: none; }
+.data-exploration-catalog { display: flex; flex-direction: column; width: var(--catalog-width); min-height: 0; flex: 0 0 var(--catalog-width); padding: 18px; background: #fffaf4; }
+.catalog-resize-handle { position: relative; flex: 0 0 6px; cursor: col-resize; background: #f4ece2; touch-action: none; }
+.catalog-resize-handle::after { position: absolute; top: calc(50% - 22px); left: 2px; width: 2px; height: 44px; border-radius: 2px; background: #c9b9a7; content: ''; }
+.catalog-resize-handle:hover, .catalog-resize-handle:focus-visible, .is-resizing .catalog-resize-handle { outline: none; background: #f3dcc4; }
+.catalog-resize-handle:hover::after, .catalog-resize-handle:focus-visible::after, .is-resizing .catalog-resize-handle::after { background: #d78936; }
 .catalog-heading, .catalog-status, .query-tabs, .query-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; }.catalog-heading { font-weight: 700; }.catalog-instance-select { width: 100%; margin-top: 12px; flex: 0 0 auto; }.catalog-status { flex: 0 0 auto; }.catalog-source { margin: 12px 0; color: #4d392b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.catalog-empty, .query-tip, .data-exploration-empty { color: #8d8177; }.catalog-search { width: 100%; margin: 20px 0 12px; flex: 0 0 auto; }.catalog-tree-scroll { min-height: 0; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; }.catalog-node { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .data-exploration-workspace { min-width: 0; min-height: 0; flex: 1; padding: 18px 20px; overflow-y: auto; }.query-tabs { min-height: 34px; border-bottom: 1px solid #eee5dc; }.query-tab-list { flex: 1; margin-bottom: -1px; }.query-source { color: #8d8177; font-size: 13px; }.query-controls { justify-content: flex-end; margin: 14px 0; }.sql-input :deep(textarea) { min-height: 220px; border-color: #e0d2c4; background: #fff; color: #493428; font-family: Consolas, 'Courier New', monospace; line-height: 1.7; }.query-tip { margin: 8px 0 16px; font-size: 13px; }.result-tabs { border-top: 1px solid #eee5dc; }.result-summary { margin: 8px 0 12px; color: #806348; font-size: 13px; }.data-exploration-empty { display: grid; min-height: 220px; place-items: center; }
-@media (max-width: 900px) { .data-exploration-shell { display: block; height: auto; }.data-exploration-catalog { width: auto; border-right: 0; border-bottom: 1px solid #e8dfd5; }.catalog-tree-scroll { max-height: min(60vh, 480px); flex: none; }.data-exploration-workspace { padding: 14px; overflow: visible; } }
+@media (max-width: 900px) { .data-exploration-shell { display: block; height: auto; }.data-exploration-catalog { width: auto; border-bottom: 1px solid #e8dfd5; }.catalog-resize-handle { display: none; }.catalog-tree-scroll { max-height: min(60vh, 480px); flex: none; }.data-exploration-workspace { padding: 14px; overflow: visible; } }
 </style>
