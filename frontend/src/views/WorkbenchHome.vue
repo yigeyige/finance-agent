@@ -184,7 +184,7 @@
                     <span v-else>{{ file.fileName }}</span>
                     <el-button type="text" @click="downloadArtifactFile(batch, file)">下载</el-button>
                   </div>
-                  <el-button v-if="index === 0" :disabled="batch.importStatus !== 'IMPORT_CANDIDATE' || artifactLoading" @click="downloadArtifactZip(batch)">下载所选文件 ZIP</el-button>
+                  <el-button v-if="index === 0" :disabled="!batch.files.some(file => file.kind === 'MODEL') || artifactLoading" @click="downloadArtifactZip(batch)">下载所选文件 ZIP</el-button>
                 </div>
               </template>
               <p class="conclusion-text">下载后请在 EMS 中手动导入并核对流程；EMS 导入会自动部署并设置运行版本。</p>

@@ -21,6 +21,24 @@ import cn.com.crc.ems.finance.agent.processartifact.web.ProcessArtifactControlle
 /** ZIP 始终包含中文名称的模型文件，只包含用户选择的适用配置。 */
 class ProcessArtifactControllerTest {
     @Test
+    void zipContainsModelForRepairNeededBatch() throws Exception {
+        UUID taskId = UUID.randomUUID();
+        UUID batchId = UUID.randomUUID();
+        ProcessArtifactBatch batch = new ProcessArtifactBatch(batchId, taskId, UUID.randomUUID(), 1,
+                "{}", List.of("缺少角色编码"), "NEEDS_REPAIR", Instant.now(), List.of(
+                        new ProcessArtifactFile(UUID.randomUUID(), batchId, "MODEL", "待修复流程BPMN.xml", "{}")));
+        var service = mock(ProcessArtifactService.class);
+        when(service.recent(taskId)).thenReturn(List.of(batch));
+        var controller = new ProcessArtifactController(service);
+
+        byte[] content = controller.zip(taskId, batchId, List.of("MODEL")).getBody();
+
+        try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(content))) {
+            assertThat(zip.getNextEntry().getName()).isEqualTo("待修复流程BPMN.xml");
+        }
+    }
+
+    @Test
     void zipContainsModelAndSelectedConfigOnly() throws Exception {
         UUID taskId = UUID.randomUUID();
         UUID batchId = UUID.randomUUID();

@@ -125,7 +125,7 @@
               <span>{{ file.fileName }}</span>
               <el-button type="text" :disabled="artifactDownloading" @click="downloadArtifactFile(batch, file)">重新下载</el-button>
             </div>
-            <el-button :disabled="batch.importStatus !== 'IMPORT_CANDIDATE' || artifactDownloading" @click="downloadArtifactZip(batch)">下载 ZIP</el-button>
+            <el-button :disabled="!batch.files.some(file => file.kind === 'MODEL') || artifactDownloading" @click="downloadArtifactZip(batch)">下载 ZIP</el-button>
           </el-card>
         </div>
         <span slot="footer"><el-button @click="artifactDialogVisible = false">关闭</el-button></span>

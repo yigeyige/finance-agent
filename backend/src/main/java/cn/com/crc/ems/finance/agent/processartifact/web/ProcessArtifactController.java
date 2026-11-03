@@ -57,13 +57,21 @@ public final class ProcessArtifactController {
                 MediaType.APPLICATION_OCTET_STREAM);
     }
 
+    /**
+     *
+     * @description: 打包下载流程产物；待修复批次也允许下载，但必须包含模型文件且选择类型合法。
+     *
+     * @param: taskId 任务标识
+     * @param: batchId 产物批次标识
+     * @param: kinds 要下载的产物类型
+     * @return: ZIP 文件响应
+     * @throws: IllegalStateException 批次不存在、文件类型非法或缺少模型文件
+     * @author: yigeyige99
+     */
     @GetMapping("/{batchId}/zip")
     public ResponseEntity<byte[]> zip(@PathVariable UUID taskId, @PathVariable UUID batchId,
             @RequestParam(required = false) List<String> kinds) {
         ProcessArtifactBatch batch = batch(taskId, batchId);
-        if (!"IMPORT_CANDIDATE".equals(batch.importStatus())) {
-            throw new IllegalStateException("流程结构待修复，暂不能打包导入 ZIP");
-        }
         Set<String> selected = kinds == null || kinds.isEmpty() ? Set.of("MODEL") : Set.copyOf(kinds);
         if (!KINDS.containsAll(selected) || !selected.contains("MODEL")) {
             throw new IllegalStateException("打包文件类型不正确，模型文件必须包含");
