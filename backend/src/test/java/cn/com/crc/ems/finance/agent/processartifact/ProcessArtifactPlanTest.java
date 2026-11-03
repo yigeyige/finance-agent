@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.Test;
 
 import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactPlan;
+import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactPlanNormalizer;
 import cn.com.crc.ems.finance.agent.processartifact.domain.EmsProcessArtifactConverter;
 import cn.com.crc.ems.finance.agent.shared.domain.CanonicalJsonCodec;
 
@@ -77,13 +78,50 @@ class ProcessArtifactPlanTest {
     }
 
     @Test
-    void incompleteApprovalRuleStillProducesEditableFile() {
+    void nonConformingApprovalRuleIsIgnoredWithoutBlockingImport() {
         String incomplete = SIMPLE.replace("\"approvalRules\":[]", "\"approvalRules\":[{}]");
         var artifact = new EmsProcessArtifactConverter().convert(
                 ProcessArtifactPlan.fromJson(CanonicalJsonCodec.parse(incomplete)));
 
-        assertThat(artifact.importStatus()).isEqualTo("NEEDS_REPAIR");
-        assertThat(artifact.approvalRulesJson()).contains("\"head\"", "\"lineList\":[]");
+        assertThat(artifact.importStatus()).isEqualTo("IMPORT_CANDIDATE");
+        assertThat(artifact.approvalRulesJson()).isNull();
+        assertThat(artifact.missingItems()).anyMatch(item -> item.contains("已忽略"));
+    }
+
+    @Test
+    void roleBasedApprovalRulesAreIgnoredInsteadOfProducingEmptyFile() {
+        String roleBased = SIMPLE.replace("\"approvalRules\":[]",
+                "\"approvalRules\":[{\"head\":{\"draftRole\":\"普通用户\",\"amountRange\":\"\"},"
+                        + "\"lineList\":[{\"nodeId\":\"draft\",\"nodeName\":\"起草\"}]}]");
+        var artifact = new EmsProcessArtifactConverter().convert(
+                ProcessArtifactPlan.fromJson(CanonicalJsonCodec.parse(roleBased)));
+
+        assertThat(artifact.importStatus()).isEqualTo("IMPORT_CANDIDATE");
+        assertThat(artifact.approvalRulesJson()).isNull();
+        assertThat(artifact.missingItems()).anyMatch(item -> item.contains("已忽略"));
+    }
+
+    @Test
+    void resolvesApprovalNodeByNodeName() {
+        String withName = SIMPLE.replace("\"departmentApprovals\":[]",
+                "\"departmentApprovals\":[{\"approvalNode\":\"起草\",\"nodeRule\":\"tier3\"}]");
+        var normalized = ProcessArtifactPlanNormalizer.normalize(CanonicalJsonCodec.parse(withName));
+
+        assertThat(normalized.plan().departmentApprovals()).hasSize(1);
+        assertThat(normalized.plan().departmentApprovals().get(0).path("approvalNode").asText())
+                .isEqualTo("draft");
+    }
+
+    @Test
+    void fallsBackToApprovalNodeNameWhenReferenceIsMissing() {
+        String withName = SIMPLE.replace("\"departmentApprovals\":[]",
+                "\"departmentApprovals\":[{\"approvalNode\":\"missing\",\"approvalNodeName\":\"起草\","
+                        + "\"nodeRule\":\"tier3\"}]");
+        var normalized = ProcessArtifactPlanNormalizer.normalize(CanonicalJsonCodec.parse(withName));
+
+        assertThat(normalized.plan().departmentApprovals()).hasSize(1);
+        assertThat(normalized.plan().departmentApprovals().get(0).path("approvalNode").asText())
+                .isEqualTo("draft");
     }
 
     @Test

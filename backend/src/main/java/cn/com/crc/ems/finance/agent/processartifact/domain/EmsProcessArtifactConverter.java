@@ -33,8 +33,8 @@ public final class EmsProcessArtifactConverter {
     private static final int CENTER_Y = 300;
     private static final int NODE_WIDTH = 120;
     private static final int NODE_HEIGHT = 60;
-    private static final int GATEWAY_WIDTH = 40;
-    private static final int GATEWAY_HEIGHT = 40;
+    private static final int GATEWAY_WIDTH = 100;
+    private static final int GATEWAY_HEIGHT = 100;
     private static final int EVENT_SIZE = 40;
 
     private static final Set<String> NODE_PARAMETER_FIELDS = Set.of("variableName", "actId", "variableValue",
@@ -103,19 +103,31 @@ public final class EmsProcessArtifactConverter {
         boolean connected = connected(plan);
         if (!connected) missing.add("流程没有从开始到结束的完整路径，或存在未连通节点");
         if (plan.nodes().isEmpty()) missing.add("流程尚无可用任务节点");
-        plan.approvalRules().forEach(rule -> {
+        int approvalRuleIndex = 0;
+        for (JsonNode rule : plan.approvalRules()) {
+            approvalRuleIndex++;
             if (!rule.path("head").isObject() || !rule.path("lineList").isArray()
                     || rule.path("lineList").isEmpty()) {
-                missing.add("审批规则缺少表头或档位明细");
-            } else {
-                rule.path("lineList").forEach(line -> {
-                    if (!line.isObject() || !rangeValid(line, "applyAmountMin", "applyAmountMax")
-                            || !rangeValid(line, "payAmountMin", "payAmountMax")) {
-                        missing.add("审批规则档位范围不正确");
-                    }
-                });
+                missing.add("审批规则第 " + approvalRuleIndex + " 项缺少有效金额档位，已忽略");
+                continue;
             }
-        });
+            boolean hasValue = false;
+            for (JsonNode line : rule.path("lineList")) {
+                if (!line.isObject()) {
+                    continue;
+                }
+                if (hasAnyRuleLineValue(line)) {
+                    hasValue = true;
+                }
+                if (!rangeValid(line, "applyAmountMin", "applyAmountMax")
+                        || !rangeValid(line, "payAmountMin", "payAmountMax")) {
+                    missing.add("审批规则档位范围不正确");
+                }
+            }
+            if (!hasValue) {
+                missing.add("审批规则第 " + approvalRuleIndex + " 项缺少有效金额档位，已忽略");
+            }
+        }
         for (ProcessArtifactPlan.Node node : plan.nodes()) {
             if ("exclusive-gateway".equals(node.kind())) {
                 List<ProcessArtifactPlan.Flow> outgoing = plan.flows().stream()
@@ -126,7 +138,7 @@ public final class EmsProcessArtifactConverter {
             }
         }
         String status = connected && !plan.nodes().isEmpty() && missing.stream()
-                .noneMatch(value -> value.startsWith("排他分支") || value.startsWith("审批规则"))
+                .noneMatch(value -> value.startsWith("排他分支") || value.startsWith("审批规则档位范围不正确"))
                 ? "IMPORT_CANDIDATE" : "NEEDS_REPAIR";
         return new EmsProcessArtifactFiles(plan.name() + "BPMN.xml", CanonicalJsonCodec.canonicalize(model),
                 nodeParameters(plan), departmentApprovals(plan), approvalRules(plan), List.copyOf(missing), status);
@@ -453,28 +465,45 @@ public final class EmsProcessArtifactConverter {
     private static String approvalRules(ProcessArtifactPlan plan) {
         if (plan.approvalRules().isEmpty()) return null;
         ArrayNode array = JsonNodeFactory.instance.arrayNode();
-        plan.approvalRules().forEach(source -> {
+        for (JsonNode source : plan.approvalRules()) {
             JsonNode rawHead = source.get("head");
             JsonNode rawLines = source.get("lineList");
             ObjectNode head = rawHead instanceof ObjectNode object ? object : JsonNodeFactory.instance.objectNode();
-            ArrayNode lines = rawLines instanceof ArrayNode rawArray ? rawArray : JsonNodeFactory.instance.arrayNode();
+            JsonNode lineArray = rawLines instanceof ArrayNode rawArray ? rawArray : JsonNodeFactory.instance.arrayNode();
+            ArrayNode safeLines = JsonNodeFactory.instance.arrayNode();
+            for (JsonNode line : lineArray) {
+                if (!line.isObject() || !hasAnyRuleLineValue(line)) {
+                    continue;
+                }
+                ObjectNode safe = allowed((ObjectNode) line, RULE_LINE_FIELDS);
+                safe.putNull("rulesLineId");
+                safe.putNull("rulesHeadId");
+                safeLines.add(safe);
+            }
+            if (safeLines.isEmpty()) {
+                continue;
+            }
             ObjectNode item = JsonNodeFactory.instance.objectNode();
             ObjectNode safeHead = allowed(head, RULE_HEAD_FIELDS);
             safeHead.putNull("rulesHeadId");
             safeHead.put("processId", "");
             safeHead.put("processName", plan.name());
             item.set("head", safeHead);
-            ArrayNode safeLines = item.putArray("lineList");
-            lines.forEach(line -> {
-                ObjectNode object = line instanceof ObjectNode value ? value : JsonNodeFactory.instance.objectNode();
-                ObjectNode safe = allowed(object, RULE_LINE_FIELDS);
-                safe.putNull("rulesLineId");
-                safe.putNull("rulesHeadId");
-                safeLines.add(safe);
-            });
+            item.set("lineList", safeLines);
             array.add(item);
-        });
-        return CanonicalJsonCodec.canonicalize(array);
+        }
+        return array.isEmpty() ? null : CanonicalJsonCodec.canonicalize(array);
+    }
+
+    /** 判断档位行是否包含任一 EMS 可保留字段，避免生成空壳规则行。 */
+    private static boolean hasAnyRuleLineValue(JsonNode line) {
+        for (String field : RULE_LINE_FIELDS) {
+            JsonNode value = line.get(field);
+            if (value != null && !value.isNull() && !value.asText().isBlank()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static ObjectNode allowed(ObjectNode source, Set<String> fields) {

@@ -97,7 +97,7 @@
                 </template>
                 <template v-if="accumulatedEvidence.length">
                   <h4>关联证据（跨轮累积） <span class="field-path" :title="fieldTooltip('evidence')">{{ fieldAnnotation('evidence') }}</span></h4>
-                  <div v-for="round in accumulatedEvidence" :key="round.roundNo" class="evidence-item">
+                  <div v-for="(round, roundIndex) in accumulatedEvidence" :key="round.roundNo + '-' + roundIndex" class="evidence-item">
                     <p class="evidence-meta">第 {{ round.roundNo }} 轮</p>
                     <div v-for="(item, ei) in round.evidence" :key="`${round.roundNo}-${ei}`" class="evidence-item">
                       <p class="evidence-meta">{{ item.schema }}.{{ item.table }} · {{ item.purpose }}</p>

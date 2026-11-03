@@ -114,6 +114,8 @@ public final class ProcessArtifactPlanNormalizer {
                 warnings.add("节点 " + id + " 缺少名称，已使用标识代替");
             }
             name = truncate(name, 100);
+            // 名称也注册为可解析引用，兼容模型把节点名称写进 flow/approvalNode/actId 的情况。
+            idMapping.putIfAbsent(name, id);
             String assignee = "";
             if (item.hasNonNull("assignee") && item.get("assignee").isTextual()) {
                 assignee = truncate(item.get("assignee").textValue(), 200);
@@ -205,9 +207,21 @@ public final class ProcessArtifactPlanNormalizer {
                 warnings.add(label + "第 " + index + " 项不是对象，已忽略");
                 continue;
             }
-            String reference = resolveNodeId(textOrEmpty(item.get(field)), idMapping);
+            String rawReference = textOrEmpty(item.get(field));
+            String reference = resolveNodeId(rawReference, idMapping);
+            // 部门审批流额外兼容 approvalNodeName，模型常把名称写在独立字段。
+            if (reference == null && "approvalNode".equals(field)) {
+                String nameReference = textOrEmpty(item.get("approvalNodeName"));
+                if (!nameReference.isBlank()) {
+                    reference = resolveNodeId(nameReference, idMapping);
+                    if (reference != null) {
+                        rawReference = nameReference;
+                    }
+                }
+            }
             if (reference == null) {
-                warnings.add(label + "第 " + index + " 项引用了不存在的节点，已忽略");
+                String display = rawReference.isBlank() ? "空引用" : rawReference;
+                warnings.add(label + "第 " + index + " 项引用了不存在的节点 " + display + "，已忽略");
                 continue;
             }
             ObjectNode copy = ((ObjectNode) item).deepCopy();
