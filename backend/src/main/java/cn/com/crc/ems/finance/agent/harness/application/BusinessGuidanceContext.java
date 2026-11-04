@@ -16,6 +16,9 @@ public record BusinessGuidanceContext(UUID taskId, String title, String descript
         List<BusinessGuidanceAttachment> attachments, List<EmsDatabaseEvidence> databaseEvidence,
         List<SceneSkillAttachmentSummary> sceneAttachmentCatalog, List<SceneSkillAttachmentBody> sceneAttachmentBodies) {
 
+    /** 场景必读附件 1 个 + 模型最多请求 2 个场景样例正文。 */
+    private static final int MAX_SCENE_ATTACHMENT_BODIES = 3;
+
     public BusinessGuidanceContext(UUID taskId, String title, String description, String feedback,
             BusinessHandlingDraft currentDraft) {
         this(taskId, title, description, feedback, currentDraft, null, List.of(), List.of(), List.of(), List.of());
@@ -53,7 +56,9 @@ public record BusinessGuidanceContext(UUID taskId, String title, String descript
         sceneAttachmentCatalog = sceneAttachmentCatalog == null ? List.of() : List.copyOf(sceneAttachmentCatalog);
         if (sceneAttachmentCatalog.size() > 5) throw new IllegalArgumentException("sceneAttachmentCatalog is invalid");
         sceneAttachmentBodies = sceneAttachmentBodies == null ? List.of() : List.copyOf(sceneAttachmentBodies);
-        if (sceneAttachmentBodies.size() > 2) throw new IllegalArgumentException("sceneAttachmentBodies is invalid");
+        if (sceneAttachmentBodies.size() > MAX_SCENE_ATTACHMENT_BODIES) {
+            throw new IllegalArgumentException("sceneAttachmentBodies is invalid");
+        }
     }
 
     private static void requireText(String value, String field, int maxLength) {

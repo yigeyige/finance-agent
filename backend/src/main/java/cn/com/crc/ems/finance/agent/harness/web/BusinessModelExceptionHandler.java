@@ -2,6 +2,8 @@ package cn.com.crc.ems.finance.agent.harness.web;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,6 +24,8 @@ import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsSchemaCatalogNoMa
  */
 @RestControllerAdvice(assignableTypes = BusinessModelController.class)
 public final class BusinessModelExceptionHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BusinessModelExceptionHandler.class);
 
     @ExceptionHandler(EmsSchemaCatalogNoMatchException.class)
     public ResponseEntity<Map<String, String>> schemaCatalogNoMatch(EmsSchemaCatalogNoMatchException exception) {
@@ -49,6 +53,8 @@ public final class BusinessModelExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> badRequest(IllegalArgumentException exception) {
+        // 仅记录校验类型和安全校验文案，便于定位预模型上下文失败，不记录提示词或业务数据。
+        LOGGER.warn("模型上下文校验失败: {}: {}", exception.getClass().getSimpleName(), exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("code", "MODEL_CONTEXT_INVALID",
                 "message", "当前任务信息无法用于模型分析，请检查调查范围"));
     }

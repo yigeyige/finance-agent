@@ -169,8 +169,51 @@ class ProcessArtifactPlanTest {
         assertThat(branchA.path("bounds").path("upperLeft").path("y").asInt())
                 .isNotEqualTo(branchB.path("bounds").path("upperLeft").path("y").asInt());
         assertThat(gateway.path("bounds").path("lowerRight").path("x").asInt()
-                - gateway.path("bounds").path("upperLeft").path("x").asInt()).isEqualTo(100);
+                - gateway.path("bounds").path("upperLeft").path("x").asInt()).isEqualTo(40);
         assertThat(overlaps(shapes)).isEmpty();
+
+        // EMS 约定：网关连线使用 40x40 菱形中心 (20,20)，任务/事件使用边界点。
+        var flows = new java.util.ArrayList<com.fasterxml.jackson.databind.JsonNode>();
+        model.path("childShapes").forEach(shape -> {
+            if (shape.path("stencil").path("id").asText().equals("SequenceFlow")) {
+                flows.add(shape);
+            }
+        });
+        var gatewayOutgoing = new java.util.ArrayList<com.fasterxml.jackson.databind.JsonNode>();
+        gateway.path("outgoing").forEach(flowId -> flows.stream()
+                .filter(flow -> flow.path("resourceId").asText().equals(flowId.path("resourceId").asText()))
+                .findFirst().ifPresent(gatewayOutgoing::add));
+        assertThat(gatewayOutgoing).isNotEmpty();
+        for (var flow : gatewayOutgoing) {
+            var docker = flow.path("dockers").get(0);
+            assertThat(docker.path("x").asInt()).isEqualTo(20);
+            assertThat(docker.path("y").asInt()).isEqualTo(20);
+        }
+        var incoming = flows.stream()
+                .filter(flow -> gateway.path("resourceId").asText()
+                        .equals(flow.path("target").path("resourceId").asText()))
+                .findFirst().orElseThrow();
+        assertThat(incoming.path("dockers").get(1).path("x").asInt()).isEqualTo(20);
+        assertThat(incoming.path("dockers").get(1).path("y").asInt()).isEqualTo(20);
+        assertThat(gateway.path("properties").path("name").asText()).isEmpty();
+
+        // 开始/结束事件使用中心点，任务使用边界点。
+        var start = shape(shapes, "start");
+        var startFlowId = start.path("outgoing").get(0).path("resourceId").asText();
+        var startFlow = flows.stream()
+                .filter(flow -> flow.path("resourceId").asText().equals(startFlowId))
+                .findFirst().orElseThrow();
+        assertThat(startFlow.path("dockers").get(0).path("x").asInt()).isEqualTo(15);
+        assertThat(startFlow.path("dockers").get(0).path("y").asInt()).isEqualTo(15);
+
+        var branchFlowId = branchA.path("outgoing").get(0).path("resourceId").asText();
+        var branchFlow = flows.stream()
+                .filter(flow -> flow.path("resourceId").asText().equals(branchFlowId))
+                .findFirst().orElseThrow();
+        var branchDocker = branchFlow.path("dockers").get(0);
+        assertThat(branchDocker.path("x").asInt() == 100 || branchDocker.path("y").asInt() == 80
+                || branchDocker.path("y").asInt() == 0).isTrue();
+        assertThat(branchDocker.path("x").asInt() == 50 && branchDocker.path("y").asInt() == 40).isFalse();
     }
 
     private static com.fasterxml.jackson.databind.JsonNode shape(

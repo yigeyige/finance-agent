@@ -31,11 +31,12 @@ public final class EmsProcessArtifactConverter {
     private static final int ROW_GAP = 120;
     private static final int LANE_GAP = 140;
     private static final int CENTER_Y = 300;
-    private static final int NODE_WIDTH = 120;
-    private static final int NODE_HEIGHT = 60;
-    private static final int GATEWAY_WIDTH = 100;
-    private static final int GATEWAY_HEIGHT = 100;
-    private static final int EVENT_SIZE = 40;
+    private static final int NODE_WIDTH = 100;
+    private static final int NODE_HEIGHT = 80;
+    private static final int GATEWAY_WIDTH = 40;
+    private static final int GATEWAY_HEIGHT = 40;
+    private static final int START_SIZE = 30;
+    private static final int END_SIZE = 28;
 
     private static final Set<String> NODE_PARAMETER_FIELDS = Set.of("variableName", "actId", "variableValue",
             "variableNote", "variableIsnull", "usednextact", "actName", "variableDefaultvalue",
@@ -63,7 +64,8 @@ public final class EmsProcessArtifactConverter {
         for (ProcessArtifactPlan.Node node : plan.nodes()) {
             Box box = layout.boxes().get(node.id());
             shapeById.put(node.id(), shape(node.id(), "exclusive-gateway".equals(node.kind())
-                    ? "ExclusiveGateway" : "UserTask", node.name(), resources.get(node.id()), box));
+                    ? "ExclusiveGateway" : "UserTask",
+                    "exclusive-gateway".equals(node.kind()) ? "" : node.name(), resources.get(node.id()), box));
             ObjectNode props = (ObjectNode) shapeById.get(node.id()).get("properties");
             if ("exclusive-gateway".equals(node.kind())) {
                 props.put("sequencefloworder", "");
@@ -90,7 +92,9 @@ public final class EmsProcessArtifactConverter {
         for (ProcessArtifactPlan.Flow flow : plan.flows()) {
             String flowId = resource();
             ((ArrayNode) shapeById.get(flow.source()).get("outgoing")).addObject().put("resourceId", flowId);
-            ObjectNode line = lineShape(flowId, resources.get(flow.target()), layout.boxes().get(flow.source()), layout.boxes().get(flow.target()));
+            ObjectNode line = lineShape(flowId, resources.get(flow.target()),
+                    layout.boxes().get(flow.source()), layout.boxes().get(flow.target()),
+                    isCenterDocker(plan, flow.source()), isCenterDocker(plan, flow.target()));
             ObjectNode properties = (ObjectNode) line.get("properties");
             properties.put("conditionsequenceflow", flow.condition() == null ? "" : expression(flow.condition()));
             shapes.add(line);
@@ -185,7 +189,8 @@ public final class EmsProcessArtifactConverter {
         return node;
     }
 
-    private static ObjectNode lineShape(String flowId, String targetResourceId, Box source, Box target) {
+    private static ObjectNode lineShape(String flowId, String targetResourceId, Box source, Box target,
+            boolean sourceCenter, boolean targetCenter) {
         ObjectNode line = JsonNodeFactory.instance.objectNode();
         line.put("resourceId", flowId);
         ObjectNode props = line.putObject("properties");
@@ -200,17 +205,27 @@ public final class EmsProcessArtifactConverter {
         line.putArray("outgoing");
         line.putObject("target").put("resourceId", targetResourceId);
         line.withArray("outgoing").addObject().put("resourceId", targetResourceId);
-        Point start = new Point(source.centerX(), source.centerY());
-        Point end = new Point(target.centerX(), target.centerY());
-        int minX = Math.min(start.x(), end.x());
-        int minY = Math.min(start.y(), end.y());
-        int maxX = Math.max(start.x(), end.x());
-        int maxY = Math.max(start.y(), end.y());
+        // EMS 约定：网关和开始/结束事件使用中心点，任务使用正交路径与图形边界的交点。
+        List<Point> route = route(source, target);
+        Point start = sourceCenter ? new Point(source.centerX(), source.centerY()) : route.get(0);
+        Point end = targetCenter ? new Point(target.centerX(), target.centerY()) : route.get(route.size() - 1);
+        List<Point> points = new java.util.ArrayList<>(route);
+        points.add(start);
+        points.add(end);
+        int minX = points.stream().mapToInt(Point::x).min().orElse(0);
+        int minY = points.stream().mapToInt(Point::y).min().orElse(0);
+        int maxX = points.stream().mapToInt(Point::x).max().orElse(0);
+        int maxY = points.stream().mapToInt(Point::y).max().orElse(0);
         bounds(line, minX, minY, maxX, maxY);
         ArrayNode dockers = line.putArray("dockers");
-        dockers.addObject().put("x", source.width() / 2).put("y", source.height() / 2);
-        dockers.addObject().put("x", target.width() / 2).put("y", target.height() / 2);
+        dockers.addObject().put("x", start.x() - source.x()).put("y", start.y() - source.y());
+        dockers.addObject().put("x", end.x() - target.x()).put("y", end.y() - target.y());
         return line;
+    }
+
+    /** 网关和开始/结束事件按 EMS 样例使用中心点 docker，任务使用边界点。 */
+    private static boolean isCenterDocker(ProcessArtifactPlan plan, String id) {
+        return "start".equals(id) || "end".equals(id) || isGateway(plan, id);
     }
 
     private static List<Point> route(Box source, Box target) {
@@ -310,9 +325,11 @@ public final class EmsProcessArtifactConverter {
                 int total = Math.max(0, (laneIds.size() - 1) * ROW_GAP);
                 for (int index = 0; index < laneIds.size(); index++) {
                     String id = laneIds.get(index);
-                    int width = "start".equals(id) || "end".equals(id) ? EVENT_SIZE
+                    int width = "start".equals(id) ? START_SIZE
+                            : "end".equals(id) ? END_SIZE
                             : isGateway(plan, id) ? GATEWAY_WIDTH : NODE_WIDTH;
-                    int height = "start".equals(id) || "end".equals(id) ? EVENT_SIZE
+                    int height = "start".equals(id) ? START_SIZE
+                            : "end".equals(id) ? END_SIZE
                             : isGateway(plan, id) ? GATEWAY_HEIGHT : NODE_HEIGHT;
                     int x = X_BASE + layer * LAYER_GAP + (NODE_WIDTH - width) / 2;
                     int y = CENTER_Y + laneEntry.getKey() * LANE_GAP - total / 2 + index * ROW_GAP - height / 2;

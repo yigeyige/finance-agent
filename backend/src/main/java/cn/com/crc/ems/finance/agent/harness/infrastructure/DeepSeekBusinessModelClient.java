@@ -56,6 +56,11 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeepSeekBusinessModelClient.class);
     private static final Duration TIMEOUT = Duration.ofSeconds(240);
+    /**
+     * deepseek-flash 官方最大输出 384K；初稿 JSON 之外还有推理内容，16K 预算会被推理吃满导致 JSON 截断。
+     * 选表/查询规划输出很小，仍使用 16384；初稿使用更大的输出预算。
+     */
+    private static final int GUIDANCE_MAX_TOKENS = 65_536;
     private final DeepSeekOpenAiAdapter adapter;
     private final PromptTemplateRepository promptTemplates;
 
@@ -241,13 +246,22 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         try {
             ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER)
                             .textContent(instruction).build()), List.of(),
-                    adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, 16384)).blockLast(TIMEOUT.plusSeconds(2));
+                    adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, GUIDANCE_MAX_TOKENS))
+                    .blockLast(TIMEOUT.plusSeconds(2));
             if (response == null) {
                 throw new BusinessModelException("模型暂时没有返回结果，请稍后重试");
             }
             String text = response.getContent().stream().filter(TextBlock.class::isInstance)
                     .map(TextBlock.class::cast).map(TextBlock::getText).collect(Collectors.joining());
-            JsonNode output = CanonicalJsonCodec.parse(text);
+            JsonNode output;
+            try {
+                output = CanonicalJsonCodec.parse(text);
+            } catch (RuntimeException parseException) {
+                // 截断时 finishReason 通常为 length；只记录元信息，不记录提示词或模型内容。
+                LOGGER.warn("业务模型输出解析失败: finishReason={}, chars={}, {}",
+                        response.getFinishReason(), text.length(), parseException.getMessage());
+                throw parseException;
+            }
             ParsedModelOutput<T> parsed = parser.apply(output);
             int tokens = response.getUsage() == null ? 0 : response.getUsage().getTotalTokens();
             return new BusinessModelResult<>(parsed.value(), new BusinessModelCallMetadata("LIVE", adapter.modelName(),
