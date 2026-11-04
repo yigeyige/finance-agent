@@ -1,0 +1,72 @@
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    network_mode: host
+    environment:
+      POSTGRES_DB: finance_agent
+      POSTGRES_USER: ${FINANCE_AGENT_DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${FINANCE_AGENT_DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${FINANCE_AGENT_DB_USERNAME:-postgres} -d finance_agent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  migrate:
+    image: finance-agent-backend:${TAG:-20261104}
+    network_mode: host
+    entrypoint:
+      - java
+      - -Dloader.main=cn.com.crc.ems.finance.agent.migration.FlywayMigrationRunner
+      - -cp
+      - /opt/finance-agent/app.jar
+      - org.springframework.boot.loader.launch.PropertiesLauncher
+    environment:
+      FINANCE_AGENT_DB_URL: jdbc:postgresql://127.0.0.1:5432/finance_agent
+      FINANCE_AGENT_DB_USERNAME: ${FINANCE_AGENT_DB_USERNAME:-postgres}
+      FINANCE_AGENT_DB_PASSWORD: ${FINANCE_AGENT_DB_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    image: finance-agent-backend:${TAG:-20261104}
+    network_mode: host
+    env_file:
+      - ../.env
+    environment:
+      FINANCE_AGENT_PORT: "9091"
+      FINANCE_AGENT_DB_URL: jdbc:postgresql://127.0.0.1:5432/finance_agent
+      FINANCE_AGENT_DB_USERNAME: ${FINANCE_AGENT_DB_USERNAME:-postgres}
+      FINANCE_AGENT_DB_PASSWORD: ${FINANCE_AGENT_DB_PASSWORD}
+      FINANCE_AGENT_DEEPSEEK_STUB: "false"
+      FINANCE_AGENT_IDENTITY_MODE: password
+      FINANCE_AGENT_IDENTITY_SEED_ENABLED: "false"
+      FINANCE_AGENT_STORAGE_MODE: local
+      FINANCE_AGENT_WORKSPACE_ROOT: /opt/finance-agent/.runtime/finance-agent
+    volumes:
+      - backend-runtime:/opt/finance-agent/.runtime
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  frontend:
+    image: finance-agent-frontend:${TAG:-20261104}
+    network_mode: host
+    environment:
+      FRONTEND_PORT: "9090"
+      BACKEND_PORT: "9091"
+    depends_on:
+      backend:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  backend-runtime:
