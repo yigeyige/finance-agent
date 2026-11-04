@@ -24,8 +24,9 @@ public final class ModelInputBudget {
         int maxInputBytes = switch (modelName == null ? "" : modelName) {
             case "deepseek-v4.1-flash" -> 500_000;
             case "deepseek-flash", "deepseek-v4-pro" -> 984_000;
+            // deepseek-chat/reasoner 上下文较小，保留 112K；其余模型（含内网模型）默认 128K。
             case "deepseek-chat", "deepseek-reasoner" -> 112_000;
-            default -> 48_000;
+            default -> 131_072;
         };
         int inputBytes = instruction == null ? 0 : instruction.getBytes(StandardCharsets.UTF_8).length;
         if (inputBytes > maxInputBytes) {

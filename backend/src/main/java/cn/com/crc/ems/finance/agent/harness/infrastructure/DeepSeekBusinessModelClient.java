@@ -55,12 +55,13 @@ import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactPlan;
 public final class DeepSeekBusinessModelClient implements BusinessModelClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeepSeekBusinessModelClient.class);
-    private static final Duration TIMEOUT = Duration.ofSeconds(240);
+    /** 与前端模型请求超时一致：大输入/复杂流程下允许更长的推理与输出时间。 */
+    private static final Duration TIMEOUT = Duration.ofSeconds(600);
     /**
-     * deepseek-flash 官方最大输出 384K；初稿 JSON 之外还有推理内容，16K 预算会被推理吃满导致 JSON 截断。
-     * 选表/查询规划输出很小，仍使用 16384；初稿使用更大的输出预算。
+     * 所有模型调用统一使用 128K 输出上限：选表/查询规划、初稿、决策包、流程文件生成都不再使用 16K。
+     * deepseek-flash 官方最大输出 384K；128K 是当前统一的安全默认值，必要时可继续提高。
      */
-    private static final int GUIDANCE_MAX_TOKENS = 65_536;
+    private static final int DEFAULT_MAX_TOKENS = 131_072;
     private final DeepSeekOpenAiAdapter adapter;
     private final PromptTemplateRepository promptTemplates;
 
@@ -101,7 +102,7 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         String instruction = instruction("SELECT_TABLES", input);
         try {
             ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER).textContent(instruction).build()),
-                    List.of(), adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, 16384)).blockLast(TIMEOUT.plusSeconds(2));
+                    List.of(), adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, DEFAULT_MAX_TOKENS)).blockLast(TIMEOUT.plusSeconds(2));
             if (response == null) return List.of();
             String text = response.getContent().stream().filter(TextBlock.class::isInstance)
                     .map(TextBlock.class::cast).map(TextBlock::getText).collect(Collectors.joining());
@@ -133,7 +134,7 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         String instruction = instruction("PLAN_QUERY", input);
         try {
             ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER).textContent(instruction).build()), List.of(),
-                    adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, 16384)).blockLast(TIMEOUT.plusSeconds(2));
+                    adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, DEFAULT_MAX_TOKENS)).blockLast(TIMEOUT.plusSeconds(2));
             if (response == null) return new EmsDatabaseQueryPlan(List.of());
             String text = response.getContent().stream().filter(TextBlock.class::isInstance)
                     .map(TextBlock.class::cast).map(TextBlock::getText).collect(Collectors.joining());
@@ -246,7 +247,7 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         try {
             ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER)
                             .textContent(instruction).build()), List.of(),
-                    adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, GUIDANCE_MAX_TOKENS))
+                    adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, DEFAULT_MAX_TOKENS))
                     .blockLast(TIMEOUT.plusSeconds(2));
             if (response == null) {
                 throw new BusinessModelException("模型暂时没有返回结果，请稍后重试");
