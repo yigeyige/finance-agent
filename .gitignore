@@ -2,6 +2,7 @@
 .env.*
 !.env.example
 .runtime
+qa-output/
 
 # Java/Maven
 target/
