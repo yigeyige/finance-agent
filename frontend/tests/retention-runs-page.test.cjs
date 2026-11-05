@@ -1,5 +1,7 @@
 const { test } = require('node:test')
 const assert = require('node:assert/strict')
+const fs = require('node:fs')
+const path = require('node:path')
 const loadVueScript = require('./load-vue-script.cjs')
 
 let response = { items: [] }
@@ -11,6 +13,8 @@ let jobCalls = 0
 let updated = null
 let saveFailure = false
 let updateCalls = 0
+let manualCalls = 0
+let manualFailure = false
 const Page = loadVueScript('../src/views/RetentionRuns.vue', {
   '../services/retention-api': {
     fetchRetentionRuns: async () => { runCalls += 1; return response },
@@ -21,7 +25,53 @@ const Page = loadVueScript('../src/views/RetentionRuns.vue', {
       updated = request
       return { ...jobs.items[0], ...request }
     },
+    executeRetentionNow: async () => {
+      manualCalls += 1
+      if (manualFailure) throw new Error('提交失败')
+      response = { items: [{ startedAt: '2026-11-05T06:00:00Z', finishedAt: '2026-11-05T06:00:01Z',
+        jobCode: 'retention-cleanup', status: '成功', deleted: {},
+        workspaceFiles: 0, objectFiles: 0, localLogFiles: 0, errors: [] }] }
+    },
   },
+})
+
+test('保存右侧手动执行经确认后只提交一次并刷新最新日志', async () => {
+  const source = fs.readFileSync(path.resolve(__dirname, '../src/views/RetentionRuns.vue'), 'utf8')
+  assert.match(source, /@click="saveSchedule">保存<\/el-button>\s*<el-button[^>]*@click="runOnce">立即执行一次<\/el-button>/)
+  response = { items: [] }
+  manualCalls = 0
+  manualFailure = false
+  const page = new Page()
+  await new Promise(resolve => setImmediate(resolve))
+  page.$confirm = async () => undefined
+  page.draftTime = '03:00'
+  await page.runOnce()
+  assert.equal(manualCalls, 1)
+  assert.equal(page.latestRun.startedAt, '2026-11-05T06:00:00Z')
+  assert.equal(page.selectedJob.time, '02:00')
+  assert.equal(page.draftTime, '03:00')
+  page.runningNow = true
+  await page.runOnce()
+  assert.equal(manualCalls, 1)
+  page.$destroy()
+})
+
+test('取消或提交失败不伪造清理结果', async () => {
+  response = { items: [] }
+  manualCalls = 0
+  manualFailure = false
+  const page = new Page()
+  await new Promise(resolve => setImmediate(resolve))
+  page.$confirm = async () => { throw 'cancel' }
+  await page.runOnce()
+  assert.equal(manualCalls, 0)
+  page.$confirm = async () => undefined
+  manualFailure = true
+  await page.runOnce()
+  assert.equal(manualCalls, 1)
+  assert.equal(page.runError, '提交失败')
+  assert.equal(page.latestRun, undefined)
+  page.$destroy()
 })
 
 test('调度任务页面显示左侧任务与右侧最新日志，并可更新每周时间', async () => {

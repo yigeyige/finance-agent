@@ -1,8 +1,10 @@
 package cn.com.crc.ems.finance.agent.retention;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +32,7 @@ public final class RetentionScheduleService {
     private final RetentionScheduleStore store;
     private final TaskScheduler scheduler;
     private final Runnable task;
+    private final AtomicBoolean manualQueued = new AtomicBoolean();
     private ScheduledFuture<?> pending;
 
     RetentionScheduleService(RetentionScheduleStore store, TaskScheduler scheduler, Runnable task) {
@@ -67,6 +70,27 @@ public final class RetentionScheduleService {
         LOG.info("清理任务执行时间已更新：频率{} 星期{} 月日期{} 时间{} {}",
                 schedule.frequency(), schedule.dayOfWeek(), schedule.dayOfMonth(), schedule.time(), ZONE);
         return view(schedule);
+    }
+
+    /**
+     * @description: 在现有单线程调度器中提交一次清理，不改变持久调度设置；手动提交尚未结束时拒绝重复排队。
+     * @return: true 表示已提交，false 表示已有手动任务待执行或正在执行。
+     * @author: yigeyige99
+     */
+    public boolean runOnce() {
+        if (!manualQueued.compareAndSet(false, true)) return false;
+        try {
+            ScheduledFuture<?> future = scheduler.schedule(() -> {
+                try { task.run(); }
+                catch (RuntimeException exception) { LOG.error("手动清理任务执行失败", exception); }
+                finally { manualQueued.set(false); }
+            }, Instant.now());
+            if (future == null) throw new IllegalStateException("无法安排手动清理任务");
+            return true;
+        } catch (RuntimeException exception) {
+            manualQueued.set(false);
+            throw exception;
+        }
     }
 
     private void reschedule(RetentionScheduleStore.Schedule schedule) {

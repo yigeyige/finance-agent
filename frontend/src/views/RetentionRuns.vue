@@ -1,4 +1,4 @@
-<!-- 平台管理员在调度任务页查看 Java 类、调度频率和最新日志，并修改执行时间。 -->
+<!-- 平台管理员在调度任务页查看 Java 类、调度时间及最新日志，可修改计划或确认后手动执行一次。 -->
 <template>
   <section class="entry-page scheduled-jobs-page">
     <div class="page-heading entry-page-heading"><h2>调度任务</h2></div>
@@ -36,11 +36,14 @@
                   placeholder="选择时间" class="scheduled-time" @change="clearSaveNotice" />
                 <span class="scheduled-zone">北京时间</span>
                 <el-button type="primary" :loading="saving" :disabled="!scheduleChanged" @click="saveSchedule">保存</el-button>
+                <el-button type="warning" :loading="runningNow" :disabled="saving || runningNow" @click="runOnce">立即执行一次</el-button>
               </div>
             </div>
           </div>
           <el-alert v-if="saveError" :title="saveError" type="error" :closable="false" show-icon />
           <el-alert v-if="saveNotice" :title="saveNotice" type="success" :closable="false" show-icon />
+          <el-alert v-if="runError" :title="runError" type="error" :closable="false" show-icon />
+          <el-alert v-if="runNotice" :title="runNotice" type="success" :closable="false" show-icon />
           <div class="scheduled-section-title scheduled-log-title">最新一次调度日志</div>
           <div v-if="!latestRun" class="scheduled-empty">暂无运行记录</div>
           <template v-else>
@@ -69,7 +72,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { fetchRetentionRuns, fetchScheduledJobs, updateRetentionSchedule, RetentionRun, ScheduledJob, ScheduleFrequency } from '../services/retention-api'
+import { executeRetentionNow, fetchRetentionRuns, fetchScheduledJobs, updateRetentionSchedule, RetentionRun, ScheduledJob, ScheduleFrequency } from '../services/retention-api'
 
 const TABLE_LABELS: Record<string, string> = {
   'task.investigation_task': '任务', 'task.scope_revision': '范围修订',
@@ -96,8 +99,10 @@ export default Vue.extend({
   data: () => ({
     jobs: [] as ScheduledJob[], runs: [] as RetentionRun[], selectedCode: '',
     draftFrequency: 'WEEKLY' as ScheduleFrequency, draftDay: 7, draftMonthDay: 1,
-    draftTime: '02:00', loading: false, saving: false,
-    errorMessage: '', saveError: '', saveNotice: '',
+    draftTime: '02:00', loading: false, saving: false, runningNow: false,
+    errorMessage: '', saveError: '', saveNotice: '', runError: '', runNotice: '',
+    runBaseline: '' as string, runPollAttempts: 0,
+    runPollTimer: null as ReturnType<typeof setTimeout> | null,
     weekDays: [
       { value: 1, label: '星期一' }, { value: 2, label: '星期二' }, { value: 3, label: '星期三' },
       { value: 4, label: '星期四' }, { value: 5, label: '星期五' }, { value: 6, label: '星期六' },
@@ -130,6 +135,7 @@ export default Vue.extend({
     },
   },
   created() { void this.load() },
+  destroyed() { if (this.runPollTimer) clearTimeout(this.runPollTimer) },
   methods: {
     /** 页面进入时读取固定任务列表和有界清理日志。 */
     async load(): Promise<void> {
@@ -179,6 +185,51 @@ export default Vue.extend({
       } catch (error: unknown) {
         this.saveError = error instanceof Error ? error.message : '调度时间保存失败'
       } finally { this.saving = false }
+    },
+    /** 管理员确认后提交一次固定清理；未保存的调度草稿不会随请求发送。 */
+    async runOnce(): Promise<void> {
+      if (!this.selectedJob || this.runningNow || this.saving) return
+      try {
+        await this.$confirm('将立即清理超过 30 天的业务数据、受控文件和日志，是否继续？', '确认立即执行', {
+          confirmButtonText: '立即执行', cancelButtonText: '取消', type: 'warning',
+        })
+      } catch { return }
+      if (this.runningNow || this.saving) return
+      this.runningNow = true
+      this.runError = ''
+      this.runNotice = ''
+      this.runBaseline = this.latestRun?.startedAt || ''
+      this.runPollAttempts = 0
+      try {
+        await executeRetentionNow()
+        this.runNotice = '清理任务已提交，正在等待运行结果'
+        await this.refreshRun()
+      } catch (error: unknown) {
+        this.runningNow = false
+        this.runNotice = ''
+        this.runError = error instanceof Error ? error.message : '立即执行提交失败'
+      }
+    },
+    /** 有界轮询最近日志，发现新记录后停止，页面销毁时取消后续请求。 */
+    async refreshRun(): Promise<void> {
+      try {
+        this.runs = (await fetchRetentionRuns()).items
+        if (this.latestRun && this.latestRun.startedAt !== this.runBaseline) {
+          this.runningNow = false
+          this.runNotice = '本次清理已完成，结果见下方日志'
+          return
+        }
+        if (++this.runPollAttempts >= 60) {
+          this.runningNow = false
+          this.runNotice = '清理任务已提交，请稍后刷新页面查看运行结果'
+          return
+        }
+        this.runPollTimer = setTimeout(() => { void this.refreshRun() }, 2000)
+      } catch (error: unknown) {
+        this.runningNow = false
+        this.runNotice = ''
+        this.runError = error instanceof Error ? error.message : '运行日志读取失败，请稍后刷新页面'
+      }
     },
     /** 汇总数据库中各表实际删除行数。 */
     deletedTotal(run: RetentionRun): number { return Object.values(run.deleted).reduce((sum, count) => sum + count, 0) },

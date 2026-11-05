@@ -4,11 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.ScheduledFuture;
 
 import org.junit.jupiter.api.AfterEach;
@@ -64,6 +68,41 @@ class RetentionScheduleAccessTest {
                 "MONTHLY", null, 29, "06:20"))).isInstanceOf(ResponseStatusException.class)
                 .satisfies(error -> assertThat(((ResponseStatusException) error).getStatusCode())
                         .isEqualTo(HttpStatus.BAD_REQUEST));
+    }
+
+    @Test
+    void administratorCanQueueOneManualRunWithoutChangingSchedule() throws Exception {
+        TaskScheduler scheduler = mock(TaskScheduler.class);
+        AtomicReference<Runnable> queued = new AtomicReference<>();
+        AtomicInteger executions = new AtomicInteger();
+        doAnswer(invocation -> { queued.set(invocation.getArgument(0)); return mock(ScheduledFuture.class); })
+                .when(scheduler).schedule(any(Runnable.class), any(Instant.class));
+        RetentionScheduleService service = new RetentionScheduleService(
+                new RetentionScheduleStore(root), scheduler, executions::incrementAndGet);
+        RetentionScheduleController controller = new RetentionScheduleController(service);
+
+        IdentityContext.set(identity(RoleCode.OPERATOR));
+        assertThatThrownBy(controller::runOnce).isInstanceOf(ResponseStatusException.class)
+                .satisfies(error -> assertThat(((ResponseStatusException) error).getStatusCode())
+                        .isEqualTo(HttpStatus.FORBIDDEN));
+        assertThat(queued.get()).isNull();
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        assertThat(new PermissionGuardInterceptor().preHandle(
+                new MockHttpServletRequest("POST", "/api/v1/scheduled-jobs/retention-cleanup/runs"),
+                response, null)).isFalse();
+        assertThat(response.getStatus()).isEqualTo(403);
+
+        IdentityContext.set(identity(RoleCode.PLATFORM_ADMIN));
+        assertThat(controller.runOnce().getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+        assertThat(queued.get()).isNotNull();
+        assertThat(executions).hasValue(0);
+        assertThatThrownBy(controller::runOnce).isInstanceOf(ResponseStatusException.class)
+                .satisfies(error -> assertThat(((ResponseStatusException) error).getStatusCode())
+                        .isEqualTo(HttpStatus.CONFLICT));
+        queued.get().run();
+        assertThat(executions).hasValue(1);
+        assertThat(controller.runOnce().getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+        assertThat(service.current().time()).isEqualTo("02:00");
     }
 
     private static CurrentIdentity identity(RoleCode role) {

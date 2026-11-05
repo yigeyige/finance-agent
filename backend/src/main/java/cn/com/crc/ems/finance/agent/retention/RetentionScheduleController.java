@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -64,6 +66,18 @@ public final class RetentionScheduleController {
         } catch (IllegalArgumentException exception) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "请选择有效的执行频率和时间");
         }
+    }
+
+    /**
+     * @description: 平台管理员异步提交一次固定清理任务；重复手动提交返回冲突，不更改 cron。
+     * @return: 已接受的 HTTP 状态。
+     * @author: yigeyige99
+     */
+    @PostMapping("/retention-cleanup/runs")
+    public ResponseEntity<Void> runOnce() {
+        requireAdmin();
+        if (!service.runOnce()) throw new ResponseStatusException(HttpStatus.CONFLICT, "清理任务已提交，请等待完成");
+        return ResponseEntity.accepted().build();
     }
 
     private static void requireAdmin() {

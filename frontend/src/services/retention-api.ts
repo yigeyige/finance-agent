@@ -1,5 +1,5 @@
-/** 平台管理员读取调度任务及清理日志，修改频率和执行时间。 */
-import { getJson, putJson } from './http'
+/** 平台管理员读取调度任务及清理日志，修改计划或手动触发一次固定清理任务。 */
+import { getJson, postJson, putJson } from './http'
 
 export interface RetentionRun {
   jobCode?: string
@@ -57,6 +57,11 @@ export async function fetchScheduledJobs(): Promise<ScheduledJobsResponse> {
 /** 只修改固定清理任务的频率和时间，不接受用户提供的接口路径。 */
 export async function updateRetentionSchedule(request: ScheduleRequest): Promise<ScheduledJob> {
   return putJson<ScheduledJob, ScheduleRequest>('/v1/scheduled-jobs/retention-cleanup/schedule', request)
+}
+
+/** 异步提交一次固定清理任务；不携带时间草稿或任意任务标识。 */
+export async function executeRetentionNow(): Promise<void> {
+  await postJson<void, Record<string, never>>('/v1/scheduled-jobs/retention-cleanup/runs', {})
 }
 
 /** 读取最近清理记录，并拒绝不符合最小响应结构的数据。 */
