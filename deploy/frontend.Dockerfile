@@ -1,4 +1,4 @@
-FROM registry.steam.crcloud.com/tools/node:24-alpine-amd64 AS frontend-build
+FROM node:24.16.0-bookworm-slim AS frontend-build
 
 WORKDIR /workspace/frontend
 COPY frontend/package.json frontend/package-lock.json ./
@@ -6,7 +6,7 @@ RUN npm ci
 COPY frontend/ ./
 RUN npm run build
 
-FROM nginx:1.27-alpine
+FROM registry.steam.crcloud.com/tools/nginx:1.28.0
 
 ARG APP_VERSION=0.1.0
 ENV FRONTEND_PORT=8080
@@ -24,6 +24,6 @@ LABEL org.opencontainers.image.title="finance-agent-frontend" \
 
 # 由官方 entrypoint 的 envsubst 把模板渲染到 conf.d；master 需要 root 写配置，worker 仍为 nginx。
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD wget --quiet --output-document=- http://127.0.0.1:${FRONTEND_PORT:-8080}/ > /dev/null || exit 1
+    CMD curl --fail --silent http://127.0.0.1:${FRONTEND_PORT:-8080}/ > /dev/null || exit 1
 
 # 不覆盖官方 ENTRYPOINT，让 /docker-entrypoint.d/20-envsubst-on-templates.sh 渲染模板。
