@@ -26,8 +26,8 @@
             <el-table-column label="操作" width="190" align="center">
               <template slot-scope="scope">
                 <el-button type="text" @click="startHandling(scope.row)">开始处理</el-button>
-                <el-button type="text" @click="openEditDialog(scope.row)">编辑</el-button>
-                <el-button type="text" class="skill-delete-action" @click="confirmDelete(scope.row)">删除</el-button>
+                <el-button v-if="canManage(scope.row)" type="text" @click="openEditDialog(scope.row)">编辑</el-button>
+                <el-button v-if="canManage(scope.row)" type="text" class="skill-delete-action" @click="confirmDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -85,6 +85,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
+import { getCurrentIdentity } from '../services/identity'
 
 import {
   BusinessSceneSkill,
@@ -135,6 +136,11 @@ export default Vue.extend({
     void this.loadSkills()
   },
   methods: {
+    /** 仅向场景作者或管理员显示维护入口，服务端再次校验。 */
+    canManage(skill: BusinessSceneSkill): boolean {
+      const identity = getCurrentIdentity()
+      return Boolean(identity && (identity.roles.includes('PLATFORM_ADMIN') || identity.userId === skill.createdBy))
+    },
     async loadSkills() {
       this.loading = true
       this.errorMessage = ''

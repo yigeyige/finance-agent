@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import cn.com.crc.ems.finance.agent.iam.domain.AgentUser;
+import cn.com.crc.ems.finance.agent.iam.domain.AgentUserStatus;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleBinding;
 import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,7 +28,6 @@ public class IdentityResolver {
 
     private static final Map<String, UUID> TEST_IDENTITIES = Map.of(
             "operator", SyntheticIdentitySeeder.OPERATOR_ID,
-            "viewer", SyntheticIdentitySeeder.VIEWER_ID,
             "platform-admin", SyntheticIdentitySeeder.ADMIN_ID);
 
     private final AgentUserRepository agentUserRepository;
@@ -90,6 +90,7 @@ public class IdentityResolver {
      * @author: yigeyige99
      */
     private CurrentIdentity toIdentity(AgentUser user) {
+        if (user.status() != AgentUserStatus.ACTIVE) return null;
         Set<RoleCode> roles = roleBindingRepository.findByUserId(user.userId()).stream()
                 .filter(this::active).map(RoleBinding::roleCode).collect(java.util.stream.Collectors.toUnmodifiableSet());
         if (roles.isEmpty()) {

@@ -1,6 +1,7 @@
 package cn.com.crc.ems.finance.agent.iam.application;
 
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.security.spec.KeySpec;
 import java.time.Instant;
 import java.util.Optional;
@@ -31,6 +32,7 @@ public final class PasswordLoginService {
     public static final String COOKIE_NAME = "FINANCE_AGENT_SESSION";
 
     private static final String PASSWORD_ALGORITHM = "PBKDF2WithHmacSHA256";
+    private static final int PASSWORD_ITERATIONS = 310000;
     private static final long SESSION_TTL_SECONDS = 8 * 60 * 60L;
 
     private final AgentUserRepository users;
@@ -78,7 +80,11 @@ public final class PasswordLoginService {
             sessions.remove(token);
             return Optional.empty();
         }
-        return Optional.of(session.identity());
+        Optional<CurrentIdentity> current = users.findById(session.identity().userId())
+                .filter(user -> user.status() == AgentUserStatus.ACTIVE)
+                .flatMap(this::identity);
+        if (current.isEmpty()) sessions.remove(token);
+        return current;
     }
 
     /**
@@ -91,6 +97,35 @@ public final class PasswordLoginService {
     public void logout(String token) {
         if (token != null) {
             sessions.remove(token);
+        }
+    }
+
+    /** 设置新密码，只持久化随机盐与 PBKDF2 散列，不记录明文。 */
+    public void setPassword(UUID userId, String password) {
+        if (password == null || password.length() < 8 || password.length() > 128) {
+            throw new IllegalArgumentException("密码长度应为 8 至 128 位");
+        }
+        byte[] salt = new byte[16];
+        new SecureRandom().nextBytes(salt);
+        char[] chars = password.toCharArray();
+        PBEKeySpec spec = new PBEKeySpec(chars, salt, PASSWORD_ITERATIONS, 256);
+        try {
+            byte[] hash = SecretKeyFactory.getInstance(PASSWORD_ALGORITHM).generateSecret(spec).getEncoded();
+            UserPasswordEntity entity = new UserPasswordEntity();
+            entity.userId = userId.toString();
+            entity.passwordHash = hash;
+            entity.passwordSalt = salt;
+            entity.iterations = PASSWORD_ITERATIONS;
+            entity.algorithm = PASSWORD_ALGORITHM;
+            entity.updatedAt = Instant.now();
+            if (passwords.selectById(entity.userId) == null) passwords.insert(entity);
+            else passwords.updateById(entity);
+            sessions.entrySet().removeIf(entry -> entry.getValue().identity().userId().equals(userId));
+        } catch (Exception failure) {
+            throw new IllegalStateException("密码凭据生成失败", failure);
+        } finally {
+            spec.clearPassword();
+            java.util.Arrays.fill(chars, '\0');
         }
     }
 

@@ -32,6 +32,6 @@ public record CurrentIdentity(UUID userId, String authSubject, String displayNam
      * @author: yigeyige99
      */
     public boolean hasRole(RoleCode role) {
-        return roles.contains(role) || roles.contains(RoleCode.PLATFORM_ADMIN);
+        return roles.contains(role) || (role == RoleCode.PLATFORM_USER && roles.contains(RoleCode.PLATFORM_ADMIN));
     }
 }

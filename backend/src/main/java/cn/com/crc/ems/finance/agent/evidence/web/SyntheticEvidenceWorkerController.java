@@ -50,7 +50,7 @@ public final class SyntheticEvidenceWorkerController {
             @RequestHeader("Idempotency-Key") String idempotencyKey) {
         requireIdempotencyKey(idempotencyKey);
         var identity = IdentityContext.require();
-        if (!identity.hasRole(RoleCode.OPERATOR)) {
+        if (!identity.hasRole(RoleCode.PLATFORM_USER)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "当前身份无权执行合成证据步骤");
         }
         SyntheticEvidenceWorkerResult result = workerService.run(taskId, identity.userId(), idempotencyKey);

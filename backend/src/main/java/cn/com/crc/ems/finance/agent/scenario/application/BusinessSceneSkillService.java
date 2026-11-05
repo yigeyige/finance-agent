@@ -6,6 +6,11 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
+import cn.com.crc.ems.finance.agent.iam.application.CurrentIdentity;
+import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 
 import cn.com.crc.ems.finance.agent.scenario.domain.BusinessSceneSkill;
 import cn.com.crc.ems.finance.agent.shared.domain.UtcTime;
@@ -13,7 +18,7 @@ import cn.com.crc.ems.finance.agent.shared.domain.UuidGenerator;
 
 /**
  *
- * @Description: 维护管理员可复用的业务场景 Skill。
+ * @Description: 维护所有用户可复用、作者或管理员可修改的业务场景 Skill。
  *
  * @Version: 0.1.0
  * @Author: yigeyige99
@@ -34,6 +39,16 @@ public class BusinessSceneSkillService {
     @Transactional(readOnly = true)
     public List<BusinessSceneSkill> list() {
         return repository.findActive();
+    }
+
+    /** 场景全员共享读取，写入仅限创建者或平台管理员。 */
+    @Transactional(readOnly = true)
+    public void requireMaintainer(UUID skillId, CurrentIdentity actor) {
+        BusinessSceneSkill skill = repository.findActiveById(skillId)
+                .orElseThrow(() -> new IllegalArgumentException("业务场景不存在或已失效"));
+        if (!actor.hasRole(RoleCode.PLATFORM_ADMIN) && !skill.createdBy().equals(actor.userId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "只能维护自己创建的业务场景");
+        }
     }
 
     /** 新增业务场景 Skill。 */

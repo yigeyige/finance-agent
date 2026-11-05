@@ -1,4 +1,4 @@
-<!-- 平台管理员只读查看本进程最近一次异常，进入时读取一次，不自动刷新。 -->
+<!-- 按可信身份只读查看本进程最近一次可见异常，进入时读取一次。 -->
 <template>
   <section class="entry-page latest-exception-page">
     <div class="page-heading entry-page-heading"><h2>异常堆栈</h2></div>
@@ -22,7 +22,7 @@
 import Vue from 'vue'
 import { fetchLatestException, LatestExceptionSnapshot } from '../services/latest-exception-api'
 
-/** 平台管理员只读异常页面，进入时从服务端内存快照读取一次。 */
+/** 最近异常只读页面，服务端按当前用户范围返回内存快照。 */
 export default Vue.extend({
   name: 'LatestException',
   data: () => ({ snapshot: null as LatestExceptionSnapshot | null, loading: false, errorMessage: '' }),

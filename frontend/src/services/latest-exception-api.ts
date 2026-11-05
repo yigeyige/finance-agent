@@ -1,4 +1,4 @@
-/** 最近异常堆栈只读接口：仅接收服务端已过滤的快照，不解析原始异常对象。 */
+/** 最近异常堆栈只读接口：服务端按用户隔离快照，不解析原始异常对象。 */
 import { getJson } from './http'
 
 export interface LatestExceptionSnapshot {

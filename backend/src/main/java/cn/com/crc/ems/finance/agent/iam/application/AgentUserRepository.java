@@ -1,6 +1,7 @@
 package cn.com.crc.ems.finance.agent.iam.application;
 
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 import cn.com.crc.ems.finance.agent.iam.domain.AgentUser;
@@ -14,6 +15,9 @@ import cn.com.crc.ems.finance.agent.iam.domain.AgentUser;
  * @Date: 2026-10-11 21:28:41
  */
 public interface AgentUserRepository {
+
+    /** 查询用户管理清单。 */
+    List<AgentUser> findAll();
 
     /** 按主键查询身份。 */
     Optional<AgentUser> findById(UUID userId);

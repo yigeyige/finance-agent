@@ -32,20 +32,18 @@ class EmsBusinessKnowledgePermissionGuardTest {
     void allowsOperatorToReadCatalog() throws Exception {
         HttpServletRequest request = request();
         HttpServletResponse response = mock(HttpServletResponse.class);
-        IdentityContext.set(new CurrentIdentity(UUID.randomUUID(), "operator", "操作员", Set.of(RoleCode.OPERATOR)));
+        IdentityContext.set(new CurrentIdentity(UUID.randomUUID(), "operator", "操作员", Set.of(RoleCode.PLATFORM_USER)));
 
         assertThat(new PermissionGuardInterceptor().preHandle(request, response, null)).isTrue();
     }
 
     @Test
-    void rejectsViewerBeforeCatalogContentIsReturned() throws Exception {
+    void rejectsMissingIdentityBeforeCatalogContentIsReturned() throws Exception {
         HttpServletRequest request = request();
         HttpServletResponse response = mock(HttpServletResponse.class);
         when(response.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
-        IdentityContext.set(new CurrentIdentity(UUID.randomUUID(), "viewer", "查看员", Set.of(RoleCode.VIEWER)));
-
         assertThat(new PermissionGuardInterceptor().preHandle(request, response, null)).isFalse();
-        verify(response).setStatus(HttpStatus.FORBIDDEN.value());
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
     }
 
     private static HttpServletRequest request() {

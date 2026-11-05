@@ -16,7 +16,7 @@
       "get": {
         "operationId": "getModelRuntimeSummary",
         "summary": "读取工作台模型模式与公开名称",
-        "security": [{"unifiedAuth": ["OPERATOR"]}],
+        "security": [{"unifiedAuth": ["PLATFORM_USER"]}],
         "responses": {
           "200": {"description": "仅包含模式和模型名称；未启用真实模型时名称为 null", "content": {"application/json": {"schema": {"$ref": "../json-schema/model-runtime-summary-1.0.0.schema.json"}}}},
           "401": {"description": "缺少可信身份"},
@@ -27,7 +27,7 @@
     "/api/v1/tasks": {
       "get": {
         "operationId": "listVisibleTasks",
-        "security": [{"unifiedAuth": ["OPERATOR"]}],
+        "security": [{"unifiedAuth": ["PLATFORM_USER"]}],
         "parameters": [
           {"name": "page", "in": "query", "required": false, "schema": {"type": "integer", "minimum": 1, "default": 1}},
           {"name": "pageSize", "in": "query", "required": false, "schema": {"type": "integer", "minimum": 1, "maximum": 100, "default": 20}},
@@ -44,7 +44,7 @@
         "operationId": "createTask",
         "security": [
           {
-            "unifiedAuth": ["OPERATOR"]
+            "unifiedAuth": ["PLATFORM_USER"]
           }
         ],
         "parameters": [
@@ -92,7 +92,7 @@
         "operationId": "addTaskPremise",
         "security": [
           {
-            "unifiedAuth": ["OPERATOR"]
+            "unifiedAuth": ["PLATFORM_USER"]
           }
         ],
         "parameters": [
@@ -134,7 +134,7 @@
         "operationId": "confirmTaskScope",
         "security": [
           {
-            "unifiedAuth": ["OPERATOR"]
+            "unifiedAuth": ["PLATFORM_USER"]
           }
         ],
         "parameters": [
@@ -183,7 +183,7 @@
         "operationId": "createStepApproval",
         "security": [
           {
-            "unifiedAuth": ["OPERATOR"]
+            "unifiedAuth": ["PLATFORM_USER"]
           }
         ],
         "parameters": [
@@ -232,7 +232,7 @@
         "operationId": "createStepProposal",
         "security": [
           {
-            "unifiedAuth": ["OPERATOR"]
+            "unifiedAuth": ["PLATFORM_USER"]
           }
         ],
         "parameters": [
@@ -281,7 +281,7 @@
         "operationId": "publishPacket",
         "security": [
           {
-            "unifiedAuth": ["OPERATOR"]
+            "unifiedAuth": ["PLATFORM_USER"]
           }
         ],
         "parameters": [
@@ -333,7 +333,7 @@
     "/api/v1/tasks/{taskId}": {
       "get": {
         "operationId": "getTaskDetail",
-        "security": [{"unifiedAuth": ["OPERATOR"]}],
+        "security": [{"unifiedAuth": ["PLATFORM_USER"]}],
         "parameters": [{"$ref": "#/components/parameters/TaskId"}],
         "responses": {
           "200": {"description": "Readonly business, scope, and plan detail", "content": {"application/json": {"schema": {"$ref": "../json-schema/task-detail-response-1.0.0.schema.json"}}}},
@@ -346,7 +346,7 @@
     "/api/v1/tasks/{taskId}/step-proposals/{stepId}": {
       "patch": {
         "operationId": "reviseStepProposal",
-        "security": [{"unifiedAuth": ["OPERATOR"]}],
+        "security": [{"unifiedAuth": ["PLATFORM_USER"]}],
         "parameters": [{"$ref": "#/components/parameters/IdempotencyKey"}, {"$ref": "#/components/parameters/ActorUserId"}, {"$ref": "#/components/parameters/TaskId"}, {"$ref": "#/components/parameters/StepId"}],
         "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "../json-schema/step-proposal-revision-request-1.0.0.schema.json"}}}},
         "responses": {
@@ -362,7 +362,7 @@
     "/api/v1/ems-business-knowledge": {
       "get": {
         "operationId": "listEmsBusinessDomainKnowledge",
-        "security": [{"unifiedAuth": ["OPERATOR"]}],
+        "security": [{"unifiedAuth": ["PLATFORM_USER"]}],
         "responses": {
           "200": {"description": "Curated EMS business domain knowledge without runtime data", "content": {"application/json": {"schema": {"type": "array", "items": {"$ref": "../json-schema/ems-business-domain-knowledge-1.0.0.schema.json"}}}}},
           "401": {"$ref": "#/components/responses/Unauthorized"},
@@ -373,7 +373,7 @@
     "/api/v1/business-scene-skills": {
       "get": {
         "operationId": "listBusinessSceneSkills",
-        "security": [{"unifiedAuth": ["OPERATOR"]}],
+        "security": [{"unifiedAuth": ["PLATFORM_USER"]}],
         "responses": {
           "200": {"description": "Maintained business scene Skills", "content": {"application/json": {"schema": {"type": "array", "items": {"$ref": "../json-schema/business-scene-skill-response-1.0.0.schema.json"}}}}},
           "401": {"$ref": "#/components/responses/Unauthorized"},
@@ -382,7 +382,7 @@
       },
       "post": {
         "operationId": "createBusinessSceneSkill",
-        "security": [{"unifiedAuth": ["OPERATOR"]}],
+        "security": [{"unifiedAuth": ["PLATFORM_USER"]}],
         "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "../json-schema/business-scene-skill-request-1.0.0.schema.json"}}}},
         "responses": {
           "201": {"description": "Business scene Skill created", "content": {"application/json": {"schema": {"$ref": "../json-schema/business-scene-skill-response-1.0.0.schema.json"}}}},
@@ -395,7 +395,7 @@
     "/api/v1/business-scene-skills/{skillId}": {
       "put": {
         "operationId": "updateBusinessSceneSkill",
-        "security": [{"unifiedAuth": ["OPERATOR"]}],
+        "security": [{"unifiedAuth": ["PLATFORM_USER"]}],
         "parameters": [{"$ref": "#/components/parameters/SkillId"}],
         "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "../json-schema/business-scene-skill-request-1.0.0.schema.json"}}}},
         "responses": {
@@ -408,7 +408,7 @@
       },
       "delete": {
         "operationId": "deleteBusinessSceneSkill",
-        "security": [{"unifiedAuth": ["OPERATOR"]}],
+        "security": [{"unifiedAuth": ["PLATFORM_USER"]}],
         "parameters": [{"$ref": "#/components/parameters/SkillId"}],
         "responses": {
           "204": {"description": "Business scene Skill deleted"},
@@ -417,6 +417,32 @@
           "404": {"$ref": "#/components/responses/NotFound"}
         }
       }
+    },
+    "/api/v1/platform-users": {
+      "get": {
+        "operationId": "listPlatformUsers",
+        "security": [{"unifiedAuth": ["PLATFORM_ADMIN"]}],
+        "responses": {"200": {"description": "Managed platform users without credentials", "content": {"application/json": {"schema": {"type": "array", "items": {"$ref": "../json-schema/platform-user-response-1.0.0.schema.json"}}}}}, "403": {"$ref": "#/components/responses/Forbidden"}}
+      },
+      "post": {
+        "operationId": "createPlatformUser",
+        "security": [{"unifiedAuth": ["PLATFORM_ADMIN"]}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["authSubject", "employeeNo", "displayName", "role", "password"], "properties": {"authSubject": {"type": "string"}, "employeeNo": {"type": "string"}, "displayName": {"type": "string"}, "role": {"type": "string", "enum": ["PLATFORM_ADMIN", "PLATFORM_USER"]}, "password": {"type": "string", "minLength": 8, "maxLength": 128}}}}}},
+        "responses": {"201": {"description": "Created user", "content": {"application/json": {"schema": {"$ref": "../json-schema/platform-user-response-1.0.0.schema.json"}}}}, "403": {"$ref": "#/components/responses/Forbidden"}}
+      }
+    },
+    "/api/v1/platform-users/{userId}": {
+      "parameters": [{"$ref": "#/components/parameters/UserId"}],
+      "put": {"operationId": "updatePlatformUser", "security": [{"unifiedAuth": ["PLATFORM_ADMIN"]}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["displayName", "role"], "properties": {"displayName": {"type": "string"}, "role": {"type": "string", "enum": ["PLATFORM_ADMIN", "PLATFORM_USER"]}}}}}, "responses": {"200": {"description": "Updated user", "content": {"application/json": {"schema": {"$ref": "../json-schema/platform-user-response-1.0.0.schema.json"}}}}, "403": {"$ref": "#/components/responses/Forbidden"}}}},
+      "delete": {"operationId": "disablePlatformUser", "security": [{"unifiedAuth": ["PLATFORM_ADMIN"]}], "responses": {"200": {"description": "Disabled user", "content": {"application/json": {"schema": {"$ref": "../json-schema/platform-user-response-1.0.0.schema.json"}}}}, "403": {"$ref": "#/components/responses/Forbidden"}}}
+    },
+    "/api/v1/platform-users/{userId}/enable": {
+      "parameters": [{"$ref": "#/components/parameters/UserId"}],
+      "post": {"operationId": "enablePlatformUser", "security": [{"unifiedAuth": ["PLATFORM_ADMIN"]}], "responses": {"200": {"description": "Enabled user", "content": {"application/json": {"schema": {"$ref": "../json-schema/platform-user-response-1.0.0.schema.json"}}}}}}
+    },
+    "/api/v1/platform-users/{userId}/password": {
+      "parameters": [{"$ref": "#/components/parameters/UserId"}],
+      "post": {"operationId": "resetPlatformUserPassword", "security": [{"unifiedAuth": ["PLATFORM_ADMIN"]}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "required": ["password"], "properties": {"password": {"type": "string", "minLength": 8, "maxLength": 128}}}}}, "responses": {"204": {"description": "Password updated"}}}}
     },
     "/api/v1/model-configurations": {
       "get": {
@@ -484,7 +510,7 @@
     "/api/v1/tasks/{taskId}/model-interactions/guidance": {
       "post": {
         "operationId": "generateBusinessGuidance",
-        "security": [{"unifiedAuth": ["OPERATOR"]}],
+        "security": [{"unifiedAuth": ["PLATFORM_USER"]}],
         "parameters": [{"$ref": "#/components/parameters/TaskId"}],
         "requestBody": {"required": false, "content": {"application/json": {"schema": {"$ref": "../json-schema/business-guidance-request-1.0.0.schema.json"}}}},
         "responses": {
@@ -499,7 +525,7 @@
     "/api/v1/tasks/{taskId}/model-interactions/plan": {
       "post": {
         "operationId": "generateModelPlan",
-        "security": [{"unifiedAuth": ["OPERATOR"]}],
+        "security": [{"unifiedAuth": ["PLATFORM_USER"]}],
         "parameters": [{"$ref": "#/components/parameters/TaskId"}],
         "responses": {
           "200": {"description": "Recommended business plan with model metadata", "content": {"application/json": {"schema": {"$ref": "../json-schema/model-plan-response-1.0.0.schema.json"}}}},
@@ -512,7 +538,7 @@
     "/api/v1/tasks/{taskId}/model-interactions/evidence-analysis": {
       "post": {
         "operationId": "analyzeEvidenceWithModel",
-        "security": [{"unifiedAuth": ["OPERATOR"]}],
+        "security": [{"unifiedAuth": ["PLATFORM_USER"]}],
         "parameters": [{"$ref": "#/components/parameters/TaskId"}],
         "responses": {
           "200": {"description": "Desensitized evidence analysis and model metadata", "content": {"application/json": {"schema": {"$ref": "../json-schema/model-evidence-analysis-response-1.0.0.schema.json"}}}},
@@ -561,6 +587,12 @@
       },
       "SkillId": {
         "name": "skillId",
+        "in": "path",
+        "required": true,
+        "schema": {"type": "string", "format": "uuid"}
+      },
+      "UserId": {
+        "name": "userId",
         "in": "path",
         "required": true,
         "schema": {"type": "string", "format": "uuid"}

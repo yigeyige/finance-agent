@@ -39,7 +39,7 @@ public class ModelRuntimeSummaryController {
      */
     @GetMapping
     public ModelRuntimeSummary current() {
-        if (!IdentityContext.require().hasRole(RoleCode.OPERATOR)) {
+        if (!IdentityContext.require().hasRole(RoleCode.PLATFORM_USER)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "当前身份无权读取模型运行摘要");
         }
         return service.current();

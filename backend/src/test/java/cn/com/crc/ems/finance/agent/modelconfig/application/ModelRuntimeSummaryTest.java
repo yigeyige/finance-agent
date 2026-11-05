@@ -56,19 +56,16 @@ class ModelRuntimeSummaryTest {
     }
 
     @Test
-    void requiresIdentityAndRejectsViewer() {
+    void requiresIdentity() {
         var controller = new ModelRuntimeSummaryController(service);
         assertThatThrownBy(controller::current).isInstanceOf(IdentityContext.IdentityRequiredException.class);
-        IdentityContext.set(identity(RoleCode.VIEWER));
-        assertThatThrownBy(controller::current).isInstanceOf(ResponseStatusException.class)
-                .satisfies(error -> assertThat(((ResponseStatusException) error).getStatusCode().value()).isEqualTo(403));
     }
 
     @Test
     void permitsOperatorAndInheritedAdministrator() {
         properties.getDeepSeek().setStub(true);
         var controller = new ModelRuntimeSummaryController(service);
-        for (RoleCode role : Set.of(RoleCode.OPERATOR, RoleCode.PLATFORM_ADMIN)) {
+        for (RoleCode role : Set.of(RoleCode.PLATFORM_USER, RoleCode.PLATFORM_ADMIN)) {
             IdentityContext.set(identity(role));
             assertThat(controller.current().modelName()).isEqualTo("本地模拟模型");
         }

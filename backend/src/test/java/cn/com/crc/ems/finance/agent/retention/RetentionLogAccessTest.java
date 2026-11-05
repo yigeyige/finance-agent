@@ -28,7 +28,7 @@ class RetentionLogAccessTest {
     @Test
     void cleanupLogIsVisibleOnlyToPlatformAdministrator() throws Exception {
         RetentionLogController controller = new RetentionLogController(new RetentionRunLog(root));
-        IdentityContext.set(identity(RoleCode.OPERATOR));
+        IdentityContext.set(identity(RoleCode.PLATFORM_USER));
         assertThatThrownBy(controller::recent).isInstanceOf(ResponseStatusException.class)
                 .satisfies(error -> assertThat(((ResponseStatusException) error).getStatusCode())
                         .isEqualTo(HttpStatus.FORBIDDEN));

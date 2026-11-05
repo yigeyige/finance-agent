@@ -11,6 +11,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -18,9 +19,25 @@ import org.junit.jupiter.api.Test;
 import cn.com.crc.ems.finance.agent.scenario.application.BusinessSceneSkillRepository;
 import cn.com.crc.ems.finance.agent.scenario.application.BusinessSceneSkillService;
 import cn.com.crc.ems.finance.agent.scenario.domain.BusinessSceneSkill;
+import cn.com.crc.ems.finance.agent.iam.application.CurrentIdentity;
+import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 
 /** 验证业务场景 Skill 的创建、编辑和软删除边界。 */
 class BusinessSceneSkillServiceTest {
+
+    @Test
+    void onlyCreatorOrAdministratorMayMaintainSharedScene() {
+        BusinessSceneSkillRepository repository = mock(BusinessSceneSkillRepository.class);
+        UUID skillId = UUID.randomUUID();
+        UUID stranger = UUID.randomUUID();
+        when(repository.findActiveById(skillId)).thenReturn(Optional.of(BusinessSceneSkill.create(skillId,
+                "人员变更", "调查", "决策", OPERATOR, NOW)));
+        BusinessSceneSkillService service = new BusinessSceneSkillService(repository, clock());
+        assertThatThrownBy(() -> service.requireMaintainer(skillId, new CurrentIdentity(stranger, "user", "用户",
+                Set.of(RoleCode.PLATFORM_USER)))).isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+        service.requireMaintainer(skillId, new CurrentIdentity(OPERATOR, "owner", "创建人", Set.of(RoleCode.PLATFORM_USER)));
+        service.requireMaintainer(skillId, new CurrentIdentity(stranger, "admin2", "管理员", Set.of(RoleCode.PLATFORM_ADMIN)));
+    }
 
     private static final Instant NOW = Instant.parse("2026-10-08T15:00:00Z");
     private static final UUID OPERATOR = UUID.randomUUID();

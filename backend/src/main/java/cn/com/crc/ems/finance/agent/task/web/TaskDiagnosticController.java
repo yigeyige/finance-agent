@@ -35,7 +35,7 @@ public final class TaskDiagnosticController {
     @GetMapping
     public TaskDiagnosticResponse diagnose(@PathVariable UUID taskId) {
         var identity = IdentityContext.require();
-        if (!identity.hasRole(RoleCode.OPERATOR) && !identity.hasRole(RoleCode.VIEWER)) {
+        if (!identity.hasRole(RoleCode.PLATFORM_USER) && !identity.hasRole(RoleCode.PLATFORM_USER)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "当前身份无权查看任务诊断");
         }
         return TaskDiagnosticResponse.from(diagnosticService.diagnose(taskId));

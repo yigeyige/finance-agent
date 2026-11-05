@@ -62,13 +62,13 @@ class IdentityResolverTest {
         AgentUser user = user();
         when(agentUserRepository.findById(SyntheticIdentitySeeder.OPERATOR_ID)).thenReturn(Optional.of(user));
         when(roleBindingRepository.findByUserId(SyntheticIdentitySeeder.OPERATOR_ID))
-                .thenReturn(List.of(binding(RoleCode.OPERATOR, null)));
+                .thenReturn(List.of(binding(RoleCode.PLATFORM_USER, null)));
 
         CurrentIdentity identity = resolver.resolve(testRequest("operator"));
 
         assertThat(identity).isNotNull();
         assertThat(identity.userId()).isEqualTo(SyntheticIdentitySeeder.OPERATOR_ID);
-        assertThat(identity.hasRole(RoleCode.OPERATOR)).isTrue();
+        assertThat(identity.hasRole(RoleCode.PLATFORM_USER)).isTrue();
     }
 
     /**
@@ -112,7 +112,7 @@ class IdentityResolverTest {
         localOrTestProfile();
         when(agentUserRepository.findById(SyntheticIdentitySeeder.OPERATOR_ID)).thenReturn(Optional.of(user()));
         when(roleBindingRepository.findByUserId(SyntheticIdentitySeeder.OPERATOR_ID))
-                .thenReturn(List.of(binding(RoleCode.OPERATOR, NOW)));
+                .thenReturn(List.of(binding(RoleCode.PLATFORM_USER, NOW)));
 
         assertThat(resolver.resolve(testRequest("operator"))).isNull();
     }

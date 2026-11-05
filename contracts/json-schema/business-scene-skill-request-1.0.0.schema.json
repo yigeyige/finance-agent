@@ -5,11 +5,11 @@
   "x-contract-version": "1.0.0",
   "type": "object",
   "additionalProperties": false,
-  "required": ["name", "description", "handlingType", "premiseType"],
+  "required": ["name", "investigationPrompt"],
   "properties": {
     "name": {"type": "string", "minLength": 1, "maxLength": 100},
-    "description": {"type": "string", "minLength": 1, "maxLength": 1000},
-    "handlingType": {"type": "string", "enum": ["INVESTIGATE", "ADJUST"]},
-    "premiseType": {"type": "string", "minLength": 1, "maxLength": 100}
+    "investigationPrompt": {"type": "string", "minLength": 1, "maxLength": 8000},
+    "decisionPacketPrompt": {"type": "string", "maxLength": 2000},
+    "processArtifactPrompt": {"type": "string", "maxLength": 4000}
   }
 }

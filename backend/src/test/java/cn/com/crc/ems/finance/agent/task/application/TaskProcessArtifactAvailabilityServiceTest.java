@@ -89,7 +89,7 @@ class TaskProcessArtifactAvailabilityServiceTest {
     }
 
     private static CurrentIdentity identity(UUID userId) {
-        return new CurrentIdentity(userId, "test", "测试用户", Set.of(RoleCode.OPERATOR));
+        return new CurrentIdentity(userId, "test", "测试用户", Set.of(RoleCode.PLATFORM_USER));
     }
 
     private static InvestigationTask task(UUID userId) {

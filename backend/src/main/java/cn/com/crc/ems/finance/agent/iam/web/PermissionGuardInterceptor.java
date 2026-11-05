@@ -46,6 +46,7 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
                 && !path.startsWith("/api/v1/ems-database-configurations")
                 && !path.startsWith("/api/v1/data-exploration")
                 && !path.startsWith("/api/v1/latest-exception")
+                && !path.startsWith("/api/v1/platform-users")
                 && !path.startsWith("/api/v1/retention-runs")
                 && !path.startsWith("/api/v1/scheduled-jobs")
                 && !path.startsWith("/api/tasks/")) {
@@ -61,10 +62,10 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
         if (path.startsWith("/api/v1/tool-catalog") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权管理平台配置");
         }
-        if (path.startsWith("/api/v1/business-scene-skills") && !identity.hasRole(RoleCode.OPERATOR)) {
+        if (path.startsWith("/api/v1/business-scene-skills") && !identity.hasRole(RoleCode.PLATFORM_USER)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权维护业务场景 Skill");
         }
-        if (path.startsWith("/api/v1/ems-business-knowledge") && !identity.hasRole(RoleCode.OPERATOR)) {
+        if (path.startsWith("/api/v1/ems-business-knowledge") && !identity.hasRole(RoleCode.PLATFORM_USER)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权查看 EMS 业务知识域");
         }
         if (path.startsWith("/api/v1/model-configurations") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
@@ -79,8 +80,8 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
         if (path.startsWith("/api/v1/data-exploration") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权使用数据探索");
         }
-        if (path.startsWith("/api/v1/latest-exception") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
-            return reject(response, HttpStatus.FORBIDDEN, "当前身份无权查看异常堆栈");
+        if (path.startsWith("/api/v1/platform-users") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
+            return reject(response, HttpStatus.FORBIDDEN, "当前身份无权管理用户");
         }
         if (path.startsWith("/api/v1/retention-runs") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权查看清理日志");
@@ -88,8 +89,7 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
         if (path.startsWith("/api/v1/scheduled-jobs") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权管理调度任务");
         }
-        if (path.startsWith("/api/tasks/") && !identity.hasRole(RoleCode.OPERATOR)
-                && !identity.hasRole(RoleCode.VIEWER)) {
+        if (path.startsWith("/api/tasks/") && !identity.hasRole(RoleCode.PLATFORM_USER)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权查看任务事件");
         }
         return true;
@@ -100,9 +100,9 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
             return true;
         }
         if (HttpMethod.GET.matches(request.getMethod())) {
-            return roles.contains(RoleCode.OPERATOR) || roles.contains(RoleCode.VIEWER);
+            return roles.contains(RoleCode.PLATFORM_USER);
         }
-        return roles.contains(RoleCode.OPERATOR);
+        return roles.contains(RoleCode.PLATFORM_USER);
     }
 
     private static boolean reject(HttpServletResponse response, HttpStatus status, String message) throws Exception {

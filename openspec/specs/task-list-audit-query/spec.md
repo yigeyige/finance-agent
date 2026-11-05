@@ -13,8 +13,8 @@
 - **WHEN** PLATFORM_ADMIN 按状态或标题关键字查询任一有效页码
 - **THEN** 系统返回其筛选条件下全部任务范围中的对应页和准确总数，而不是固定最近 50 条
 
-#### Scenario: Operator queries own tasks
-- **WHEN** OPERATOR 查询任务列表
+#### Scenario: Platform user queries own tasks
+- **WHEN** PLATFORM_USER 查询任务列表
 - **THEN** 系统仅在其发起的任务范围内执行筛选、计数和分页，不返回其他发起人的任务或总数
 
 #### Scenario: Page sizes bound results
@@ -30,15 +30,26 @@
 - **THEN** 系统拒绝请求且不执行无界任务读取
 
 ### Requirement: Readonly task detail carries audit ownership
-任务只读详情 SHALL 返回任务发起人标识，并继续按照可信身份限制访问；平台管理员可审计全部任务，普通操作人员只能读取自己发起的任务。
+任务只读详情 SHALL 返回任务发起人标识，并继续按照可信身份限制访问；平台管理员可审计全部任务，PLATFORM_USER 只能读取自己发起的任务。
 
 #### Scenario: Administrator audits another initiator task
 - **WHEN** PLATFORM_ADMIN 从分页列表打开其他发起人的任务详情
 - **THEN** 系统返回只读业务、范围、方案和发起人标识，不暴露密钥或可写入口
 
-#### Scenario: Operator opens another initiator task
-- **WHEN** 普通操作人员请求非本人发起的任务详情
+#### Scenario: Platform user opens another initiator task
+- **WHEN** PLATFORM_USER 请求非本人发起的任务详情
 - **THEN** 系统以不存在或无权访问处理，不泄露任务详情
+
+### Requirement: Task operations respect initiator ownership
+系统 MUST 将 PLATFORM_USER 对任务列表、详情及后续操作的权限限定于可信身份 userId 等于任务发起人；PLATFORM_ADMIN 可以访问全部任务。任务 ID 参数不得替代服务端归属校验。
+
+#### Scenario: Ordinary user requests another task
+- **WHEN** PLATFORM_USER 持其他发起人的任务 ID 请求详情或写操作
+- **THEN** 系统拒绝请求且不泄漏任务内容
+
+#### Scenario: Administrator handles any task
+- **WHEN** PLATFORM_ADMIN 请求其他用户发起的任务
+- **THEN** 系统按该操作原有业务规则处理
 
 ### Requirement: Task list filter and action layout
 系统 SHALL 在任务列表页面将业务标题和处理状态筛选字段展示在任务表格容器外部的独立筛选操作区；查询、重置和新建业务处理按钮 SHALL 位于该操作区的同一操作组中。页面 MUST 在标题后直接展示筛选操作区和任务表格，不显示“业务处理记录”小标题和旁侧数量。任务列表默认每页 SHALL 显示 10 条，并允许管理员选择 10、20、50 或 100 条；分页器 MUST 与服务端页码、条数和总数保持一致。

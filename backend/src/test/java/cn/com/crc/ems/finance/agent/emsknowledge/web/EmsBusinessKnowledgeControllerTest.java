@@ -25,7 +25,7 @@ class EmsBusinessKnowledgeControllerTest {
 
     @Test
     void returnsTheCuratedCatalogForAnOperator() throws Exception {
-        IdentityContext.set(new CurrentIdentity(UUID.randomUUID(), "operator", "操作员", Set.of(RoleCode.OPERATOR)));
+        IdentityContext.set(new CurrentIdentity(UUID.randomUUID(), "operator", "操作员", Set.of(RoleCode.PLATFORM_USER)));
         var mvc = MockMvcBuilders.standaloneSetup(new EmsBusinessKnowledgeController(new EmsBusinessKnowledgeCatalog()))
                 .build();
 

@@ -56,7 +56,7 @@ public final class PacketDraftController {
     private static UUID trustedOperator(UUID legacyActorUserId) {
         var identity = IdentityContext.current();
         if (identity != null) {
-            if (!identity.hasRole(RoleCode.OPERATOR)) {
+            if (!identity.hasRole(RoleCode.PLATFORM_USER)) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "当前身份无权组装决策包");
             }
             return identity.userId();

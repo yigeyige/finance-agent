@@ -6,8 +6,29 @@ export type TaskStatus = (typeof TASK_STATUSES)[number]
 export const TASK_EVENT_TYPES = ['TASK_STATUS_CHANGED', 'APPROVAL_REQUIRED', 'TOOL_PROGRESS', 'PUBLIC_REASON', 'RESULT_REFERENCE', 'TASK_PUBLISHED'] as const
 export type TaskEventType = (typeof TASK_EVENT_TYPES)[number]
 
-export const ROLE_CODES = ['OPERATOR', 'VIEWER', 'PLATFORM_ADMIN'] as const
+export const ROLE_CODES = ['PLATFORM_ADMIN', 'PLATFORM_USER'] as const
 export type RoleCode = (typeof ROLE_CODES)[number]
+
+/** 用户管理响应仅包含可展示的账户字段。 */
+export interface PlatformUser {
+  userId: string
+  authSubject: string
+  employeeNo: string
+  displayName: string
+  status: 'ACTIVE' | 'DISABLED'
+  role: RoleCode
+  createdAt: string
+}
+
+/** 拒绝额外敏感字段及旧角色，避免用户管理页误展示凭据。 */
+export function parsePlatformUser(value: unknown): PlatformUser {
+  const row = assertObjectFields(value, ['userId', 'authSubject', 'employeeNo', 'displayName', 'status', 'role', 'createdAt'], '用户响应')
+  if ((row.status !== 'ACTIVE' && row.status !== 'DISABLED')
+      || (row.role !== 'PLATFORM_ADMIN' && row.role !== 'PLATFORM_USER')) throw new Error('用户响应格式无法识别')
+  return { userId: requireString(row.userId, '用户标识'), authSubject: requireString(row.authSubject, '登录账号'),
+    employeeNo: requireString(row.employeeNo, '工号'), displayName: requireString(row.displayName, '显示名称'),
+    status: row.status, role: row.role, createdAt: requireString(row.createdAt, '创建时间') }
+}
 export const IDENTITY_PERMISSIONS = ['TASK_READ', 'TASK_WRITE', 'TASK_EVENTS_READ', 'PUBLISHED_PACKET_READ', 'CONFIG_MANAGE'] as const
 export type IdentityPermission = (typeof IDENTITY_PERMISSIONS)[number]
 
@@ -72,7 +93,7 @@ export interface TaskDiagnosticLease { status: 'NONE' | 'ACTIVE' | 'EXPIRED'; he
 export interface TaskDiagnosticResponse { taskId: string; taskStatus: TaskStatus; currentStep: TaskDiagnosticStep | null; lease: TaskDiagnosticLease; approvalValid: boolean; pauseReason: string | null; lastErrorCode: string | null; manualReconciliationRequired: boolean; recoveryActions: string[] }
 
 /** 业务场景 Skill 的契约枚举与读写模型。 */
-export interface BusinessSceneSkill { skillId: string; name: string; investigationPrompt: string; decisionPacketPrompt: string; processArtifactPrompt: string; updatedAt: string }
+export interface BusinessSceneSkill { skillId: string; name: string; investigationPrompt: string; decisionPacketPrompt: string; processArtifactPrompt: string; createdBy: string; updatedAt: string }
 export interface BusinessSceneSkillPayload { name: string; investigationPrompt: string; decisionPacketPrompt: string; processArtifactPrompt: string }
 export interface SceneSkillAttachment { attachmentId: string; skillId: string; fileName: string; contentType: string; summary: string; createdAt: string }
 
@@ -151,7 +172,7 @@ export interface TaskDraftRequest { title: string; originalQuestion: string; ini
 const TASK_RESPONSE_FIELDS = ['taskId', 'title', 'status', 'rowVersion', 'currentScopeRevisionId', 'createdAt', 'premiseId', 'scopeRevisionNo', 'scopeDigest']
 const PUBLIC_EVENT_FIELDS = ['taskId', 'userId', 'sequence', 'eventType', 'status', 'publicReason', 'resultReference', 'occurredAt']
 const IDENTITY_FIELDS = ['userId', 'authSubject', 'displayName', 'roles', 'permissions', 'testIdentity']
-const BUSINESS_SCENE_SKILL_FIELDS = ['skillId', 'name', 'investigationPrompt', 'decisionPacketPrompt', 'processArtifactPrompt', 'updatedAt']
+const BUSINESS_SCENE_SKILL_FIELDS = ['skillId', 'name', 'investigationPrompt', 'decisionPacketPrompt', 'processArtifactPrompt', 'createdBy', 'updatedAt']
 const EMS_BUSINESS_DOMAIN_KNOWLEDGE_FIELDS = ['code', 'name', 'summary', 'schemas', 'tableCount', 'keyTables', 'knowledgeBoundary', 'verificationHint']
 const MODEL_CONFIGURATION_FIELDS = ['configId', 'name', 'provider', 'apiUrl', 'modelName', 'reasoningEffort', 'enabled', 'apiKeyConfigured', 'updatedAt']
 const EMS_DATABASE_CONFIGURATION_FIELDS = ['configId', 'name', 'jdbcUrl', 'username', 'connectTimeoutSeconds', 'queryTimeoutSeconds', 'maxRows', 'enabled', 'passwordConfigured', 'updatedAt', 'schemaSyncedAt', 'schemaTableCount']
@@ -173,7 +194,7 @@ const BUSINESS_DRAFT_FIELDS = ['subjectKey', 'objectKey', 'recommendedGoal', 'al
 /** 校验业务场景 Skill 响应。 */
 export function parseBusinessSceneSkill(value: unknown): BusinessSceneSkill {
   const record = assertObjectFields(value, BUSINESS_SCENE_SKILL_FIELDS, '业务场景 Skill 响应')
-  return { skillId: requireString(record.skillId, 'Skill 标识'), name: requireString(record.name, 'Skill 名称'), investigationPrompt: requireString(record.investigationPrompt, '调查提示词'), decisionPacketPrompt: typeof record.decisionPacketPrompt === 'string' ? record.decisionPacketPrompt : '', processArtifactPrompt: typeof record.processArtifactPrompt === 'string' ? record.processArtifactPrompt : '', updatedAt: requireString(record.updatedAt, '更新时间') }
+  return { skillId: requireString(record.skillId, 'Skill 标识'), name: requireString(record.name, 'Skill 名称'), investigationPrompt: requireString(record.investigationPrompt, '调查提示词'), decisionPacketPrompt: typeof record.decisionPacketPrompt === 'string' ? record.decisionPacketPrompt : '', processArtifactPrompt: typeof record.processArtifactPrompt === 'string' ? record.processArtifactPrompt : '', createdBy: requireString(record.createdBy, '创建人标识'), updatedAt: requireString(record.updatedAt, '更新时间') }
 }
 
 /** 校验业务场景 Skill 列表响应。 */

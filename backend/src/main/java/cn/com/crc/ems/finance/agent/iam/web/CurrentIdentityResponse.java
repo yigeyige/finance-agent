@@ -25,14 +25,11 @@ public record CurrentIdentityResponse(UUID userId, String authSubject, String di
 
     private static Set<IdentityPermission> permissions(CurrentIdentity identity) {
         java.util.EnumSet<IdentityPermission> permissions = java.util.EnumSet.noneOf(IdentityPermission.class);
-        if (identity.hasRole(RoleCode.OPERATOR)) {
+        if (identity.hasRole(RoleCode.PLATFORM_USER)) {
             permissions.add(IdentityPermission.TASK_READ);
             permissions.add(IdentityPermission.TASK_WRITE);
             permissions.add(IdentityPermission.TASK_EVENTS_READ);
-        }
-        if (identity.hasRole(RoleCode.VIEWER)) {
             permissions.add(IdentityPermission.PUBLISHED_PACKET_READ);
-            permissions.add(IdentityPermission.TASK_EVENTS_READ);
         }
         if (identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
             permissions.add(IdentityPermission.CONFIG_MANAGE);

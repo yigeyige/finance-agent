@@ -1,6 +1,7 @@
 package cn.com.crc.ems.finance.agent.iam.infrastructure;
 
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
@@ -27,6 +28,12 @@ public class MybatisAgentUserRepository implements AgentUserRepository {
 
     public MybatisAgentUserRepository(AgentUserMapper mapper) {
         this.mapper = mapper;
+    }
+
+    @Override
+    public List<AgentUser> findAll() {
+        return mapper.selectList(new QueryWrapper<AgentUserEntity>().orderByAsc("auth_subject"))
+                .stream().map(MybatisIamMappings::toDomain).toList();
     }
 
     @Override

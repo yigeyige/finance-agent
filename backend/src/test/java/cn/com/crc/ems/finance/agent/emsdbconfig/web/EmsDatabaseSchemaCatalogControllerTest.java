@@ -59,7 +59,7 @@ class EmsDatabaseSchemaCatalogControllerTest {
 
     @Test
     void rejectsNonAdministratorBeforeLoadingCatalog() {
-        IdentityContext.set(identity(RoleCode.OPERATOR));
+        IdentityContext.set(identity(RoleCode.PLATFORM_USER));
 
         assertThatThrownBy(() -> controller.schemaCatalog(UUID.randomUUID()))
                 .isInstanceOf(ResponseStatusException.class)

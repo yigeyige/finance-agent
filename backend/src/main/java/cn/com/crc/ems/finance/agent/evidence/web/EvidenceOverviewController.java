@@ -49,7 +49,7 @@ public final class EvidenceOverviewController {
     @GetMapping
     public EvidenceOverviewResponse current(@PathVariable UUID taskId) {
         var identity = IdentityContext.require();
-        if (!identity.hasRole(RoleCode.OPERATOR)) {
+        if (!identity.hasRole(RoleCode.PLATFORM_USER)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "当前身份无权查看发布前证据");
         }
         return EvidenceOverviewResponse.of(taskId, snapshotRepository.findByTaskId(taskId),

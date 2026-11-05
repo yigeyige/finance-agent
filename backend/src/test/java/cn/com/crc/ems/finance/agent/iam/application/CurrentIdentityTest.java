@@ -13,12 +13,13 @@ import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 class CurrentIdentityTest {
 
     @Test
-    void platformAdminInheritsOperatorAndViewerRoles() {
+    void platformAdminInheritsPlatformUserCapabilities() {
         CurrentIdentity identity = new CurrentIdentity(UUID.randomUUID(), "local-admin", "本地平台管理员",
                 Set.of(RoleCode.PLATFORM_ADMIN));
 
         assertThat(identity.hasRole(RoleCode.PLATFORM_ADMIN)).isTrue();
-        assertThat(identity.hasRole(RoleCode.OPERATOR)).isTrue();
-        assertThat(identity.hasRole(RoleCode.VIEWER)).isTrue();
+        assertThat(identity.hasRole(RoleCode.PLATFORM_USER)).isTrue();
+        CurrentIdentity user = new CurrentIdentity(UUID.randomUUID(), "user", "普通用户", Set.of(RoleCode.PLATFORM_USER));
+        assertThat(user.hasRole(RoleCode.PLATFORM_ADMIN)).isFalse();
     }
 }

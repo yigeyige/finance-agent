@@ -70,14 +70,14 @@ public final class PacketLifecycleController {
 
     private static void requireViewerOrOperator() {
         var identity = IdentityContext.require();
-        if (!identity.hasRole(RoleCode.OPERATOR) && !identity.hasRole(RoleCode.VIEWER)) {
+        if (!identity.hasRole(RoleCode.PLATFORM_USER) && !identity.hasRole(RoleCode.PLATFORM_USER)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "当前身份无权查看已发布决策包");
         }
     }
 
     private static cn.com.crc.ems.finance.agent.iam.application.CurrentIdentity requireOperator() {
         var identity = IdentityContext.require();
-        if (!identity.hasRole(RoleCode.OPERATOR)) {
+        if (!identity.hasRole(RoleCode.PLATFORM_USER)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "当前身份无权交接或关闭调查");
         }
         return identity;

@@ -11,7 +11,7 @@ import { getJson, postJson } from './http'
 export interface PacketHandoffPayload { ownerReference: string; externalProcessReference: string; downstreamStatus: string }
 export interface TaskClosurePayload { closureReason: string }
 
-/** 查询任务最新已发布决策包，OPERATOR/VIEWER 使用同一接口。 */
+/** 查询任务最新已发布决策包，两种平台角色使用同一接口。 */
 export async function fetchPublishedPacket(taskId: string): Promise<PublishedPacketResponse> {
   const response = await getJson<unknown>(`/v1/tasks/${taskId}/published-packet`)
   return parsePublishedPacketResponse(response)

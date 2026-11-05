@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://platform-user-response/1.0.0",
+  "title": "Platform user response",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["userId", "authSubject", "employeeNo", "displayName", "status", "role", "createdAt"],
+  "properties": {
+    "userId": {"type": "string", "format": "uuid"},
+    "authSubject": {"type": "string", "minLength": 1, "maxLength": 200},
+    "employeeNo": {"type": "string", "minLength": 1, "maxLength": 100},
+    "displayName": {"type": "string", "minLength": 1, "maxLength": 200},
+    "status": {"type": "string", "enum": ["ACTIVE", "DISABLED"]},
+    "role": {"type": "string", "enum": ["PLATFORM_ADMIN", "PLATFORM_USER"]},
+    "createdAt": {"type": "string", "format": "date-time"}
+  }
+}

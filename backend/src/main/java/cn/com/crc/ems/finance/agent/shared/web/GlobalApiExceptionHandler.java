@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import cn.com.crc.ems.finance.agent.diagnostics.DiagnosticContext;
 import cn.com.crc.ems.finance.agent.diagnostics.DiagnosticLogSanitizer;
 import cn.com.crc.ems.finance.agent.diagnostics.LatestExceptionStore;
+import cn.com.crc.ems.finance.agent.iam.application.IdentityContext;
 import cn.com.crc.ems.finance.agent.shared.application.DomainErrorCode;
 import cn.com.crc.ems.finance.agent.shared.application.DomainException;
 import cn.com.crc.ems.finance.agent.shared.application.RetryClass;
@@ -89,7 +90,8 @@ public class GlobalApiExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> unknown(Exception exception) {
         String traceId = traceId();
-        exceptionStore.recordUnhandled(exception);
+        var identity = IdentityContext.current();
+        exceptionStore.recordUnhandled(exception, identity == null ? null : identity.userId());
         logUnknownFailure(exception);
         return response(DomainErrorCode.INTERNAL_ERROR, traceId);
     }

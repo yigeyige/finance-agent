@@ -59,7 +59,7 @@ class ApprovalPermissionPublicationNegativeGateContractTest {
     }
 
     @Test
-    void viewerCannotMutateTaskButCanReadTaskEvents() throws Exception {
+    void platformUserCanEnterTaskBoundaryAndReadEvents() throws Exception {
         PermissionGuardInterceptor guard = new PermissionGuardInterceptor();
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -67,9 +67,8 @@ class ApprovalPermissionPublicationNegativeGateContractTest {
         when(request.getMethod()).thenReturn("POST");
         when(response.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
 
-        IdentityContext.set(new CurrentIdentity(VIEWER_ID, "local-viewer", "本地查看员", Set.of(RoleCode.VIEWER)));
-        assertThat(guard.preHandle(request, response, null)).isFalse();
-        verify(response).setStatus(403);
+        IdentityContext.set(new CurrentIdentity(VIEWER_ID, "local-viewer", "本地查看员", Set.of(RoleCode.PLATFORM_USER)));
+        assertThat(guard.preHandle(request, response, null)).isTrue();
 
         when(request.getRequestURI()).thenReturn("/api/tasks/00000000-0000-4000-8000-000000000301/events");
         when(request.getMethod()).thenReturn("GET");
@@ -83,7 +82,7 @@ class ApprovalPermissionPublicationNegativeGateContractTest {
         HttpServletResponse response = mock(HttpServletResponse.class);
         when(request.getRequestURI()).thenReturn("/api/v1/tasks/00000000-0000-4000-8000-000000000301/packet-publications");
         when(request.getMethod()).thenReturn("POST");
-        IdentityContext.set(new CurrentIdentity(OPERATOR_ID, "local-operator", "本地操作员", Set.of(RoleCode.OPERATOR)));
+        IdentityContext.set(new CurrentIdentity(OPERATOR_ID, "local-operator", "本地操作员", Set.of(RoleCode.PLATFORM_USER)));
         assertThat(guard.preHandle(request, response, null)).isTrue();
     }
 
@@ -97,9 +96,9 @@ class ApprovalPermissionPublicationNegativeGateContractTest {
         assertThat(publication).contains("packet draft bindings are stale", "approved review does not match draft bindings",
                 "canonical content and HTML snapshot digest do not match");
         assertThat(lifecycle).contains("packet revision is not the current published revision");
-        assertThat(publicationController).contains("RoleCode.OPERATOR", "HttpStatus.FORBIDDEN");
-        assertThat(reviewController).contains("RoleCode.OPERATOR", "HttpStatus.FORBIDDEN");
-        assertThat(lifecycleController).contains("requireOperator", "RoleCode.OPERATOR");
+        assertThat(publicationController).contains("RoleCode.PLATFORM_USER", "HttpStatus.FORBIDDEN");
+        assertThat(reviewController).contains("RoleCode.PLATFORM_USER", "HttpStatus.FORBIDDEN");
+        assertThat(lifecycleController).contains("requireOperator", "RoleCode.PLATFORM_USER");
     }
 
     @Test

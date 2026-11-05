@@ -26,7 +26,7 @@ import jakarta.validation.Valid;
 
 /**
  *
- * @Description: 管理员维护业务场景 Skill 的 REST 入口。
+ * @Description: 共享业务场景 Skill 的 REST 入口，写操作限定作者或管理员。
  *
  * @Version: 0.1.0
  * @Author: yigeyige99
@@ -64,6 +64,7 @@ public final class BusinessSceneSkillController {
     @PutMapping("/{skillId}")
     public BusinessSceneSkillResponse update(@PathVariable UUID skillId,
             @Valid @RequestBody BusinessSceneSkillRequest request) {
+        skillService.requireMaintainer(skillId, IdentityContext.require());
         return BusinessSceneSkillResponse.from(skillService.update(skillId, request.name(), request.investigationPrompt(),
                 request.decisionPacketPrompt(), request.processArtifactPrompt(), requireOperator()));
     }
@@ -71,6 +72,7 @@ public final class BusinessSceneSkillController {
     /** 删除业务场景 Skill，保留必要操作审计。 */
     @DeleteMapping("/{skillId}")
     public ResponseEntity<Void> delete(@PathVariable UUID skillId) {
+        skillService.requireMaintainer(skillId, IdentityContext.require());
         skillService.delete(skillId, requireOperator());
         return ResponseEntity.noContent().build();
     }
@@ -86,6 +88,7 @@ public final class BusinessSceneSkillController {
     @PostMapping(value = "/{skillId}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<SceneSkillAttachmentResponse> uploadAttachment(@PathVariable UUID skillId,
             @RequestParam("file") MultipartFile file, @RequestParam("summary") String summary) {
+        skillService.requireMaintainer(skillId, IdentityContext.require());
         return ResponseEntity.status(HttpStatus.CREATED).body(SceneSkillAttachmentResponse.from(
                 attachmentService.upload(skillId, file, summary, requireOperator())));
     }
@@ -93,13 +96,14 @@ public final class BusinessSceneSkillController {
     /** 删除场景附件。 */
     @DeleteMapping("/{skillId}/attachments/{attachmentId}")
     public ResponseEntity<Void> deleteAttachment(@PathVariable UUID skillId, @PathVariable UUID attachmentId) {
+        skillService.requireMaintainer(skillId, IdentityContext.require());
         attachmentService.delete(skillId, attachmentId);
         return ResponseEntity.noContent().build();
     }
 
     private static UUID requireOperator() {
         var identity = IdentityContext.require();
-        if (!identity.hasRole(RoleCode.OPERATOR)) {
+        if (!identity.hasRole(RoleCode.PLATFORM_USER)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "当前身份无权维护业务场景 Skill");
         }
         return identity.userId();

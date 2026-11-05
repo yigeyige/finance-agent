@@ -14,6 +14,8 @@ import javax.crypto.spec.PBEKeySpec;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import static org.mockito.Mockito.verify;
 
 import cn.com.crc.ems.finance.agent.iam.domain.AgentUser;
 import cn.com.crc.ems.finance.agent.iam.domain.AgentUserStatus;
@@ -63,6 +65,7 @@ class PasswordLoginServiceTest {
     @Test
     void establishesAndClearsAnAuthenticatedSession() throws Exception {
         when(users.findByAuthSubject("admin")).thenReturn(Optional.of(activeUser()));
+        when(users.findById(USER_ID)).thenReturn(Optional.of(activeUser()));
         when(roles.findByUserId(USER_ID)).thenReturn(List.of(adminBinding()));
         when(passwords.selectById(USER_ID.toString())).thenReturn(credential("correct-password"));
 
@@ -91,6 +94,62 @@ class PasswordLoginServiceTest {
 
         assertThat(service.login("admin", "wrong-password")).isEmpty();
         assertThat(service.login("admin", "correct-password")).isEmpty();
+    }
+
+    @Test
+    void rejectsExistingSessionAfterAccountIsDisabled() throws Exception {
+        when(users.findByAuthSubject("admin")).thenReturn(Optional.of(activeUser()));
+        when(users.findById(USER_ID)).thenReturn(Optional.of(activeUser()), Optional.of(new AgentUser(
+                USER_ID, "admin", "ADMIN", "平台管理员", AgentUserStatus.DISABLED, NOW, null, NOW, null)));
+        when(roles.findByUserId(USER_ID)).thenReturn(List.of(adminBinding()));
+        when(passwords.selectById(USER_ID.toString())).thenReturn(credential("correct-password"));
+        var login = service.login("admin", "correct-password").orElseThrow();
+
+        assertThat(service.resolve(login.token())).isPresent();
+        assertThat(service.resolve(login.token())).isEmpty();
+    }
+
+    @Test
+    void resettingPasswordEndsExistingSessions() throws Exception {
+        when(users.findByAuthSubject("admin")).thenReturn(Optional.of(activeUser()));
+        when(users.findById(USER_ID)).thenReturn(Optional.of(activeUser()));
+        when(roles.findByUserId(USER_ID)).thenReturn(List.of(adminBinding()));
+        when(passwords.selectById(USER_ID.toString())).thenReturn(credential("correct-password"));
+        var login = service.login("admin", "correct-password").orElseThrow();
+        assertThat(service.resolve(login.token())).isPresent();
+
+        service.setPassword(USER_ID, "next-password");
+
+        assertThat(service.resolve(login.token())).isEmpty();
+    }
+
+    @Test
+    void newlySetPasswordCanAuthenticateWithoutStoringPlaintext() {
+        service.setPassword(USER_ID, "new-password");
+        ArgumentCaptor<UserPasswordEntity> saved = ArgumentCaptor.forClass(UserPasswordEntity.class);
+        verify(passwords).insert(saved.capture());
+        when(users.findByAuthSubject("admin")).thenReturn(Optional.of(activeUser()));
+        when(roles.findByUserId(USER_ID)).thenReturn(List.of(adminBinding()));
+        when(passwords.selectById(USER_ID.toString())).thenReturn(saved.getValue());
+
+        assertThat(service.login("admin", "new-password")).isPresent();
+        assertThat(service.login("admin", "wrong-password")).isEmpty();
+    }
+
+    @Test
+    void existingSessionUsesCurrentRoleAfterDemotion() throws Exception {
+        when(users.findByAuthSubject("admin")).thenReturn(Optional.of(activeUser()));
+        when(users.findById(USER_ID)).thenReturn(Optional.of(activeUser()));
+        RoleBinding ordinary = new RoleBinding(USER_ID, RoleCode.PLATFORM_USER, USER_ID, NOW, null,
+                USER_ID, NOW, USER_ID, NOW);
+        when(roles.findByUserId(USER_ID)).thenReturn(List.of(adminBinding()), List.of(ordinary));
+        when(passwords.selectById(USER_ID.toString())).thenReturn(credential("correct-password"));
+        var login = service.login("admin", "correct-password").orElseThrow();
+
+        var current = service.resolve(login.token()).orElseThrow();
+
+        assertThat(current.hasRole(RoleCode.PLATFORM_ADMIN)).isFalse();
+        assertThat(current.hasRole(RoleCode.PLATFORM_USER)).isTrue();
     }
 
     private static AgentUser activeUser() {

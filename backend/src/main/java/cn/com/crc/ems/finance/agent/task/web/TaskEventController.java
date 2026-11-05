@@ -61,6 +61,6 @@ public class TaskEventController {
 
     /** 将当前身份角色映射为事件流过滤角色。 */
     private static TaskEventRole currentRole() {
-        return IdentityContext.require().hasRole(RoleCode.OPERATOR) ? TaskEventRole.OPERATOR : TaskEventRole.VIEWER;
+        return IdentityContext.require().hasRole(RoleCode.PLATFORM_USER) ? TaskEventRole.OPERATOR : TaskEventRole.VIEWER;
     }
 }

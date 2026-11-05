@@ -51,7 +51,7 @@ public final class PacketReviewController {
     private static UUID trustedOperator(UUID legacyReviewerUserId) {
         var identity = IdentityContext.current();
         if (identity != null) {
-            if (!identity.hasRole(RoleCode.OPERATOR)) {
+            if (!identity.hasRole(RoleCode.PLATFORM_USER)) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "当前身份无权复核决策包");
             }
             return identity.userId();

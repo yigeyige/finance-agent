@@ -25,7 +25,6 @@ import cn.com.crc.ems.finance.agent.iam.domain.RoleCode;
 public class SyntheticIdentitySeeder {
 
     static final UUID OPERATOR_ID = UUID.fromString("00000000-0000-4000-8000-000000000001");
-    static final UUID VIEWER_ID = UUID.fromString("00000000-0000-4000-8000-000000000002");
     static final UUID ADMIN_ID = UUID.fromString("00000000-0000-4000-8000-000000000003");
     static final UUID BUNDLE_ID = UUID.fromString("00000000-0000-4000-8000-000000000010");
 
@@ -44,10 +43,8 @@ public class SyntheticIdentitySeeder {
     public void seed() {
         Instant now = Instant.now();
         agentUserRepository.insertIfAbsent(user(OPERATOR_ID, "local-operator", "LOCAL-OPERATOR", "本地操作员", now));
-        agentUserRepository.insertIfAbsent(user(VIEWER_ID, "local-viewer", "LOCAL-VIEWER", "本地查看员", now));
         agentUserRepository.insertIfAbsent(user(ADMIN_ID, "local-admin", "LOCAL-ADMIN", "本地平台管理员", now));
-        roleBindingRepository.grant(binding(OPERATOR_ID, RoleCode.OPERATOR, OPERATOR_ID, now));
-        roleBindingRepository.grant(binding(VIEWER_ID, RoleCode.VIEWER, OPERATOR_ID, now));
+        roleBindingRepository.grant(binding(OPERATOR_ID, RoleCode.PLATFORM_USER, OPERATOR_ID, now));
         roleBindingRepository.grant(binding(ADMIN_ID, RoleCode.PLATFORM_ADMIN, ADMIN_ID, now));
         runtimeBundleRepository.insertIfAbsent(new RuntimeBundle(BUNDLE_ID, "local", "2.0.3", "local-model",
                 "local-prompt", "local-rules", "local-tools", "local-sources", null,

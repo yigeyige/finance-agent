@@ -35,7 +35,7 @@ class TaskListServiceTest {
     @Test
     void operatorQueriesOnlyOwnTasksByPage() {
         InvestigationTaskRepository repository = mock(InvestigationTaskRepository.class);
-        CurrentIdentity identity = identity(RoleCode.OPERATOR);
+        CurrentIdentity identity = identity(RoleCode.PLATFORM_USER);
         TaskPage expected = new TaskPage(List.of(), 0, 1, 20);
         when(repository.findPageByInitiator(identity.userId(), 1, 20, null, null)).thenReturn(expected);
         TaskListService service = new TaskListService(repository);

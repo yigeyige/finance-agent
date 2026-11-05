@@ -5,13 +5,14 @@
   "x-contract-version": "1.0.0",
   "type": "object",
   "additionalProperties": false,
-  "required": ["skillId", "name", "description", "handlingType", "premiseType", "updatedAt"],
+  "required": ["skillId", "name", "investigationPrompt", "decisionPacketPrompt", "processArtifactPrompt", "createdBy", "updatedAt"],
   "properties": {
     "skillId": {"type": "string", "format": "uuid"},
     "name": {"type": "string", "minLength": 1, "maxLength": 100},
-    "description": {"type": "string", "minLength": 1, "maxLength": 1000},
-    "handlingType": {"type": "string", "enum": ["INVESTIGATE", "ADJUST"]},
-    "premiseType": {"type": "string", "minLength": 1, "maxLength": 100},
+    "investigationPrompt": {"type": "string", "minLength": 1, "maxLength": 8000},
+    "decisionPacketPrompt": {"type": ["string", "null"], "maxLength": 2000},
+    "processArtifactPrompt": {"type": ["string", "null"], "maxLength": 4000},
+    "createdBy": {"type": "string", "format": "uuid"},
     "updatedAt": {"type": "string", "format": "date-time"}
   }
 }

@@ -38,7 +38,7 @@ public final class EmsBusinessKnowledgeController {
     }
 
     private static void requireTaskRead() {
-        if (!IdentityContext.require().hasRole(RoleCode.OPERATOR)) {
+        if (!IdentityContext.require().hasRole(RoleCode.PLATFORM_USER)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "当前身份无权查看 EMS 业务知识域");
         }
     }

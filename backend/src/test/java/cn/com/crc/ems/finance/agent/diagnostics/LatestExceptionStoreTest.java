@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +16,30 @@ import org.junit.jupiter.api.Test;
  * @Date: 2026-11-02 23:00:00
  */
 class LatestExceptionStoreTest {
+    @Test
+    void separatesPersonalFailuresAndKeepsUnattributedFailureForAdministrator() {
+        var store = new LatestExceptionStore(Clock.systemUTC());
+        UUID first = UUID.randomUUID();
+        UUID second = UUID.randomUUID();
+        store.record(LatestExceptionStore.Source.BUSINESS_API, new IllegalStateException(), first);
+        store.record(LatestExceptionStore.Source.BUSINESS_API, new IllegalArgumentException(), second);
+        assertThat(store.latestFor(first).exceptionType()).isEqualTo(IllegalStateException.class.getName());
+        assertThat(store.latestFor(second).exceptionType()).isEqualTo(IllegalArgumentException.class.getName());
+        store.record(LatestExceptionStore.Source.BUSINESS_API, new RuntimeException(), null);
+        assertThat(store.latest().exceptionType()).isEqualTo(RuntimeException.class.getName());
+        assertThat(store.latestFor(first).exceptionType()).isEqualTo(IllegalStateException.class.getName());
+    }
+
+    @Test
+    void attributesPropagatedModelFailureWithoutChangingItsSource() {
+        var store = new LatestExceptionStore(Clock.systemUTC());
+        var failure = new IllegalStateException("模型失败");
+        var userId = UUID.randomUUID();
+        store.record(LatestExceptionStore.Source.MODEL_INTERACTION, failure, null);
+        store.recordUnhandled(failure, userId);
+        assertThat(store.latestFor(userId)).isNotNull();
+        assertThat(store.latestFor(userId).source()).isEqualTo(LatestExceptionStore.Source.MODEL_INTERACTION);
+    }
     @Test
     void replacesPreviousSnapshotWithoutRetainingExceptionMessages() {
         var store = new LatestExceptionStore(Clock.fixed(Instant.parse("2026-11-02T00:00:00Z"), ZoneOffset.UTC));

@@ -34,7 +34,7 @@ export default Vue.extend({
   data() { return { packet: null as PublishedPacketResponse | null, activeTab: 'json', saving: false, errorMessage: '', handoff: { ownerReference: '', externalProcessReference: '', downstreamStatus: '待外部处理' }, closure: { closureReason: '' } } },
   computed: {
     /** 判断当前用户能否执行交接和关闭动作。 */
-    isOperator(): boolean { return getCurrentIdentity()?.roles.includes('OPERATOR') ?? false },
+    isOperator(): boolean { return getCurrentIdentity()?.permissions.includes('TASK_WRITE') ?? false },
     /** 从权威结构中提取业务摘要，避免首屏展示原始 JSON。 */
     businessSummary(): PacketBusinessSummary { return this.packet ? summarizeCanonicalPacket(this.packet.canonicalJson) : { currentCount: 0, futureCount: 0, undeterminedCount: 0, findingCount: 0, coverageLabel: '正在读取调查结论', recommendations: [] } },
     /** 把内部任务状态转换为业务文案。 */

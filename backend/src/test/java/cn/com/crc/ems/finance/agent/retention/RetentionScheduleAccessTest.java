@@ -42,7 +42,7 @@ class RetentionScheduleAccessTest {
         RetentionScheduleService service = new RetentionScheduleService(
                 new RetentionScheduleStore(root), scheduler, () -> { });
         RetentionScheduleController controller = new RetentionScheduleController(service);
-        IdentityContext.set(identity(RoleCode.OPERATOR));
+        IdentityContext.set(identity(RoleCode.PLATFORM_USER));
         assertThatThrownBy(controller::list).isInstanceOf(ResponseStatusException.class)
                 .satisfies(error -> assertThat(((ResponseStatusException) error).getStatusCode())
                         .isEqualTo(HttpStatus.FORBIDDEN));
@@ -81,7 +81,7 @@ class RetentionScheduleAccessTest {
                 new RetentionScheduleStore(root), scheduler, executions::incrementAndGet);
         RetentionScheduleController controller = new RetentionScheduleController(service);
 
-        IdentityContext.set(identity(RoleCode.OPERATOR));
+        IdentityContext.set(identity(RoleCode.PLATFORM_USER));
         assertThatThrownBy(controller::runOnce).isInstanceOf(ResponseStatusException.class)
                 .satisfies(error -> assertThat(((ResponseStatusException) error).getStatusCode())
                         .isEqualTo(HttpStatus.FORBIDDEN));

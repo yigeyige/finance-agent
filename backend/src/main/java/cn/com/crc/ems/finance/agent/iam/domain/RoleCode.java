@@ -9,7 +9,6 @@ package cn.com.crc.ems.finance.agent.iam.domain;
  * @Date: 2026-10-11 21:28:41
  */
 public enum RoleCode {
-    OPERATOR,
-    VIEWER,
-    PLATFORM_ADMIN
+    PLATFORM_ADMIN,
+    PLATFORM_USER
 }
