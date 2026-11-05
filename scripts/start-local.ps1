@@ -78,24 +78,33 @@ function Start-LocalProcess {
 
     $escapedExecutable = $Executable.Replace("'", "''")
     $escapedArguments = $Arguments | ForEach-Object { "'" + $_.Replace("'", "''") + "'" }
-    $commandText = "& '$escapedExecutable' @(" + ($escapedArguments -join ", ") + ")"
+    $helperPath = (Join-Path $PSScriptRoot 'rolling-local-process.ps1').Replace("'", "''")
+    $escapedLogDirectory = $logDirectory.Replace("'", "''")
+    $escapedLogPrefix = $LogPrefix.Replace("'", "''")
+    $commandText = "& '$helperPath' -Executable '$escapedExecutable' -ChildArguments @(" +
+        ($escapedArguments -join ", ") + ") -LogDirectory '$escapedLogDirectory' -LogPrefix '$escapedLogPrefix'"
     $hostExecutable = (Get-Process -Id $PID).Path
-    $standardOutputPath = Join-Path $logDirectory "$LogPrefix.out.log"
-    $standardErrorPath = Join-Path $logDirectory "$LogPrefix.err.log"
 
     $process = Start-Process -FilePath $hostExecutable `
         -ArgumentList @("-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", $commandText) `
         -WorkingDirectory $WorkingDirectory `
         -WindowStyle Hidden `
-        -RedirectStandardOutput $standardOutputPath `
-        -RedirectStandardError $standardErrorPath `
         -PassThru
     Write-Host "$Name 已在后台启动（PID $($process.Id)）。"
-    return @($standardOutputPath, $standardErrorPath)
+    return $logDirectory
 }
 
 Import-DotEnv -Path $dotenvPath
 New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null
+if ([string]::IsNullOrWhiteSpace($env:FINANCE_AGENT_LOG_ROOT)) {
+    $env:FINANCE_AGENT_LOG_ROOT = Join-Path $repoRoot '.runtime\app-logs'
+}
+if ([string]::IsNullOrWhiteSpace($env:FINANCE_AGENT_LOCAL_LOG_ROOT)) {
+    $env:FINANCE_AGENT_LOCAL_LOG_ROOT = $logDirectory
+}
+if ([string]::IsNullOrWhiteSpace($env:FINANCE_AGENT_SCHEDULE_ROOT)) {
+    $env:FINANCE_AGENT_SCHEDULE_ROOT = Join-Path $repoRoot '.runtime\scheduled-jobs'
+}
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $createdLogPaths = @()
 

@@ -71,6 +71,12 @@ Write-Output "jar=$jarPath"
 Write-Output "jarSha256=$jarHash"
 
 if ($BuildDocker) {
+    $dockerJarPath = Join-Path $repoRoot "deploy\artifacts\app.jar"
+    New-Item -ItemType Directory -Path (Split-Path -Parent $dockerJarPath) -Force | Out-Null
+    Copy-Item -LiteralPath $jarPath -Destination $dockerJarPath -Force
+    if ((Get-FileHash -LiteralPath $dockerJarPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $jarHash) {
+        throw "Docker 构建用 JAR 与本次构建产物不一致"
+    }
     $backendImageTag = "$BackendImageRepository`:$version"
     $frontendImageTag = "$FrontendImageRepository`:$version"
     & $DockerCommand build (Join-Path $repoRoot ".") -f (Join-Path $repoRoot "deploy\backend.Dockerfile") "--build-arg" "APP_VERSION=$version" "-t" $backendImageTag

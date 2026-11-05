@@ -49,6 +49,8 @@ services:
       FINANCE_AGENT_IDENTITY_SEED_ENABLED: "false"
       FINANCE_AGENT_STORAGE_MODE: local
       FINANCE_AGENT_WORKSPACE_ROOT: /opt/finance-agent/.runtime/finance-agent
+      FINANCE_AGENT_LOG_ROOT: /opt/finance-agent/.runtime/app-logs
+      FINANCE_AGENT_SCHEDULE_ROOT: /opt/finance-agent/.runtime/scheduled-jobs
     volumes:
       - backend-runtime:/opt/finance-agent/.runtime
     depends_on:

@@ -35,6 +35,9 @@
         <el-menu-item v-if="isPlatformAdmin" index="/latest-exception">
           <span slot="title">异常堆栈</span>
         </el-menu-item>
+        <el-menu-item v-if="isPlatformAdmin" index="/scheduled-jobs">
+          <span slot="title">调度任务</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>

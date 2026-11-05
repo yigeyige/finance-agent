@@ -64,6 +64,15 @@ class FlywayMigrationContractTest {
         assertThat(FlywayMigrationRunner.MigrationMode.fromArgument("--unknown")).isNull();
     }
 
+    @Test
+    void retentionMigrationRestrictsAuditDeletionToCleanupAndKeepsConfigOutsideCascade() {
+        String sql = read("db/migration/V54__scheduled_retention_cleanup.sql");
+        assertThat(sql).contains("finance_agent.retention_cleanup", "ON DELETE CASCADE",
+                "task.investigation_task", "governance.reject_audit_mutation");
+        assertThat(sql).doesNotContain("iam.agent_user", "task.business_scene_skill_attachment",
+                "knowledge.document");
+    }
+
     private static String read(String resource) {
         try (InputStream stream = FlywayMigrationContractTest.class.getClassLoader().getResourceAsStream(resource)) {
             if (stream == null) {

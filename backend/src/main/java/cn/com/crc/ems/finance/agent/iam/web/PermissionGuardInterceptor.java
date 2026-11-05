@@ -46,6 +46,8 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
                 && !path.startsWith("/api/v1/ems-database-configurations")
                 && !path.startsWith("/api/v1/data-exploration")
                 && !path.startsWith("/api/v1/latest-exception")
+                && !path.startsWith("/api/v1/retention-runs")
+                && !path.startsWith("/api/v1/scheduled-jobs")
                 && !path.startsWith("/api/tasks/")) {
             return true;
         }
@@ -79,6 +81,12 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
         }
         if (path.startsWith("/api/v1/latest-exception") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权查看异常堆栈");
+        }
+        if (path.startsWith("/api/v1/retention-runs") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
+            return reject(response, HttpStatus.FORBIDDEN, "当前身份无权查看清理日志");
+        }
+        if (path.startsWith("/api/v1/scheduled-jobs") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
+            return reject(response, HttpStatus.FORBIDDEN, "当前身份无权管理调度任务");
         }
         if (path.startsWith("/api/tasks/") && !identity.hasRole(RoleCode.OPERATOR)
                 && !identity.hasRole(RoleCode.VIEWER)) {

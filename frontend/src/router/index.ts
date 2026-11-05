@@ -15,6 +15,7 @@ import ModelConfiguration from '../views/ModelConfiguration.vue'
 import EmsDatabaseConfiguration from '../views/EmsDatabaseConfiguration.vue'
 import DataExploration from '../views/DataExploration.vue'
 import LatestException from '../views/LatestException.vue'
+import RetentionRuns from '../views/RetentionRuns.vue'
 import Login from '../views/Login.vue'
 import { IdentityPermission } from '../api/generated'
 import { ensureCurrentIdentity, hasPermission } from '../services/identity'
@@ -52,6 +53,10 @@ const router = new Router({
     {
       path: '/latest-exception', name: 'latest-exception', component: LatestException,
       meta: { title: '异常堆栈', permission: 'CONFIG_MANAGE', requiredRole: 'PLATFORM_ADMIN' },
+    },
+    {
+      path: '/scheduled-jobs', name: 'scheduled-jobs', component: RetentionRuns,
+      meta: { title: '调度任务', permission: 'CONFIG_MANAGE', requiredRole: 'PLATFORM_ADMIN' },
     },
     {
       path: '/tasks/:taskId/evidence',
