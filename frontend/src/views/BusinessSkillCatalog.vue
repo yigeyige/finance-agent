@@ -25,7 +25,7 @@
             </el-table-column>
             <el-table-column label="操作" width="190" align="center">
               <template slot-scope="scope">
-                <el-button type="text" @click="startHandling(scope.row)">开始处理</el-button>
+                <el-button type="text" @click="startHandling(scope.row)">业务处理</el-button>
                 <el-button v-if="canManage(scope.row)" type="text" @click="openEditDialog(scope.row)">编辑</el-button>
                 <el-button v-if="canManage(scope.row)" type="text" class="skill-delete-action" @click="confirmDelete(scope.row)">删除</el-button>
               </template>
@@ -157,7 +157,7 @@ export default Vue.extend({
       this.form = emptyForm()
       this.dialogVisible = true
     },
-    /** 从当前 Skill 发起业务处理，保留其标识供任务创建持久化。 */
+    /** 从当前业务场景发起业务处理，携带场景标识供业务处理页自动回填。 */
     startHandling(skill: BusinessSceneSkill) {
       void this.$router.push({ path: '/', query: { skillId: skill.skillId, draft: String(Date.now()) } })
     },
