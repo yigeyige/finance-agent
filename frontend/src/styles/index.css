@@ -23,6 +23,7 @@ body,
   min-height: 100vh;
 }
 
+/* 侧栏采用浅色底与右侧分隔线，选中态由橙色胶囊承担视觉强调。 */
 .workbench-sidebar {
   position: sticky;
   top: 0;
@@ -31,7 +32,8 @@ body,
   min-height: 100vh;
   overflow-y: auto;
   flex-shrink: 0;
-  background: #172033;
+  background: #ffffff;
+  border-right: 1px solid #e8ecf2;
 }
 
 .brand {
@@ -40,7 +42,7 @@ body,
   gap: 12px;
   height: 72px;
   padding: 0 24px;
-  color: #ffffff;
+  color: #4a4d55;
 }
 
 .brand-mark {
@@ -50,7 +52,8 @@ body,
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: #3d8bff;
+  background: #f9b334;
+  color: #ffffff;
   font-size: 18px;
   font-weight: 700;
 }
@@ -61,8 +64,32 @@ body,
   letter-spacing: 0.03em;
 }
 
+/* 菜单条目改为圆角胶囊；激活项与悬停态用内联样式无法表达，需提高优先级覆盖 Element UI。 */
 .workbench-sidebar .el-menu {
+  padding: 8px 12px;
   border-right: 0;
+}
+
+.workbench-sidebar .el-menu-item {
+  height: 44px;
+  line-height: 44px;
+  margin: 4px 0;
+  padding: 0 14px !important;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.workbench-sidebar .el-menu-item:hover {
+  background-color: #fff5e4 !important;
+  color: #4a4d55 !important;
+}
+
+.workbench-sidebar .el-menu-item.is-active,
+.workbench-sidebar .el-menu-item.is-active:hover {
+  background: linear-gradient(90deg, #fbc35e 0%, #f9b334 100%) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(249, 179, 52, 0.3);
 }
 
 .workbench-header {
@@ -82,7 +109,7 @@ body,
 
 .workbench-header h1 {
   margin: 0;
-  color: #172033;
+  color: #4a4d55;
   font-size: 22px;
   font-weight: 600;
 }
@@ -298,13 +325,14 @@ body,
   margin-left: 0;
 }
 
+/* 页面级与分区小标题统一使用 #4a4d55，保持字号不变。 */
 .page-heading h2,
 .result-heading h3,
 .card-heading h3,
 .card-heading h4,
 .step-intro h3 {
   margin: 0;
-  color: #172033;
+  color: #4a4d55;
 }
 
 .page-description,
@@ -341,7 +369,7 @@ body,
   margin-bottom: 14px;
   padding: 10px 16px;
   border: 1px solid #e7dfd4;
-  border-top: 3px solid #dd7a13;
+  border-top: 3px solid #f9b334;
   border-radius: 12px;
   background: #fffdf9;
   box-shadow: 0 6px 16px rgba(83, 70, 48, 0.05);
@@ -349,6 +377,22 @@ body,
 
 .workflow-steps-bar .el-steps {
   margin: 0;
+}
+
+/* 步骤条当前步骤文字与图标统一为 #4a4d55，与页面标题的深色层级保持一致。 */
+.workflow-steps-bar .el-step__title.is-process,
+.workflow-steps-bar .el-step__description.is-process,
+.workflow-steps-bar .el-step__head.is-process {
+  color: #4a4d55;
+  border-color: #4a4d55;
+}
+
+/* 已完成步骤沿用主题橙 #f9b334，与步骤条上边框强调色一致。 */
+.workflow-steps-bar .el-step__title.is-finish,
+.workflow-steps-bar .el-step__description.is-finish,
+.workflow-steps-bar .el-step__head.is-finish {
+  color: #f9b334;
+  border-color: #f9b334;
 }
 
 /* 收紧业务处理表单与面板的纵向间距，降低整页高度。 */
@@ -630,7 +674,7 @@ body,
 /* 统一分区标题边距，避免浏览器默认 h4 留白过大。 */
 .guidance-result-panel > h4 {
   margin: 0 0 10px;
-  color: #172033;
+  color: #4a4d55;
   font-size: 15px;
   font-weight: 600;
 }
@@ -646,7 +690,7 @@ body,
 
 .handling-form-panel__heading h4 {
   margin: 0;
-  color: #172033;
+  color: #4a4d55;
   font-size: 15px;
   font-weight: 600;
 }

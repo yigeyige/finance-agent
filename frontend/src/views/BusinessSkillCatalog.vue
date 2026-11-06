@@ -2,7 +2,7 @@
 <template>
   <section class="evidence-page list-page skill-catalog entry-page">
     <div class="page-heading entry-page-heading">
-      <h2>业务场景技能</h2>
+      <h2>业务场景</h2>
     </div>
 
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />

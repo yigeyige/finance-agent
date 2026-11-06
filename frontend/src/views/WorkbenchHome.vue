@@ -30,8 +30,8 @@
             <el-form-item label="业务说明" class="task-intake-form__wide">
               <el-input v-model.trim="form.question" type="textarea" :rows="8" />
             </el-form-item>
-            <el-form-item label="业务场景 Skill">
-              <el-select v-model="selectedSkillId" clearable filterable placeholder="选择业务场景 Skill（可选）" :loading="sceneSkillsLoading">
+            <el-form-item label="业务场景">
+              <el-select v-model="selectedSkillId" clearable filterable placeholder="选择业务场景（可选）" :loading="sceneSkillsLoading">
                 <el-option v-for="skill in sceneSkills" :key="skill.skillId" :label="skill.name" :value="skill.skillId" />
               </el-select>
             </el-form-item>
@@ -68,7 +68,7 @@
                   <el-form-item label="业务说明">
                     <el-input v-model.trim="form.question" type="textarea" :rows="3" :disabled="saving || chatLoading || packetLoading || Boolean(decisionPacket)" />
                   </el-form-item>
-                  <el-form-item label="业务场景 Skill">
+                  <el-form-item label="业务场景">
                     <el-select v-model="selectedSkillId" clearable filterable :loading="sceneSkillsLoading" :disabled="saving || chatLoading || packetLoading || Boolean(decisionPacket)">
                       <el-option v-for="skill in sceneSkills" :key="skill.skillId" :label="skill.name" :value="skill.skillId" />
                     </el-select>

@@ -9,19 +9,19 @@
       </div>
       <el-menu
         :default-active="$route.path"
-        background-color="#172033"
-        text-color="#b8c4d9"
+        background-color="#ffffff"
+        text-color="#4a4d55"
         active-text-color="#ffffff"
         @select="handleNavigationSelect"
       >
         <el-menu-item v-if="canReadTasks" index="/">
-          <span slot="title">新建业务处理</span>
+          <span slot="title">业务处理</span>
         </el-menu-item>
         <el-menu-item v-if="canReadTasks" index="/tasks">
           <span slot="title">任务列表</span>
         </el-menu-item>
         <el-menu-item v-if="canReadTasks" index="/business-skills">
-          <span slot="title">业务场景技能</span>
+          <span slot="title">业务场景</span>
         </el-menu-item>
         <el-menu-item v-if="canManageConfig" index="/model-configurations">
           <span slot="title">大模型配置</span>

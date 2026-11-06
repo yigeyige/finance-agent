@@ -17,7 +17,7 @@
           <div class="task-list-filter-actions" aria-label="任务操作">
             <el-button type="primary" @click="searchTasks">查询</el-button>
             <el-button @click="resetFilters">重置</el-button>
-            <el-button type="primary" plain @click="startNewHandling">新建业务处理</el-button>
+            <el-button type="primary" plain @click="startNewHandling">业务处理</el-button>
           </div>
         </el-form>
       </section>
