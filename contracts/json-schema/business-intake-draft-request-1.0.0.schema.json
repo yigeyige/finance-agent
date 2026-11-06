@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://finance-agent/business-intake-draft-request/1.0.0",
+  "x-contract-version": "1.0.0",
+  "title": "AI 预填请求",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "text"
+  ],
+  "properties": {
+    "text": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 2000,
+      "description": "用户输入的业务描述，原文会发送给当前启用的模型"
+    }
+  }
+}

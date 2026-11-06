@@ -305,6 +305,11 @@ body,
   border-top: 1px solid #e8e1d8;
 }
 
+/* 指令接管定位后禁用 Element 默认 margin-top，避免重渲染瞬间把窗口顶下去。 */
+.workbench-dialog-interactive {
+  margin-top: 0 !important;
+}
+
 .workbench-dialog-form .el-form-item {
   margin-bottom: 18px;
 }

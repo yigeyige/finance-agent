@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://finance-agent/business-intake-draft/1.0.0",
+  "x-contract-version": "1.0.0",
+  "title": "AI 预填解析结果",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "title",
+    "description",
+    "sceneSkillId",
+    "sceneSkillName",
+    "databaseConfigId",
+    "databaseName"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "maxLength": 300
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 8000
+    },
+    "sceneSkillId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "未命中或重名时为 null"
+    },
+    "sceneSkillName": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "databaseConfigId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "databaseName": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

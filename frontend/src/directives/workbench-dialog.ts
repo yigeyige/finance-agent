@@ -2,7 +2,7 @@
 import Vue, { DirectiveOptions, VNode } from 'vue'
 import { constrainDialog, DialogRect } from '../utils/workbench-preferences'
 
-interface DialogInstance extends Vue { visible: boolean }
+interface DialogInstance extends Vue { visible: boolean; top: string; width: string }
 const cleanups = new WeakMap<HTMLElement, () => void>()
 
 /** 绑定一个业务弹窗，所有窗口操作共用视口边界约束。 */
@@ -12,6 +12,9 @@ function attach(el: HTMLElement, vnode: VNode): void {
   const header = dialog?.querySelector<HTMLElement>('.el-dialog__header')
   if (!vm || !dialog || !header) return
   const panel = dialog
+  /** 记录 Element 原始的 width/top 绑定，关闭时恢复默认尺寸与定位。 */
+  const originalTop = vm.top
+  const originalWidth = vm.width
   let originalStyle = panel.getAttribute('style') || ''
   let previousRect: DialogRect | null = null
   let activePointer: number | null = null
@@ -46,6 +49,10 @@ function attach(el: HTMLElement, vnode: VNode): void {
       position: 'fixed', margin: '0', left: `${next.left}px`, top: `${next.top}px`,
       width: `${next.width}px`, height: `${next.height}px`,
     })
+    // Element 用 vnode style 绑定 width/marginTop，重渲染会覆盖手势结果；同步回组件 props 才能保持稳定。
+    if (vm!.top !== '0px') vm!.top = '0px'
+    const width = `${next.width}px`
+    if (vm!.width !== width) vm!.width = width
   }
   /** 同步最大化按钮中文名称及缩放柄状态。 */
   function updateControls(): void {
@@ -140,6 +147,8 @@ function attach(el: HTMLElement, vnode: VNode): void {
   function reset(): void {
     stopDrag?.()
     previousRect = null
+    vm!.top = originalTop
+    vm!.width = originalWidth
     panel.setAttribute('style', originalStyle)
     updateControls()
   }

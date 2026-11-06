@@ -2,10 +2,10 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Finance Operations Agent API",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "description": "财务共享智能运维 Agent P0 API 契约。"
   },
-  "x-contract-version": "1.5.0",
+  "x-contract-version": "1.6.0",
   "servers": [
     {
       "url": "/"
@@ -545,6 +545,22 @@
           "401": {"$ref": "#/components/responses/Unauthorized"},
           "403": {"$ref": "#/components/responses/Forbidden"},
           "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      }
+    },
+    "/api/v1/business-intake/draft": {
+      "post": {
+        "operationId": "draftBusinessIntake",
+        "summary": "把自由文本解析为业务处理表单字段",
+        "security": [{"unifiedAuth": ["PLATFORM_USER"]}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "../json-schema/business-intake-draft-request-1.0.0.schema.json"}}}},
+        "responses": {
+          "200": {"description": "解析结果，供前端只读预览；未匹配的场景/实例为 null", "content": {"application/json": {"schema": {"$ref": "../json-schema/business-intake-draft-1.0.0.schema.json"}}}},
+          "400": {"$ref": "#/components/responses/ContractError"},
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "403": {"$ref": "#/components/responses/Forbidden"},
+          "502": {"description": "模型或提示词暂时不可用"},
+          "504": {"description": "模型响应超时"}
         }
       }
     },

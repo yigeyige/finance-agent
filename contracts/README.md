@@ -43,3 +43,7 @@ OpenAPI 1.4.0 新增 `GET /api/v1/model-runtime`，仅允许 OPERATOR 与继承�
 ## 模型 token 用量
 
 OpenAPI 1.5.0 新增 `GET /api/v1/usage/tokens`，登录用户可读，角色差异由服务端体现：普通用户返回本人用量，平台管理员返回全平台用量。响应遵循 `token-usage-summary-1.0.0.schema.json`，固定返回最近 30 个自然日（按 `Asia/Shanghai` 切分、含今天、缺失日期补 0）的 `totalTokens` 与 `points`；只统计成功返回 usage 的真实模型调用，不含 STUB 模拟调用、失败调用和命中缓存的选表请求。
+
+## AI 预填
+
+OpenAPI 1.6.0 新增 `POST /api/v1/business-intake/draft`，要求登录的 `PLATFORM_USER`（管理员继承）。请求遵循 `business-intake-draft-request-1.0.0.schema.json`（10–2000 字），响应遵循 `business-intake-draft-1.0.0.schema.json`：解析出业务标题与说明，并按启用中的业务场景/数据库实例名称精确匹配；未命中或重名返回 `null`。该接口不创建任务、不访问 EMS 数据库；模型超时 60 秒，超时返回 504，模型或提示词不可用返回 502。

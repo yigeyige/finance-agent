@@ -46,7 +46,10 @@
               </el-upload>
               <p class="attachment-note">最多 3 个附件，单个不超过 1 MB，支持 txt、md、csv、json、xls、xlsx 格式。</p>
             </el-form-item>
-            <div class="task-intake-form__wide form-actions"><el-button type="primary" :loading="saving" @click="createTaskDraft">开始模型分析</el-button></div>
+            <div class="task-intake-form__wide form-actions">
+              <el-button class="intake-prefill-trigger" :disabled="intakeTriggerDisabled" @click="openIntakeDialog">AI 预填</el-button>
+              <el-button type="primary" :loading="saving" @click="createTaskDraft">开始模型分析</el-button>
+            </div>
           </el-form>
 
           <!-- 第二步：确认任务信息、查看跨轮证据，通过右侧会话持续协作。 -->
@@ -198,18 +201,47 @@
         <workbench-chat v-model="chatMessage" :messages="chatMessages" :placeholder="chatPlaceholder" :enabled="activeStep === 1 && Boolean(guidance) && !saving && !packetLoading" :loading="chatLoading" :analyzing="modelLoading" :runtime-model="runtimeModel" :runtime-loading="runtimeModelLoading" :metadata="lastModelMetadata" @send="reviseGuidance" />
       </el-col>
     </el-row>
+
+    <!-- AI 预填：解析结果只读预览，确认后才写回表单。 -->
+    <el-dialog v-workbench-dialog custom-class="workbench-dialog intake-dialog" title="AI 预填" :visible.sync="intakeDialogVisible" width="640px" :close-on-click-modal="false" :close-on-press-escape="!intakeLoading">
+      <div class="intake-dialog__body">
+        <p class="intake-dialog__hint">粘贴或输入业务描述，模型会解析出业务标题与说明，并按需匹配业务场景和数据库实例。内容会发送给当前启用的模型进行解析。</p>
+        <el-input v-model="intakeText" type="textarea" maxlength="2000" show-word-limit :disabled="intakeLoading" placeholder="例如：核查 2026 年 9 月费用报销中同一审批人重复审批的单据，涉及报销单号与金额。" />
+        <p v-if="intakeError" class="intake-dialog__error">{{ intakeError }}</p>
+        <section v-if="intakeDraft" class="intake-dialog__preview">
+          <h4>解析结果</h4>
+          <dl>
+            <dt>业务标题</dt>
+            <dd>{{ intakeDraft.title || '—' }}</dd>
+            <dt>业务说明</dt>
+            <dd class="intake-dialog__description">{{ intakeDraft.description || '—' }}</dd>
+            <dt>业务场景</dt>
+            <dd>{{ intakeDraft.sceneSkillName || '—' }}</dd>
+            <dt>数据库实例</dt>
+            <dd>{{ intakeDraft.databaseName || '—' }}</dd>
+          </dl>
+        </section>
+      </div>
+      <span slot="footer" class="workbench-dialog__actions">
+        <el-button :disabled="intakeLoading" @click="intakeDialogVisible = false">取消</el-button>
+        <el-button v-if="intakeDraft" :disabled="intakeLoading" @click="submitIntake">重新解析</el-button>
+        <el-button v-if="intakeDraft" type="primary" @click="applyIntakeDraft">应用到表单</el-button>
+        <el-button v-else type="primary" :loading="intakeLoading" @click="submitIntake">开始解析</el-button>
+      </span>
+    </el-dialog>
   </section>
 </template>
 <script lang="ts">
 import Vue from 'vue'
 import WorkbenchChat from '../components/WorkbenchChat.vue'
-import { DraftEvidence, TaskResponse, ModelCallMetadata, ModelRuntimeSummary, ProcessArtifactPlan } from '../api/generated'
+import { DraftEvidence, TaskResponse, ModelCallMetadata, ModelRuntimeSummary, ProcessArtifactPlan, BusinessIntakeDraft } from '../api/generated'
 import { DEFAULT_RUNTIME_BUNDLE_ID } from '../services/business-workflow'
 import { getCurrentIdentity } from '../services/identity'
 import { BusinessDecisionPacketResponse, BusinessEvidenceAccumResponse, BusinessGuidanceResponse, generateBusinessDecisionPacket, generateBusinessGuidance, getBusinessEvidenceAccums, getGuidanceProgress, getModelRuntimeSummary, reviseBusinessGuidance } from '../services/model-api'
 import { BusinessSceneSkill, listBusinessSceneSkills } from '../services/business-skill-api'
 import { EmsDatabaseInstance, listEnabledDatabaseInstances } from '../services/ems-database-config-api'
 import { createTask, isStaleError, updateTask } from '../services/task-api'
+import { requestBusinessIntakeDraft } from '../services/business-intake-api'
 import { ProcessArtifactBatch, ProcessArtifactFileInfo, generateProcessArtifacts, listProcessArtifacts, downloadProcessArtifact } from '../services/process-artifact-api'
 import { fieldAnnotation, fieldTooltip } from '../constants/field-labels'
 interface Form { title: string; question: string; subjectKey: string }
@@ -221,7 +253,7 @@ const PROCESS_SKILL_ID = 'a6a050ae-b699-4ca0-af72-4381e990eda0'
 const createInitialForm = (): Form => ({ title: '', question: '', subjectKey: '' })
 /** 仅接受后端可受控分析的文本附件，避免浏览器选择无效格式。 */
 const isSupportedAttachment = (file: AttachmentFile): boolean => { const extension = file.name.split('.').pop()?.toLowerCase(); return Boolean(file.raw) && file.size !== 0 && file.size !== undefined && file.size <= 1024 * 1024 && Boolean(extension && ATTACHMENT_EXTENSIONS.includes(extension)) }
-export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }, data() { return { PROCESS_SKILL_ID, artifactBatches: [] as ProcessArtifactBatch[], artifactLoading: false, selectedKinds: ['MODEL'] as string[], showPrevious: false, runtimeModel: null as ModelRuntimeSummary | null, runtimeModelLoading: false, lastModelMetadata: null as ModelCallMetadata | null, activeStep: 0, saving: false, modelLoading: false, chatLoading: false, task: null as TaskResponse | null, guidance: null as BusinessGuidanceResponse | null, chatMessage: '', chatMessages: [] as Chat[], attachmentFiles: [] as AttachmentFile[], sceneSkills: [] as BusinessSceneSkill[], selectedSkillId: '', sceneSkillsLoading: false, databaseInstances: [] as EmsDatabaseInstance[], selectedDatabaseConfigId: '', progressStage: '', progressTimer: null as ReturnType<typeof setInterval> | null, errorMessage: '', accumulatedEvidence: [] as BusinessEvidenceAccumResponse[], decisionPacket: null as BusinessDecisionPacketResponse | null, packetLoading: false, form: createInitialForm() } }, computed: { /** 返回本次模型输出规范化警告，供页面提示使用。 */ guidanceWarnings(): string[] { return this.guidance?.warnings ?? [] }, /** 将调查结论按分号/句号换行，便于管理员逐条阅读。 */ conclusionText(): string { const text = this.decisionPacket && this.decisionPacket.content ? this.decisionPacket.content.conclusion : ''; return text.replace(/([；;。])\s*/g, '$1\n').trim() }, /** 依据补充证据标记切换聊天框输入占位提示。 */ chatPlaceholder(): string { return this.guidance?.needMoreEvidence ? '可继续在聊天框发送修改意见补充证据' : '补充信息，或说说希望如何调整方案' } }, created() { void this.loadSceneSkills(); void this.loadDatabaseInstances(); void this.loadRuntimeModel() }, /** 返回缓存页时刷新当前启用的模型摘要。 */ activated() { void this.loadRuntimeModel() }, /** 组件销毁前清理进度轮询定时器，避免离开页面产生僵尸请求。 */ beforeDestroy() { this.stopProgressPolling() }, watch: { /** 仅响应显式新建入口的草稿标识，普通导航继续保留当前向导状态。 */ '$route.query.draft'(): void { this.resetDraft() } },   methods: {
+export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }, data() { return { PROCESS_SKILL_ID, artifactBatches: [] as ProcessArtifactBatch[], artifactLoading: false, selectedKinds: ['MODEL'] as string[], showPrevious: false, runtimeModel: null as ModelRuntimeSummary | null, runtimeModelLoading: false, lastModelMetadata: null as ModelCallMetadata | null, activeStep: 0, saving: false, modelLoading: false, chatLoading: false, task: null as TaskResponse | null, guidance: null as BusinessGuidanceResponse | null, chatMessage: '', chatMessages: [] as Chat[], attachmentFiles: [] as AttachmentFile[], sceneSkills: [] as BusinessSceneSkill[], selectedSkillId: '', sceneSkillsLoading: false, databaseInstances: [] as EmsDatabaseInstance[], selectedDatabaseConfigId: '', progressStage: '', progressTimer: null as ReturnType<typeof setInterval> | null, errorMessage: '', accumulatedEvidence: [] as BusinessEvidenceAccumResponse[], decisionPacket: null as BusinessDecisionPacketResponse | null, packetLoading: false, form: createInitialForm(), intakeDialogVisible: false, intakeText: '', intakeLoading: false, intakeError: '', intakeDraft: null as BusinessIntakeDraft | null } }, computed: { /** 返回本次模型输出规范化警告，供页面提示使用。 */ guidanceWarnings(): string[] { return this.guidance?.warnings ?? [] }, /** 将调查结论按分号/句号换行，便于管理员逐条阅读。 */ conclusionText(): string { const text = this.decisionPacket && this.decisionPacket.content ? this.decisionPacket.content.conclusion : ''; return text.replace(/([；;。])\s*/g, '$1\n').trim() }, /** 依据补充证据标记切换聊天框输入占位提示。 */ chatPlaceholder(): string { return this.guidance?.needMoreEvidence ? '可继续在聊天框发送修改意见补充证据' : '补充信息，或说说希望如何调整方案' }, /** 有进行中的模型或任务写请求时禁用预填入口，避免并发调用。 */ intakeTriggerDisabled(): boolean { return this.saving || this.modelLoading || this.chatLoading || this.packetLoading } }, created() { void this.loadSceneSkills(); void this.loadDatabaseInstances(); void this.loadRuntimeModel() }, /** 返回缓存页时刷新当前启用的模型摘要。 */ activated() { void this.loadRuntimeModel() }, /** 组件销毁前清理进度轮询定时器，避免离开页面产生僵尸请求。 */ beforeDestroy() { this.stopProgressPolling() }, watch: { /** 仅响应显式新建入口的草稿标识，普通导航继续保留当前向导状态。 */ '$route.query.draft'(): void { this.resetDraft() } },   methods: {
     /** 返回字段路径与中文注释。 */
     fieldAnnotation,
     /** 返回字段中文说明，用于提示。 */
@@ -230,6 +262,9 @@ export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }
   /** 读取安全运行摘要，失败不阻断业务表单，也不访问管理员配置列表。 */ async loadRuntimeModel(): Promise<void> { if (this.runtimeModelLoading) return; this.runtimeModelLoading = true; try { this.runtimeModel = await getModelRuntimeSummary() } catch { this.runtimeModel = null } finally { this.runtimeModelLoading = false } },
   /** 加载业务场景 Skill 列表供第一步选择，失败时保留空列表并提示。 */ async loadSceneSkills(): Promise<void> { this.sceneSkillsLoading = true; this.errorMessage = ''; try { this.sceneSkills = await listBusinessSceneSkills(); this.applyRouteSceneSkill() } catch (error: unknown) { this.sceneSkills = []; this.errorMessage = error instanceof Error ? error.message : '业务场景列表暂时无法读取' } finally { this.sceneSkillsLoading = false } },
   /** 从路由查询参数回填业务场景，从业务场景列表进入业务处理后无需再次手动选择。 */ applyRouteSceneSkill(): void { const raw = this.$route?.query?.skillId; const skillId = Array.isArray(raw) ? raw[0] : raw; if (typeof skillId === 'string' && skillId) this.selectedSkillId = skillId },
+  /** 打开 AI 预填弹窗，默认带入当前业务说明，便于基于已有内容解析。 */ openIntakeDialog(): void { this.intakeDialogVisible = true; this.intakeError = ''; this.intakeDraft = null; if (!this.intakeText) this.intakeText = this.form.question },
+  /** 提交自由文本请求模型解析，结果只进入预览，不直接改表单。 */ async submitIntake(): Promise<void> { if (this.intakeLoading) return; const text = this.intakeText.trim(); if (text.length < 10 || text.length > 2000) { this.intakeError = 'AI 预填内容需为 10–2000 字'; return } this.intakeLoading = true; this.intakeError = ''; try { this.intakeDraft = await requestBusinessIntakeDraft(text) } catch (error: unknown) { this.intakeDraft = null; this.intakeError = error instanceof Error ? error.message : 'AI 预填暂时不可用，请稍后重试' } finally { this.intakeLoading = false } },
+  /** 应用只读预览：非空字段覆盖表单，空字段保留原值。 */ applyIntakeDraft(): void { if (!this.intakeDraft) return; if (this.intakeDraft.title) this.form.title = this.intakeDraft.title; if (this.intakeDraft.description) this.form.question = this.intakeDraft.description; if (this.intakeDraft.sceneSkillId) this.selectedSkillId = this.intakeDraft.sceneSkillId; if (this.intakeDraft.databaseConfigId) this.selectedDatabaseConfigId = this.intakeDraft.databaseConfigId; this.intakeDialogVisible = false },
   /** 加载启用数据库实例列表供第一步选择，失败时保留空列表不阻断创建。 */ async loadDatabaseInstances(): Promise<void> { try { this.databaseInstances = await listEnabledDatabaseInstances() } catch { this.databaseInstances = [] } },
   /** 校验并保存当前选择的本地附件，不在浏览器读取附件正文。 */ selectAttachment(file: AttachmentFile, fileList: AttachmentFile[]): void { if (!isSupportedAttachment(file)) { this.errorMessage = '附件需为非空的 txt、md、csv、json、xls、xlsx 文件，且单个不超过 1 MB'; this.attachmentFiles = fileList.filter(item => item !== file); return } if (fileList.length > 3) { this.errorMessage = '最多可选择 3 个附件'; this.attachmentFiles = fileList.filter(item => item !== file); return } this.errorMessage = ''; this.attachmentFiles = fileList },
   /** 同步移除待分析附件，已创建的任务和模型草稿不受影响。 */ removeAttachment(file: AttachmentFile, fileList: AttachmentFile[]): void { this.attachmentFiles = fileList },
@@ -311,4 +346,20 @@ export default Vue.extend({ name: 'WorkbenchHome', components: { WorkbenchChat }
 .guidance-warning-alert { margin-bottom: 14px; }
 .guidance-warning-list { margin: 6px 0 0; padding-left: 18px; line-height: 1.6; }
 .field-path { margin-left: 6px; color: #9b948a; font-size: 12px; font-weight: 400; }
+/* AI 预填弹窗：说明、预览与错误提示沿用工作台暖色层级。 */
+.intake-prefill-trigger { margin-right: 10px; }
+/* 弹窗可拖动缩放：正文纵向撑满，输入框随窗口高度伸缩。 */
+::v-deep .intake-dialog { display: flex; flex-direction: column; }
+::v-deep .intake-dialog .el-dialog__body { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+.intake-dialog__body { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.intake-dialog__body ::v-deep .el-textarea { display: flex; flex-direction: column; flex: 1 1 0; min-height: 140px; }
+.intake-dialog__body ::v-deep .el-textarea__inner { height: 100% !important; resize: none; }
+.intake-dialog__hint { flex: none; margin: 0 0 12px; color: #8c8478; font-size: 13px; line-height: 1.7; }
+.intake-dialog__error { flex: none; margin: 10px 0 0; color: #c45656; font-size: 13px; }
+.intake-dialog__preview { flex: 0 0 auto; max-height: 45%; overflow-y: auto; margin-top: 14px; padding: 14px 16px; border: 1px solid #e7dfd4; border-radius: 10px; background: #fffaf1; }
+.intake-dialog__preview h4 { margin: 0 0 10px; color: #4a4d55; font-size: 15px; }
+.intake-dialog__preview dl { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 8px 12px; margin: 0; }
+.intake-dialog__preview dt { color: #8c8478; font-size: 13px; }
+.intake-dialog__preview dd { margin: 0; color: #303133; font-size: 13px; line-height: 1.7; word-break: break-word; }
+.intake-dialog__description { max-height: 180px; overflow-y: auto; white-space: pre-line; }
 </style>

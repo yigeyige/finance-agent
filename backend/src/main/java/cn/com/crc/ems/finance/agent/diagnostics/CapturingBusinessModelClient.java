@@ -13,6 +13,8 @@ import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseColumnMet
 import cn.com.crc.ems.finance.agent.iam.application.IdentityContext;
 import cn.com.crc.ems.finance.agent.task.application.InvestigationTaskRepository;
 import cn.com.crc.ems.finance.agent.emsdbconfig.application.EmsDatabaseTableMetadata;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeContext;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelCall;
@@ -90,6 +92,14 @@ public final class CapturingBusinessModelClient implements BusinessModelClient {
         BusinessModelCall<EmsDatabaseQueryPlan> result = capture(taskId,
                 () -> delegate.planEmsDatabaseQuery(context, tableCatalog, priorEvidence, tableColumns));
         recordUsage(taskId, result.metadata());
+        return result;
+    }
+
+    @Override
+    public BusinessModelResult<BusinessIntakeSuggestion> extractBusinessIntake(BusinessIntakeContext context) {
+        BusinessModelResult<BusinessIntakeSuggestion> result = capture(null,
+                () -> delegate.extractBusinessIntake(context));
+        recordUsage(null, result.metadata());
         return result;
     }
 

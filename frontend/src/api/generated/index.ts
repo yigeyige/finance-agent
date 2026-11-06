@@ -627,3 +627,34 @@ export function parseTokenUsageSummary(value: unknown): TokenUsageSummary {
   })
   return { scope: record.scope, totalTokens, points }
 }
+
+/** AI 预填结果：未匹配的场景/实例为 null，标题与说明可能为空字符串。 */
+export interface BusinessIntakeDraft {
+  title: string
+  description: string
+  sceneSkillId: string | null
+  sceneSkillName: string | null
+  databaseConfigId: string | null
+  databaseName: string | null
+}
+
+/** 校验 AI 预填响应，拒绝额外字段与错误类型。 */
+export function parseBusinessIntakeDraft(value: unknown): BusinessIntakeDraft {
+  const record = assertObjectFields(value,
+    ['title', 'description', 'sceneSkillId', 'sceneSkillName', 'databaseConfigId', 'databaseName'], 'AI 预填响应')
+  return {
+    title: requireString(record.title, '业务标题'),
+    description: requireString(record.description, '业务说明'),
+    sceneSkillId: optionalString(record.sceneSkillId, '业务场景标识'),
+    sceneSkillName: optionalString(record.sceneSkillName, '业务场景名称'),
+    databaseConfigId: optionalString(record.databaseConfigId, '数据库实例标识'),
+    databaseName: optionalString(record.databaseName, '数据库实例名称'),
+  }
+}
+
+/** 可选字符串字段：null/undefined 视为未匹配，其余必须为字符串。 */
+function optionalString(value: unknown, label: string): string | null {
+  if (value === null || value === undefined) return null
+  if (typeof value !== 'string') throw new Error(`${label}无效`)
+  return value
+}

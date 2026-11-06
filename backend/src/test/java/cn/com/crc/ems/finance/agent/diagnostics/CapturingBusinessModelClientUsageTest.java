@@ -58,6 +58,25 @@ class CapturingBusinessModelClientUsageTest {
     }
 
     @Test
+    void recordsTasklessIntakeCallForCurrentIdentity() {
+        UUID userId = UUID.randomUUID();
+        IdentityContext.set(new CurrentIdentity(userId, "subject", "测试用户", Set.of(RoleCode.PLATFORM_USER)));
+        BusinessModelClient delegate = mock(BusinessModelClient.class);
+        TokenUsageRecorder recorder = mock(TokenUsageRecorder.class);
+        BusinessModelResult<cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeSuggestion> intakeResult =
+                new BusinessModelResult<>(
+                        new cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeSuggestion("标题", "说明", "", ""),
+                        metadata(LIVE, 60));
+        when(delegate.extractBusinessIntake(any())).thenReturn(intakeResult);
+        CapturingBusinessModelClient client = client(delegate, recorder);
+
+        client.extractBusinessIntake(new cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeContext(
+                "需要核查费用报销中的重复审批单据", java.util.List.of(), java.util.List.of()));
+
+        verify(recorder).record(eq(userId), isNull(), eq("deepseek-chat"), eq(60), any());
+    }
+
+    @Test
     void skipsStubModeAndZeroTokens() {
         IdentityContext.set(new CurrentIdentity(UUID.randomUUID(), "subject", "测试用户",
                 Set.of(RoleCode.PLATFORM_USER)));

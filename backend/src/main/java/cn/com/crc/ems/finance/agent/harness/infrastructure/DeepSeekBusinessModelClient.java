@@ -20,6 +20,9 @@ import io.agentscope.core.model.ChatResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeContext;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeOption;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelCall;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelCallMetadata;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
@@ -58,6 +61,8 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeepSeekBusinessModelClient.class);
     /** 与前端模型请求超时一致：大输入/复杂流程下允许更长的推理与输出时间。 */
     private static final Duration TIMEOUT = Duration.ofSeconds(600);
+    /** AI 预填是交互前置动作，使用更短的独立超时。 */
+    private static final Duration INTAKE_TIMEOUT = Duration.ofSeconds(60);
     /**
      * 所有模型调用统一使用 128K 输出上限：选表/查询规划、初稿、决策包、流程文件生成都不再使用 16K。
      * deepseek-flash 官方最大输出 384K；128K 是当前统一的安全默认值，必要时可继续提高。
@@ -252,6 +257,71 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
         });
     }
 
+    @Override
+    public BusinessModelResult<BusinessIntakeSuggestion> extractBusinessIntake(BusinessIntakeContext context) {
+        ObjectNode input = JsonNodeFactory.instance.objectNode();
+        input.put("text", context.text());
+        input.set("sceneSkills", optionsJson(context.sceneSkills()));
+        input.set("databaseInstances", optionsJson(context.databaseInstances()));
+        String instruction = instruction("EXTRACT_BUSINESS_INTAKE", input);
+        return invokeIntake(instruction, input, node -> new BusinessIntakeSuggestion(
+                textValue(node, "title"), textValue(node, "description"),
+                textValue(node, "sceneSkillName"), textValue(node, "databaseName")));
+    }
+
+    /** 候选只传名称，避免把内部标识暴露给模型。 */
+    private static com.fasterxml.jackson.databind.node.ArrayNode optionsJson(List<BusinessIntakeOption> options) {
+        var array = JsonNodeFactory.instance.arrayNode();
+        options.forEach(option -> array.add(option.name()));
+        return array;
+    }
+
+    private static String textValue(JsonNode node, String field) {
+        JsonNode value = node == null ? null : node.get(field);
+        return value == null || value.isNull() ? "" : value.asText("");
+    }
+
+    /** AI 预填专用调用：独立 60s 超时与超时语义，不复用任务编排的 invokeInternal。 */
+    private <T> BusinessModelResult<T> invokeIntake(String instruction, ObjectNode input,
+            java.util.function.Function<JsonNode, T> parser) {
+        long started = System.nanoTime();
+        try {
+            ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER)
+                            .textContent(instruction).build()), List.of(),
+                    adapter.options(INTAKE_TIMEOUT, ResponseFormat.jsonObject(), null, DEFAULT_MAX_TOKENS))
+                    .blockLast(INTAKE_TIMEOUT.plusSeconds(2));
+            if (response == null) {
+                throw new BusinessModelException("模型暂时没有返回结果，请稍后重试");
+            }
+            String text = response.getContent().stream().filter(TextBlock.class::isInstance)
+                    .map(TextBlock.class::cast).map(TextBlock::getText).collect(Collectors.joining());
+            JsonNode output;
+            try {
+                output = CanonicalJsonCodec.parse(text);
+            } catch (RuntimeException parseException) {
+                LOGGER.warn("AI 预填输出解析失败: finishReason={}, chars={}, {}",
+                        response.getFinishReason(), text.length(), parseException.getMessage());
+                throw parseException;
+            }
+            T value = parser.apply(output);
+            int tokens = response.getUsage() == null ? 0 : response.getUsage().getTotalTokens();
+            return new BusinessModelResult<>(value, new BusinessModelCallMetadata("LIVE", adapter.modelName(),
+                    Sha256Digest.hex(CanonicalJsonCodec.canonicalize(input)),
+                    Sha256Digest.hex(CanonicalJsonCodec.canonicalize(output)), tokens,
+                    Duration.ofNanos(System.nanoTime() - started).toMillis()));
+        } catch (BusinessModelException exception) {
+            LOGGER.warn("AI 预填输出不符合契约: {}", describe(exception));
+            throw exception;
+        } catch (RuntimeException exception) {
+            LOGGER.warn("AI 预填调用失败: {}", describe(exception));
+            if (isTimeout(exception)) {
+                throw new cn.com.crc.ems.finance.agent.harness.application.BusinessModelTimeoutException(
+                        "模型响应超时，请稍后重试", exception);
+            }
+            throw new BusinessModelException("模型分析暂时不可用，请稍后重试", exception);
+        }
+    }
+
     private <T> BusinessModelResult<T> invoke(String instruction, ObjectNode input,
             java.util.function.Function<JsonNode, T> parser) {
         return invokeInternal(instruction, input,
@@ -298,6 +368,16 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
             LOGGER.warn("业务模型调用失败: {}", describe(exception));
             throw new BusinessModelException("模型分析暂时不可用，请稍后重试", exception);
         }
+    }
+
+    /** 判断异常链中是否包含阻塞超时，用于映射 504 而不是普通失败。 */
+    private static boolean isTimeout(Throwable exception) {
+        Throwable current = exception;
+        while (current != null) {
+            if (current instanceof java.util.concurrent.TimeoutException) return true;
+            current = current.getCause() == current ? null : current.getCause();
+        }
+        return false;
     }
 
     private record ParsedModelOutput<T>(T value, List<String> warnings) {

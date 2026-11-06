@@ -6,6 +6,9 @@ import java.util.List;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeContext;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeOption;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelCallMetadata;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelResult;
@@ -106,6 +109,32 @@ public final class StubBusinessModelClient implements BusinessModelClient {
         if (raw.isMissingNode()) throw new IllegalStateException("决策包缺少结构化流程调查结论");
         ProcessArtifactPlan value = ProcessArtifactPlan.fromJson(raw);
         return result(context.toInputJson(), value.toJson(), value, started);
+    }
+
+    @Override
+    public BusinessModelResult<BusinessIntakeSuggestion> extractBusinessIntake(BusinessIntakeContext context) {
+        long started = System.nanoTime();
+        ObjectNode input = JsonNodeFactory.instance.objectNode();
+        input.put("text", context.text());
+        var scenes = input.putArray("sceneSkills");
+        context.sceneSkills().forEach(option -> scenes.add(option.name()));
+        var databases = input.putArray("databaseInstances");
+        context.databaseInstances().forEach(option -> databases.add(option.name()));
+        String scene = firstMentioned(context.text(), context.sceneSkills());
+        String database = firstMentioned(context.text(), context.databaseInstances());
+        String title = context.text().length() <= 30 ? context.text() : context.text().substring(0, 30);
+        BusinessIntakeSuggestion value = new BusinessIntakeSuggestion(title, context.text(), scene, database);
+        ObjectNode output = JsonNodeFactory.instance.objectNode();
+        output.put("title", value.title());
+        output.put("description", value.description());
+        output.put("sceneSkillName", value.sceneSkillName());
+        output.put("databaseName", value.databaseName());
+        return result(input, output, value, started);
+    }
+
+    /** Stub 只在文本直接包含候选名称时返回匹配项，仅用于本地联调。 */
+    private static String firstMentioned(String text, List<BusinessIntakeOption> options) {
+        return options.stream().map(BusinessIntakeOption::name).filter(text::contains).findFirst().orElse("");
     }
 
     private static <T> BusinessModelResult<T> result(ObjectNode input, ObjectNode output, T value, long started) {

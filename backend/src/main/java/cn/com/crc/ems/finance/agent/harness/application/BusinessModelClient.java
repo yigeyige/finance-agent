@@ -38,6 +38,9 @@ public interface BusinessModelClient {
         return BusinessModelCall.notCalled(new EmsDatabaseQueryPlan(List.of()));
     }
 
+    /** 把一段自由文本解析为业务处理表单字段，供 AI 预填使用；不依赖任务。 */
+    BusinessModelResult<BusinessIntakeSuggestion> extractBusinessIntake(BusinessIntakeContext context);
+
     /**
      *
      * @description: 根据业务标题、说明和管理员反馈生成或修订业务处理草稿。

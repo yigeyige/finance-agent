@@ -50,6 +50,7 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
                 && !path.startsWith("/api/v1/retention-runs")
                 && !path.startsWith("/api/v1/scheduled-jobs")
                 && !path.startsWith("/api/v1/usage")
+                && !path.startsWith("/api/v1/business-intake")
                 && !path.startsWith("/api/tasks/")) {
             return true;
         }
@@ -89,6 +90,9 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
         }
         if (path.startsWith("/api/v1/scheduled-jobs") && !identity.hasRole(RoleCode.PLATFORM_ADMIN)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权管理调度任务");
+        }
+        if (path.startsWith("/api/v1/business-intake") && !identity.hasRole(RoleCode.PLATFORM_USER)) {
+            return reject(response, HttpStatus.FORBIDDEN, "当前身份无权使用 AI 预填");
         }
         if (path.startsWith("/api/tasks/") && !identity.hasRole(RoleCode.PLATFORM_USER)) {
             return reject(response, HttpStatus.FORBIDDEN, "当前身份无权查看任务事件");

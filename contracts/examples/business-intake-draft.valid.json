@@ -1,0 +1,8 @@
+{
+  "title": "核查 9 月费用报销中的重复审批单据",
+  "description": "需要核查 2026 年 9 月费用报销中同一审批人重复审批的单据，重点核对报销单号、金额与审批时间，输出可复核的核查结论。",
+  "sceneSkillId": null,
+  "sceneSkillName": null,
+  "databaseConfigId": null,
+  "databaseName": null
+}
