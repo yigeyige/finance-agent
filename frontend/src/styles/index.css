@@ -395,6 +395,15 @@ body,
   border-color: #f9b334;
 }
 
+/* 已完成步骤的小圆圈填充实心主题橙，序号保持白色可读。 */
+.workflow-steps-bar .el-step__head.is-finish .el-step__icon {
+  background-color: #f9b334;
+}
+
+.workflow-steps-bar .el-step__head.is-finish .el-step__icon-inner {
+  color: #ffffff;
+}
+
 /* 收紧业务处理表单与面板的纵向间距，降低整页高度。 */
 .task-workbench .task-form {
   margin-top: 14px;
