@@ -1,7 +1,7 @@
 <!-- 已发布决策包页面，以业务摘要和后续责任交接为主，原始结构仅保留为只读技术明细。 -->
 <template>
   <section class="packet-page" aria-labelledby="published-packet-title">
-    <div class="page-heading"><div><p class="eyebrow">已发布决策包</p><h2 id="published-packet-title">调查结论与后续处理</h2><p class="page-description">这里展示已经发布的业务结论、责任交接和调查关闭状态。</p></div><el-button @click="$router.push('/')">返回任务</el-button></div>
+    <div class="page-heading"><div><p class="eyebrow">已发布决策包</p><h2 id="published-packet-title">调查结论与后续处理</h2><p class="page-description">这里展示已经发布的业务结论、责任交接和调查关闭状态。</p></div><el-button @click="$router.push('/handling')">返回任务</el-button></div>
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
     <el-card v-if="packet" shadow="never" class="packet-result-card">
       <div class="result-heading"><div><p class="eyebrow">第 {{ packet.revisionNo }} 次发布</p><h3>业务调查结论</h3></div><el-tag :type="packet.taskStatus === 'CLOSED' ? 'info' : 'success'">{{ taskStatusLabel }}</el-tag></div>

@@ -2,7 +2,7 @@
   <section class="evidence-page" aria-labelledby="diagnostics-title">
     <div class="page-heading">
       <div><p class="eyebrow">任务诊断</p><h2 id="diagnostics-title">运行状态与恢复提示</h2><p class="page-description">仅展示脱敏摘要；页面不执行暂停、恢复、取消、重试或人工对账动作。</p></div>
-      <el-button @click="$router.push('/')">返回任务</el-button>
+      <el-button @click="$router.push('/handling')">返回任务</el-button>
     </div>
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
     <el-card v-if="diagnostics" shadow="never">

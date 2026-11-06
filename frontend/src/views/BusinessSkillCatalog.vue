@@ -159,7 +159,7 @@ export default Vue.extend({
     },
     /** 从当前业务场景发起业务处理，携带场景标识供业务处理页自动回填。 */
     startHandling(skill: BusinessSceneSkill) {
-      void this.$router.push({ path: '/', query: { skillId: skill.skillId, draft: String(Date.now()) } })
+      void this.$router.push({ path: '/handling', query: { skillId: skill.skillId, draft: String(Date.now()) } })
     },
     openEditDialog(skill: BusinessSceneSkill) {
       this.editingId = skill.skillId

@@ -50,7 +50,7 @@ export default Vue.extend({
       this.errorMessage = ''
       try {
         await login(this.username, this.password)
-        const redirect = typeof this.$route.query.redirect === 'string' ? this.$route.query.redirect : '/'
+        const redirect = typeof this.$route.query.redirect === 'string' ? this.$route.query.redirect : '/home'
         await this.$router.replace(redirect)
       } catch {
         this.errorMessage = '账号或密码错误，请重新输入'

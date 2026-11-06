@@ -3,6 +3,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 
 import WorkbenchHome from '../views/WorkbenchHome.vue'
+import HomePage from '../views/HomePage.vue'
 import EvidenceOverview from '../views/EvidenceOverview.vue'
 import PacketDraft from '../views/PacketDraft.vue'
 import PublishedPacket from '../views/PublishedPacket.vue'
@@ -27,12 +28,23 @@ const router = new Router({
   mode: 'hash',
   routes: [
     { path: '/login', name: 'login', component: Login, meta: { public: true } },
+    { path: '/', redirect: '/home' },
     {
-      path: '/',
+      path: '/home',
+      name: 'home',
+      component: HomePage,
+      meta: {
+        title: '首页',
+        requiresIdentity: true,
+      },
+    },
+    {
+      path: '/handling',
       name: 'workbench-home',
       component: WorkbenchHome,
       meta: {
-        title: '任务总览',
+        title: '业务处理',
+        requiresIdentity: true,
       },
     },
     { path: '/tasks', name: 'task-list', component: TaskList, meta: { title: '任务列表', permission: 'TASK_READ' } },
@@ -96,7 +108,7 @@ router.beforeEach(async (to, _from, next) => {
   const permissions = Array.isArray(to.meta?.permissions)
     ? to.meta.permissions.filter((permission): permission is IdentityPermission => typeof permission === 'string')
     : typeof to.meta?.permission === 'string' ? [to.meta.permission as IdentityPermission] : []
-  if (permissions.length || to.path === '/') {
+  if (permissions.length || to.meta?.requiresIdentity) {
     try {
       const identity = await ensureCurrentIdentity()
       if (to.meta?.requiredRole === 'PLATFORM_ADMIN' && !identity.roles.includes('PLATFORM_ADMIN')) {

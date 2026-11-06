@@ -14,7 +14,10 @@
         active-text-color="#ffffff"
         @select="handleNavigationSelect"
       >
-        <el-menu-item v-if="canReadTasks" index="/">
+        <el-menu-item index="/home">
+          <span slot="title">首页</span>
+        </el-menu-item>
+        <el-menu-item v-if="canReadTasks" index="/handling">
           <span slot="title">业务处理</span>
         </el-menu-item>
         <el-menu-item v-if="canReadTasks" index="/tasks">
@@ -46,7 +49,7 @@
     <el-container>
       <el-header class="workbench-header">
         <div>
-          <h1>财务智能运维Agent</h1>
+          <h1 v-if="!isHomeRoute">财务智能运维Agent</h1>
         </div>
         <div class="identity-tools">
           <el-dropdown v-if="identity" trigger="click" @command="handleUserCommand">
@@ -89,6 +92,10 @@ export default Vue.extend({
     isLoginRoute(): boolean {
       return this.$route.name === 'login'
     },
+    /** 首页用 hero 大标题承担标题层级，顶栏不再重复展示产品名。 */
+    isHomeRoute(): boolean {
+      return this.$route.name === 'home'
+    },
     canReadTasks(): boolean {
       // 必须直接依赖响应式 identity，避免模块级身份缓存导致菜单权限被首次计算结果锁定。
       return this.identity?.roles.includes('PLATFORM_ADMIN') || this.identity?.permissions.includes('TASK_READ') || false
@@ -114,11 +121,11 @@ export default Vue.extend({
     },
   },
   methods: {
-    /** 根据菜单入口执行导航；新建入口额外写入草稿标识。 */
+    /** 根据菜单入口执行导航；业务处理入口额外写入草稿标识以重置上一次表单。 */
     handleNavigationSelect(index: string): void {
-      if (index === '/') {
-        const route = { path: '/', query: { draft: String(Date.now()) } }
-        if (this.$route.path === '/') void this.$router.replace(route)
+      if (index === '/handling') {
+        const route = { path: '/handling', query: { draft: String(Date.now()) } }
+        if (this.$route.path === '/handling') void this.$router.replace(route)
         else void this.$router.push(route)
         return
       }

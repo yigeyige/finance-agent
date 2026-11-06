@@ -137,7 +137,7 @@ export default Vue.extend({
     /** 调整每页条数并回到第一页。 */
     changePageSize(pageSize: number) { this.pageSize = pageSize; this.currentPage = 1; void this.loadTasks() },
     /** 进入全新的业务处理草稿，不复用缓存向导中的上一份任务内容。 */
-    startNewHandling() { void this.$router.push({ path: '/', query: { draft: String(Date.now()) } }) },
+    startNewHandling() { void this.$router.push({ path: '/handling', query: { draft: String(Date.now()) } }) },
     /** 将服务端任务状态转为业务可读中文文案。 */
     statusLabel(status: string) {
       return statusLabels[status] || '状态待确认'
