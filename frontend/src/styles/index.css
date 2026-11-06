@@ -961,3 +961,92 @@ body,
 .identity-user i {
   margin-left: 8px;
 }
+
+/* 主按钮统一改为淡主题橙：浅橙底配深褐文字，避免高饱和蓝色与暖色工作台冲突。 */
+.el-button--primary {
+  background-color: #f9c96b;
+  border-color: #f9c96b;
+  color: #4a3200;
+}
+
+.el-button--primary:hover,
+.el-button--primary:focus,
+.el-button--primary:active {
+  background-color: #f9b334;
+  border-color: #f9b334;
+  color: #4a3200;
+}
+
+.el-button--primary.is-disabled,
+.el-button--primary.is-disabled:hover,
+.el-button--primary.is-disabled:focus {
+  background-color: #fbe6c2;
+  border-color: #fbe6c2;
+  color: #b09a7c;
+}
+
+/* 描边主按钮保持浅橙底与深橙文字，悬停时填充淡橙。 */
+.el-button--primary.is-plain {
+  background: #fff8ec;
+  border-color: #f3d29a;
+  color: #8a5c05;
+}
+
+.el-button--primary.is-plain:hover,
+.el-button--primary.is-plain:focus {
+  background: #f9c96b;
+  border-color: #f9c96b;
+  color: #4a3200;
+}
+
+.el-button--primary.is-plain.is-disabled,
+.el-button--primary.is-plain.is-disabled:hover,
+.el-button--primary.is-plain.is-disabled:focus {
+  background: #fffaf2;
+  border-color: #f7e3c2;
+  color: #c2b195;
+}
+
+/* 表格与列表中的文字操作按钮由蓝转橙，保持与主题一致的可读深橙。 */
+.el-button--text {
+  color: #a06a12;
+}
+
+.el-button--text:hover,
+.el-button--text:focus {
+  color: #8a5c05;
+}
+
+/* 默认标签（type=primary 或无 type）改为淡橙底，info/success/warning/danger 保持语义色。 */
+.el-tag:not(.el-tag--info):not(.el-tag--success):not(.el-tag--warning):not(.el-tag--danger) {
+  background-color: rgba(249, 179, 52, 0.14);
+  border-color: rgba(249, 179, 52, 0.32);
+  color: #8a5c05;
+}
+
+.el-tag:not(.el-tag--info):not(.el-tag--success):not(.el-tag--warning):not(.el-tag--danger) .el-icon-close {
+  color: #8a5c05;
+}
+
+.el-tag:not(.el-tag--info):not(.el-tag--success):not(.el-tag--warning):not(.el-tag--danger) .el-icon-close:hover {
+  background-color: #f9b334;
+  color: #ffffff;
+}
+
+/* 分页当前页、页码悬停与翻页按钮由蓝转橙。 */
+.el-pager li.active {
+  color: #a06a12;
+  font-weight: 700;
+}
+
+.el-pager li:hover {
+  color: #b0741a;
+}
+
+.el-pagination button:hover {
+  color: #a06a12;
+}
+
+.el-pagination__sizes .el-input .el-input__inner:hover {
+  border-color: #f9c96b;
+}
