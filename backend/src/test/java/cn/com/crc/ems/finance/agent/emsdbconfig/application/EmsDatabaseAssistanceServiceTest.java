@@ -68,12 +68,15 @@ class EmsDatabaseAssistanceServiceTest {
                 new EmsSchemaTable("basedata", "sys_value_set_item", "角色值集",
                         List.of(new EmsDatabaseColumnMetadata("VSI_KEY", "varchar(50)", "角色代码")))))));
         var context = new BusinessGuidanceContext(UUID.randomUUID(), "角色调查", "查询角色代码", null, null);
-        when(model.selectRelevantTables(eq(context), any(), eq(10))).thenReturn(List.of("basedata.sys_value_set_item"));
+        when(model.selectRelevantTables(eq(context), any(), eq(10)))
+                .thenReturn(cn.com.crc.ems.finance.agent.harness.application.BusinessModelCall
+                        .notCalled(List.of("basedata.sys_value_set_item")));
         String sql = "SELECT VSI_KEY FROM basedata.sys_value_set_item LIMIT 1";
         when(model.planEmsDatabaseQuery(eq(context), any(), any(), any()))
-                .thenReturn(new cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryPlan(List.of(
-                        new cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryPlan.Step(
-                                "role", "核对角色", sql, List.of(), java.util.Map.of()))));
+                .thenReturn(cn.com.crc.ems.finance.agent.harness.application.BusinessModelCall.notCalled(
+                        new cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryPlan(List.of(
+                                new cn.com.crc.ems.finance.agent.harness.application.EmsDatabaseQueryPlan.Step(
+                                        "role", "核对角色", sql, List.of(), java.util.Map.of())))));
         when(guard.validate(sql)).thenReturn(sql);
         when(executor.execute(eq(config), eq(sql), any()))
                 .thenReturn(new EmsDatabaseQueryResult(List.of("VSI_KEY"), List.of(List.of("ZYMD"))));

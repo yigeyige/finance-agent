@@ -603,3 +603,27 @@ export function parseBusinessEvidenceAccums(value: unknown): BusinessEvidenceAcc
     return { roundNo: requirePositiveNumber(record.roundNo, '轮次'), evidence: requireArray(record.evidence, '关联证据').map(parseDraftEvidence), createdAt: requireString(record.createdAt, '记录时间') }
   })
 }
+
+/** 模型 token 用量摘要：scope 区分个人与全平台，points 为固定 30 个自然日。 */
+export interface TokenUsagePoint {
+  date: string
+  tokens: number
+}
+
+export interface TokenUsageSummary {
+  scope: 'SELF' | 'ALL'
+  totalTokens: number
+  points: TokenUsagePoint[]
+}
+
+/** 校验 token 用量响应，拒绝负数、非数字与额外字段。 */
+export function parseTokenUsageSummary(value: unknown): TokenUsageSummary {
+  const record = assertObjectFields(value, ['scope', 'totalTokens', 'points'], 'token 用量响应')
+  if (record.scope !== 'SELF' && record.scope !== 'ALL') throw new Error('token 用量响应格式无法识别')
+  const totalTokens = requireNonNegativeNumber(record.totalTokens, 'token 用量总量')
+  const points = requireArray(record.points, 'token 用量序列').map((item) => {
+    const point = assertObjectFields(item, ['date', 'tokens'], 'token 用量序列项')
+    return { date: requireString(point.date, '用量日期'), tokens: requireNonNegativeNumber(point.tokens, '当日 token 用量') }
+  })
+  return { scope: record.scope, totalTokens, points }
+}

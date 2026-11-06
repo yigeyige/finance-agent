@@ -84,7 +84,7 @@ public class EmsDatabaseAssistanceService {
         } else {
             progress.accept("正在匹配相关数据表");
             int maxTables = snapshot.isPresent() ? 10 : 5;
-            selectedTables = modelClient.selectRelevantTables(context, catalog, maxTables).stream()
+            selectedTables = modelClient.selectRelevantTables(context, catalog, maxTables).value().stream()
                     .filter(name -> catalogNames.contains(name))
                     .distinct().limit(maxTables).toList();
             selectionCache.put(context.taskId(), new CachedSelection(databaseConfigId, catalogNames, selectedTables));
@@ -115,7 +115,7 @@ public class EmsDatabaseAssistanceService {
             evidence.addAll(context.databaseEvidence());
         }
         progress.accept("正在规划只读查询");
-        EmsDatabaseQueryPlan plan = modelClient.planEmsDatabaseQuery(context, catalog, evidence, tableColumns);
+        EmsDatabaseQueryPlan plan = modelClient.planEmsDatabaseQuery(context, catalog, evidence, tableColumns).value();
         LOGGER.info("EMS 辅助查询：计划步骤 {} 个", plan.steps().size());
         Map<String, EmsDatabaseQueryResult> results = new LinkedHashMap<>();
         Set<String> completed = new java.util.HashSet<>();

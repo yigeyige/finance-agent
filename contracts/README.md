@@ -39,3 +39,7 @@ Windows PowerShell 可执行：
 OpenAPI 1.4.0 新增 `GET /api/v1/model-runtime`，仅允许 OPERATOR 与继承该角色能力的平台管理员读取。响应遵循 `model-runtime-summary-1.0.0.schema.json`，只包含 `mode` 与可空的 `modelName`；不返回配置地址或凭据。
 
 聊天顶部的“最近调用”复用建议响应的 `metadata.tokens` 与 `metadata.latencyMillis`，仅代表最近一次建议生成调用，不包含选表、查询规划、失败请求或决策包等其他调用消耗，也不作为任务累计计费数据。
+
+## 模型 token 用量
+
+OpenAPI 1.5.0 新增 `GET /api/v1/usage/tokens`，登录用户可读，角色差异由服务端体现：普通用户返回本人用量，平台管理员返回全平台用量。响应遵循 `token-usage-summary-1.0.0.schema.json`，固定返回最近 30 个自然日（按 `Asia/Shanghai` 切分、含今天、缺失日期补 0）的 `totalTokens` 与 `points`；只统计成功返回 usage 的真实模型调用，不含 STUB 模拟调用、失败调用和命中缓存的选表请求。

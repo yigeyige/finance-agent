@@ -20,6 +20,7 @@ import io.agentscope.core.model.ChatResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cn.com.crc.ems.finance.agent.harness.application.BusinessModelCall;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelCallMetadata;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelException;
@@ -88,38 +89,29 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
      * @author: yigeyige99
      */
     @Override
-    public List<String> selectRelevantTables(BusinessGuidanceContext context,
+    public BusinessModelCall<List<String>> selectRelevantTables(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog) {
         return selectRelevantTables(context, tableCatalog, 5);
     }
 
     @Override
-    public List<String> selectRelevantTables(BusinessGuidanceContext context,
+    public BusinessModelCall<List<String>> selectRelevantTables(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog, int maxTables) {
         ObjectNode input = databaseQueryInput(context);
         input.set("tableCatalog", catalogJson(tableCatalog));
         input.put("maxTables", maxTables);
         String instruction = instruction("SELECT_TABLES", input);
-        try {
-            ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER).textContent(instruction).build()),
-                    List.of(), adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, DEFAULT_MAX_TOKENS)).blockLast(TIMEOUT.plusSeconds(2));
-            if (response == null) return List.of();
-            String text = response.getContent().stream().filter(TextBlock.class::isInstance)
-                    .map(TextBlock.class::cast).map(TextBlock::getText).collect(Collectors.joining());
-            LOGGER.info("选表返回 finishReason={} content={}", response.getFinishReason(),
-                    text.substring(0, Math.min(300, text.length())));
-            JsonNode tables = CanonicalJsonCodec.parse(text).get("tables");
-            if (tables == null || !tables.isArray()) return List.of();
+        return invokeOptional(instruction, input, node -> {
+            JsonNode tables = node.get("tables");
+            if (tables == null || !tables.isArray()) return List.<String>of();
             List<String> result = new ArrayList<>();
             tables.forEach(item -> { if (item.isTextual() && item.textValue().contains(".")) result.add(item.textValue()); });
             return result.stream().distinct().limit(maxTables).toList();
-        } catch (RuntimeException exception) {
-            return List.of();
-        }
+        }, List.of());
     }
 
     @Override
-    public EmsDatabaseQueryPlan planEmsDatabaseQuery(BusinessGuidanceContext context,
+    public BusinessModelCall<EmsDatabaseQueryPlan> planEmsDatabaseQuery(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog, List<EmsDatabaseEvidence> priorEvidence,
             Map<String, List<EmsDatabaseColumnMetadata>> tableColumns) {
         ObjectNode input = databaseQueryInput(context);
@@ -132,18 +124,48 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
             input.set("priorEvidence", evidenceJson(priorEvidence));
         }
         String instruction = instruction("PLAN_QUERY", input);
+        return invokeOptional(instruction, input, EmsDatabaseQueryPlan::fromJson, new EmsDatabaseQueryPlan(List.of()));
+    }
+
+    /**
+     *
+     * @description: 选表与查询规划允许失败降级：失败时返回兜底值，同时保留可计量的调用元数据。
+     *
+     * @param: instruction 已拼接的提示词
+     * @param: input 规范化输入，仅用于生成摘要
+     * @param: parser 输出解析器
+     * @param: fallback 失败或空响应时的兜底值
+     * @return: 业务值与调用元数据
+     * @author: yigeyige99
+     */
+    private <T> BusinessModelCall<T> invokeOptional(String instruction, ObjectNode input,
+            java.util.function.Function<JsonNode, T> parser, T fallback) {
+        long started = System.nanoTime();
         try {
-            ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER).textContent(instruction).build()), List.of(),
-                    adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, DEFAULT_MAX_TOKENS)).blockLast(TIMEOUT.plusSeconds(2));
-            if (response == null) return new EmsDatabaseQueryPlan(List.of());
+            ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER).textContent(instruction).build()),
+                    List.of(), adapter.options(TIMEOUT, ResponseFormat.jsonObject(), null, DEFAULT_MAX_TOKENS))
+                    .blockLast(TIMEOUT.plusSeconds(2));
+            if (response == null) {
+                return BusinessModelCall.failed(fallback, adapter.modelName(), elapsedMillis(started));
+            }
             String text = response.getContent().stream().filter(TextBlock.class::isInstance)
                     .map(TextBlock.class::cast).map(TextBlock::getText).collect(Collectors.joining());
-            LOGGER.info("查询规划返回 finishReason={} content={}", response.getFinishReason(),
-                    text.substring(0, Math.min(300, text.length())));
-            return EmsDatabaseQueryPlan.fromJson(CanonicalJsonCodec.parse(text));
+            LOGGER.info("业务模型可选调用返回 finishReason={}, chars={}", response.getFinishReason(), text.length());
+            JsonNode output = CanonicalJsonCodec.parse(text);
+            T value = parser.apply(output);
+            return new BusinessModelCall<>(value, new BusinessModelCallMetadata("LIVE", adapter.modelName(),
+                    Sha256Digest.hex(CanonicalJsonCodec.canonicalize(input)),
+                    Sha256Digest.hex(CanonicalJsonCodec.canonicalize(output)),
+                    response.getUsage() == null ? 0 : response.getUsage().getTotalTokens(),
+                    elapsedMillis(started)));
         } catch (RuntimeException exception) {
-            return new EmsDatabaseQueryPlan(List.of());
+            LOGGER.warn("业务模型可选调用失败: {}", describe(exception));
+            return BusinessModelCall.failed(fallback, adapter.modelName(), elapsedMillis(started));
         }
+    }
+
+    private static long elapsedMillis(long startedNanos) {
+        return Duration.ofNanos(System.nanoTime() - startedNanos).toMillis();
     }
 
     private static JsonNode columnsJson(Map<String, List<EmsDatabaseColumnMetadata>> tableColumns) {

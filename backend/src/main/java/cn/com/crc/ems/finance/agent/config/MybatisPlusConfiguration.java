@@ -23,7 +23,8 @@ import org.springframework.context.annotation.Configuration;
         "cn.com.crc.ems.finance.agent.packet.infrastructure.mapper",
         "cn.com.crc.ems.finance.agent.businesspacket.infrastructure.mapper",
         "cn.com.crc.ems.finance.agent.processartifact.infrastructure.mapper",
-        "cn.com.crc.ems.finance.agent.harness.infrastructure.mapper"
+        "cn.com.crc.ems.finance.agent.harness.infrastructure.mapper",
+        "cn.com.crc.ems.finance.agent.usage.infrastructure.mapper"
 })
 public class MybatisPlusConfiguration {
 }

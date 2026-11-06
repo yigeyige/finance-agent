@@ -2,10 +2,10 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Finance Operations Agent API",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "description": "财务共享智能运维 Agent P0 API 契约。"
   },
-  "x-contract-version": "1.4.0",
+  "x-contract-version": "1.5.0",
   "servers": [
     {
       "url": "/"
@@ -545,6 +545,18 @@
           "401": {"$ref": "#/components/responses/Unauthorized"},
           "403": {"$ref": "#/components/responses/Forbidden"},
           "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      }
+    },
+    "/api/v1/usage/tokens": {
+      "get": {
+        "operationId": "getTokenUsage",
+        "summary": "读取最近 30 天模型 token 用量",
+        "security": [{"unifiedAuth": ["PLATFORM_USER"]}],
+        "responses": {
+          "200": {"description": "个人或全平台最近 30 个自然日的 token 用量，缺失日期补 0", "content": {"application/json": {"schema": {"$ref": "../json-schema/token-usage-summary-1.0.0.schema.json"}}}},
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "403": {"$ref": "#/components/responses/Forbidden"}
         }
       }
     }

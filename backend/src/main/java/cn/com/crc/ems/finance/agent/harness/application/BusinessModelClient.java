@@ -19,22 +19,23 @@ import cn.com.crc.ems.finance.agent.processartifact.domain.ProcessArtifactPlan;
 public interface BusinessModelClient {
 
     /** 从候选表目录中选择与业务最相关的表，供后端查询字段后再生成 SQL。 */
-    default List<String> selectRelevantTables(BusinessGuidanceContext context,
+    default BusinessModelCall<List<String>> selectRelevantTables(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog) {
-        return List.of();
+        return BusinessModelCall.notCalled(List.of());
     }
 
     /** 按所选目录路径的上限选表，旧实现仍可使用原有选表入口。 */
-    default List<String> selectRelevantTables(BusinessGuidanceContext context,
+    default BusinessModelCall<List<String>> selectRelevantTables(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog, int maxTables) {
-        return selectRelevantTables(context, tableCatalog).stream().limit(maxTables).toList();
+        return BusinessModelCall.notCalled(selectRelevantTables(context, tableCatalog).value().stream()
+                .limit(maxTables).toList());
     }
 
     /** 仅生成可选查询计划；真正执行前仍由 EMS SQL 守卫与只读执行器控制。 */
-    default EmsDatabaseQueryPlan planEmsDatabaseQuery(BusinessGuidanceContext context,
+    default BusinessModelCall<EmsDatabaseQueryPlan> planEmsDatabaseQuery(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog, List<EmsDatabaseEvidence> priorEvidence,
             Map<String, List<EmsDatabaseColumnMetadata>> tableColumns) {
-        return new EmsDatabaseQueryPlan(List.of());
+        return BusinessModelCall.notCalled(new EmsDatabaseQueryPlan(List.of()));
     }
 
     /**

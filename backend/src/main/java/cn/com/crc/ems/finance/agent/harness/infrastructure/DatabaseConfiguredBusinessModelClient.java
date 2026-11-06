@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessGuidanceSuggestion;
+import cn.com.crc.ems.finance.agent.harness.application.BusinessModelCall;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelClient;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessModelResult;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessPacketAnalysisContext;
@@ -42,12 +43,12 @@ public final class DatabaseConfiguredBusinessModelClient implements BusinessMode
         this.cipher = cipher;
         this.promptTemplates = promptTemplates;
     }
-    @Override public List<String> selectRelevantTables(BusinessGuidanceContext context,
+    @Override public BusinessModelCall<List<String>> selectRelevantTables(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog) { return live().selectRelevantTables(context, tableCatalog); }
-    @Override public List<String> selectRelevantTables(BusinessGuidanceContext context,
+    @Override public BusinessModelCall<List<String>> selectRelevantTables(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog, int maxTables) { return live().selectRelevantTables(context, tableCatalog, maxTables); }
 
-    @Override public EmsDatabaseQueryPlan planEmsDatabaseQuery(BusinessGuidanceContext context,
+    @Override public BusinessModelCall<EmsDatabaseQueryPlan> planEmsDatabaseQuery(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog, List<EmsDatabaseEvidence> priorEvidence,
             Map<String, List<EmsDatabaseColumnMetadata>> tableColumns) { return live().planEmsDatabaseQuery(context, tableCatalog, priorEvidence, tableColumns); }
     @Override public BusinessModelResult<BusinessGuidanceSuggestion> guideBusinessHandling(BusinessGuidanceContext context) { return live().guideBusinessHandling(context); }

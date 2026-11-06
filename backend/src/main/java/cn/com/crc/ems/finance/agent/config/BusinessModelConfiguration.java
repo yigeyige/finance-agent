@@ -12,6 +12,7 @@ import cn.com.crc.ems.finance.agent.diagnostics.LatestExceptionStore;
 import cn.com.crc.ems.finance.agent.modelconfig.application.ModelApiKeyCipher;
 import cn.com.crc.ems.finance.agent.modelconfig.application.ModelConnectionConfigService;
 import cn.com.crc.ems.finance.agent.task.application.InvestigationTaskRepository;
+import cn.com.crc.ems.finance.agent.usage.application.TokenUsageRecorder;
 
 /**
  *
@@ -29,10 +30,10 @@ public class BusinessModelConfiguration {
     public BusinessModelClient businessModelClient(FinanceAgentProperties properties,
             ModelConnectionConfigService configService, ModelApiKeyCipher cipher,
             PromptTemplateRepository promptTemplates, LatestExceptionStore exceptionStore,
-            InvestigationTaskRepository taskRepository) {
+            InvestigationTaskRepository taskRepository, TokenUsageRecorder tokenUsageRecorder) {
         BusinessModelClient delegate = properties.getDeepSeek().isStub()
                 ? new StubBusinessModelClient()
                 : new DatabaseConfiguredBusinessModelClient(configService, cipher, promptTemplates);
-        return new CapturingBusinessModelClient(delegate, exceptionStore, taskRepository);
+        return new CapturingBusinessModelClient(delegate, exceptionStore, taskRepository, tokenUsageRecorder);
     }
 }

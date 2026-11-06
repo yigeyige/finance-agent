@@ -49,6 +49,7 @@ public final class PermissionGuardInterceptor implements HandlerInterceptor, Web
                 && !path.startsWith("/api/v1/platform-users")
                 && !path.startsWith("/api/v1/retention-runs")
                 && !path.startsWith("/api/v1/scheduled-jobs")
+                && !path.startsWith("/api/v1/usage")
                 && !path.startsWith("/api/tasks/")) {
             return true;
         }

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://finance-agent/token-usage-summary/1.0.0",
+  "x-contract-version": "1.0.0",
+  "title": "模型 token 用量摘要",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "scope",
+    "totalTokens",
+    "points"
+  ],
+  "properties": {
+    "scope": {
+      "type": "string",
+      "enum": [
+        "SELF",
+        "ALL"
+      ],
+      "description": "SELF 表示当前用户，ALL 表示全平台，由后端按角色决定"
+    },
+    "totalTokens": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "窗口内 token 合计"
+    },
+    "points": {
+      "type": "array",
+      "minItems": 30,
+      "maxItems": 30,
+      "description": "固定 30 个自然日，按时间升序，缺失日期为 0",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "date",
+          "tokens"
+        ],
+        "properties": {
+          "date": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "tokens": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  }
+}

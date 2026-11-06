@@ -23,39 +23,39 @@
       </div>
     </header>
 
-    <section class="home-quick" aria-label="业务处理快捷入口">
-      <div class="home-quick__icon" aria-hidden="true"><i class="el-icon-document" /></div>
-      <div class="home-quick__body">
-        <h2>业务处理</h2>
-        <p>从一句业务说明出发，模型在受控范围内取数并生成初稿，最终形成可复核、可交接的决策包。</p>
-      </div>
-      <el-button type="primary" class="home-quick__action" @click="startHandling">进入业务处理</el-button>
-    </section>
-
-    <section class="home-steps" aria-label="使用流程">
-      <div class="home-steps__heading">
-        <h2>三步完成一次业务处理</h2>
-        <p>每一步都可暂停回溯，关键结论必须由人工确认。</p>
-      </div>
-      <ol class="home-steps__list">
-        <li v-for="(step, index) in steps" :key="step.title">
-          <span class="home-steps__index" aria-hidden="true">{{ index + 1 }}</span>
-          <div class="home-steps__text">
-            <h3>{{ step.title }}</h3>
-            <p>{{ step.description }}</p>
+    <div class="home-main">
+      <section class="home-steps" aria-label="使用流程">
+        <div class="home-steps__heading">
+          <div class="home-steps__title">
+            <h2>三步完成一次业务处理</h2>
           </div>
-        </li>
-      </ol>
-    </section>
+          <el-button type="primary" class="home-steps__action" @click="startHandling">进入业务处理</el-button>
+        </div>
+        <ol class="home-steps__list">
+          <li v-for="(step, index) in steps" :key="step.title">
+            <span class="home-steps__index" aria-hidden="true">{{ index + 1 }}</span>
+            <div class="home-steps__text">
+              <h3>{{ step.title }}</h3>
+              <p>{{ step.description }}</p>
+            </div>
+          </li>
+        </ol>
+        <p class="home-steps__footnote">从一句业务说明出发，模型在受控范围内取数并生成初稿，最终形成可复核、可交接的决策包。</p>
+      </section>
+      <token-usage-card />
+    </div>
   </section>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 
-/** 首页只做介绍与导航，不读取业务数据，避免影响登录后的首屏速度。 */
+import TokenUsageCard from '../components/TokenUsageCard.vue'
+
+/** 首页承担介绍、导航与模型用量展示，不读取任务业务数据。 */
 export default Vue.extend({
   name: 'HomePage',
+  components: { TokenUsageCard },
   data: () => ({
     steps: [
       { title: '业务说明', description: '填写业务标题与说明，按需选择业务场景、数据库实例并上传附件材料。' },
@@ -234,57 +234,43 @@ export default Vue.extend({
   box-shadow: 0 10px 22px rgba(201, 141, 30, 0.28);
 }
 
-/* 业务处理快捷卡：左侧橙条强调，右侧仅保留一个主操作。 */
-.home-quick {
+/* 步骤指南与用量卡左右分栏：步骤收窄为纵向列表，用量卡获得更宽的趋势空间。 */
+.home-main {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 20px;
-  padding: 22px 24px;
-  border: 1px solid #e7dfd4;
-  border-left: 4px solid #f9b334;
-  border-radius: 14px;
-  background: #fffdf9;
-  box-shadow: 0 8px 20px rgba(83, 70, 48, 0.06);
+  grid-template-columns: minmax(0, 620px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
 }
 
-.home-quick__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: #fff4e2;
-  color: #b0720f;
-  font-size: 22px;
+.home-main > * {
+  min-width: 0;
 }
 
-.home-quick h2 {
-  margin: 0 0 6px;
-  color: #4a4d55;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.home-quick p {
-  margin: 0;
-  color: #7b7164;
-  font-size: 14px;
-  line-height: 1.7;
-}
-
-.home-quick__action {
-  flex: none;
-}
-
-/* 三步指南：信息型卡片，不做点击跳转，避免与快捷卡争夺注意力。 */
+/* 三步指南：纵向排列，标题右侧承载业务处理入口。 */
 .home-steps {
+  display: flex;
+  flex-direction: column;
   padding: 26px 28px 28px;
   border: 1px solid #e7dfd4;
   border-radius: 14px;
   background: #fffdf9;
   box-shadow: 0 8px 20px rgba(83, 70, 48, 0.05);
+}
+
+.home-steps__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.home-steps__title {
+  min-width: 0;
+}
+
+.home-steps__action {
+  flex: none;
 }
 
 .home-steps__heading h2 {
@@ -294,16 +280,10 @@ export default Vue.extend({
   font-weight: 600;
 }
 
-.home-steps__heading p {
-  margin: 6px 0 22px;
-  color: #8c8478;
-  font-size: 13px;
-}
-
 .home-steps__list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -311,6 +291,7 @@ export default Vue.extend({
 
 .home-steps__list li {
   display: flex;
+  align-items: center;
   gap: 14px;
   padding: 16px 18px;
   border: 1px solid #f1e7d8;
@@ -346,6 +327,15 @@ export default Vue.extend({
   line-height: 1.7;
 }
 
+.home-steps__footnote {
+  margin: auto 0 0;
+  padding-top: 14px;
+  border-top: 1px dashed #f1e7d8;
+  color: #8c8478;
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
 @media (max-width: 1100px) {
   .home-hero {
     grid-template-columns: minmax(0, 1fr);
@@ -360,18 +350,24 @@ export default Vue.extend({
     font-size: 32px;
   }
 
-  .home-steps__list {
+  .home-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1280px) {
+  .home-main {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
 @media (max-width: 760px) {
-  .home-quick {
-    grid-template-columns: auto minmax(0, 1fr);
+  .home-steps__heading {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .home-quick__action {
-    grid-column: 1 / -1;
+  .home-steps__action {
     width: 100%;
   }
 }
