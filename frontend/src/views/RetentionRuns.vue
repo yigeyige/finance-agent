@@ -36,7 +36,7 @@
                   placeholder="选择时间" class="scheduled-time" @change="clearSaveNotice" />
                 <span class="scheduled-zone">北京时间</span>
                 <el-button type="primary" :loading="saving" :disabled="!scheduleChanged" @click="saveSchedule">保存</el-button>
-                <el-button type="warning" :loading="runningNow" :disabled="saving || runningNow" @click="runOnce">立即执行一次</el-button>
+                <el-button class="scheduled-run-once" type="warning" :loading="runningNow" :disabled="saving || runningNow" @click="runOnce">立即执行一次</el-button>
               </div>
             </div>
           </div>
@@ -249,7 +249,12 @@ export default Vue.extend({
 .scheduled-section-title { font-size: 16px; font-weight: 600; color: #253043; margin-bottom: 12px; }
 .scheduled-menu { border-right: 0; background: transparent; }
 .scheduled-menu ::v-deep .el-menu-item { height: 48px; line-height: 48px; border-radius: 8px; font-size: 15px; }
-.scheduled-menu ::v-deep .el-menu-item.is-active { background: #fff2e8; color: #b85b1b; font-weight: 600; }
+.scheduled-menu ::v-deep .el-menu-item:hover { background: #fff6e6; color: #1a1b1e; }
+.scheduled-menu ::v-deep .el-menu-item.is-active { background: #fff4e2; color: #8a5c05; font-weight: 600; box-shadow: inset 3px 0 0 #f9b334; }
+.scheduled-menu ::v-deep .el-menu-item.is-active:hover { background: #ffeed4; color: #8a5c05; }
+.scheduled-run-once.el-button--warning:not(.is-disabled) { background: #f9b334; border-color: #f9b334; color: #ffffff; }
+.scheduled-run-once.el-button--warning:not(.is-disabled):hover,
+.scheduled-run-once.el-button--warning:not(.is-disabled):focus { background: #f7a71f; border-color: #f7a71f; color: #ffffff; }
 .scheduled-config-row { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 20px; align-items: start; }
 .scheduled-class-panel code { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; line-height: 40px; color: #172033; }
 .scheduled-time-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
