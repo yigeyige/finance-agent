@@ -1,0 +1,9 @@
+{
+  "target": "INVESTIGATION",
+  "text": "核查 basedata 中费用报销的重复审批单据",
+  "skillId": null,
+  "databaseConfigId": null,
+  "sceneName": null,
+  "investigationPrompt": null,
+  "decisionPacketPrompt": null
+}

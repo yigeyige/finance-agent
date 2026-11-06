@@ -2,10 +2,10 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Finance Operations Agent API",
-    "version": "1.6.0",
+    "version": "1.7.0",
     "description": "财务共享智能运维 Agent P0 API 契约。"
   },
-  "x-contract-version": "1.6.0",
+  "x-contract-version": "1.7.0",
   "servers": [
     {
       "url": "/"
@@ -545,6 +545,22 @@
           "401": {"$ref": "#/components/responses/Unauthorized"},
           "403": {"$ref": "#/components/responses/Forbidden"},
           "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      }
+    },
+    "/api/v1/business-scene-skills/prefill": {
+      "post": {
+        "operationId": "prefillSceneSkill",
+        "summary": "按目标生成业务场景提示词草稿",
+        "security": [{"unifiedAuth": ["PLATFORM_USER"]}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "../json-schema/scene-skill-prefill-request-1.0.0.schema.json"}}}},
+        "responses": {
+          "200": {"description": "生成结果；调查目标返回名称，其余目标 name 为空", "content": {"application/json": {"schema": {"$ref": "../json-schema/scene-skill-prefill-response-1.0.0.schema.json"}}}},
+          "400": {"$ref": "#/components/responses/ContractError"},
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "403": {"$ref": "#/components/responses/Forbidden"},
+          "502": {"description": "模型或提示词暂时不可用"},
+          "504": {"description": "模型响应超时"}
         }
       }
     },

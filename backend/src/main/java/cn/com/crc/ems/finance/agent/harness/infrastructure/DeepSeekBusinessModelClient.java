@@ -20,6 +20,8 @@ import io.agentscope.core.model.ChatResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cn.com.crc.ems.finance.agent.harness.application.SceneSkillPrefillContext;
+import cn.com.crc.ems.finance.agent.harness.application.SceneSkillPrefillSuggestion;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeOption;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeSuggestion;
@@ -63,6 +65,8 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
     private static final Duration TIMEOUT = Duration.ofSeconds(600);
     /** AI 预填是交互前置动作，使用更短的独立超时。 */
     private static final Duration INTAKE_TIMEOUT = Duration.ofSeconds(60);
+    /** 场景预填同样是交互前置动作，独立超时不影响任务编排调用。 */
+    private static final Duration SCENE_PREFILL_TIMEOUT = Duration.ofSeconds(60);
     /**
      * 所有模型调用统一使用 128K 输出上限：选表/查询规划、初稿、决策包、流程文件生成都不再使用 16K。
      * deepseek-flash 官方最大输出 384K；128K 是当前统一的安全默认值，必要时可继续提高。
@@ -270,8 +274,21 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
     }
 
     /** 候选只传名称，避免把内部标识暴露给模型。 */
-    private static com.fasterxml.jackson.databind.node.ArrayNode optionsJson(List<BusinessIntakeOption> options) {
-        var array = JsonNodeFactory.instance.arrayNode();
+    @Override
+    public BusinessModelResult<SceneSkillPrefillSuggestion> extractSceneSkillPrefill(SceneSkillPrefillContext context) {
+        ObjectNode input = JsonNodeFactory.instance.objectNode();
+        input.put("target", context.target().name());
+        input.put("text", context.text());
+        input.put("sceneName", context.sceneName());
+        input.put("prerequisitePrompt", context.prerequisitePrompt());
+        var tables = input.putArray("tableNames");
+        context.tableNames().forEach(tables::add);
+        String instruction = instruction("SCENE_SKILL_PREFILL", input);
+        return invokeScenePrefill(instruction, input,
+                node -> new SceneSkillPrefillSuggestion(textValue(node, "name"), textValue(node, "content")));
+    }
+
+    private static com.fasterxml.jackson.databind.node.ArrayNode optionsJson(List<BusinessIntakeOption> options) {        var array = JsonNodeFactory.instance.arrayNode();
         options.forEach(option -> array.add(option.name()));
         return array;
     }
@@ -366,6 +383,47 @@ public final class DeepSeekBusinessModelClient implements BusinessModelClient {
             throw exception;
         } catch (RuntimeException exception) {
             LOGGER.warn("业务模型调用失败: {}", describe(exception));
+            throw new BusinessModelException("模型分析暂时不可用，请稍后重试", exception);
+        }
+    }
+
+    /** 场景预填专用调用：独立超时与日志语义，不复用任务编排与 intake 的调用方法。 */
+    private <T> BusinessModelResult<T> invokeScenePrefill(String instruction, ObjectNode input,
+            java.util.function.Function<JsonNode, T> parser) {
+        long started = System.nanoTime();
+        try {
+            ChatResponse response = adapter.stream(List.of(Msg.builder().role(MsgRole.USER)
+                            .textContent(instruction).build()), List.of(),
+                    adapter.options(SCENE_PREFILL_TIMEOUT, ResponseFormat.jsonObject(), null, DEFAULT_MAX_TOKENS))
+                    .blockLast(SCENE_PREFILL_TIMEOUT.plusSeconds(2));
+            if (response == null) {
+                throw new BusinessModelException("模型暂时没有返回结果，请稍后重试");
+            }
+            String text = response.getContent().stream().filter(TextBlock.class::isInstance)
+                    .map(TextBlock.class::cast).map(TextBlock::getText).collect(Collectors.joining());
+            JsonNode output;
+            try {
+                output = CanonicalJsonCodec.parse(text);
+            } catch (RuntimeException parseException) {
+                LOGGER.warn("场景预填输出解析失败: finishReason={}, chars={}, {}",
+                        response.getFinishReason(), text.length(), parseException.getMessage());
+                throw parseException;
+            }
+            T value = parser.apply(output);
+            int tokens = response.getUsage() == null ? 0 : response.getUsage().getTotalTokens();
+            return new BusinessModelResult<>(value, new BusinessModelCallMetadata("LIVE", adapter.modelName(),
+                    Sha256Digest.hex(CanonicalJsonCodec.canonicalize(input)),
+                    Sha256Digest.hex(CanonicalJsonCodec.canonicalize(output)), tokens,
+                    Duration.ofNanos(System.nanoTime() - started).toMillis()));
+        } catch (BusinessModelException exception) {
+            LOGGER.warn("场景预填输出不符合契约: {}", describe(exception));
+            throw exception;
+        } catch (RuntimeException exception) {
+            LOGGER.warn("场景预填调用失败: {}", describe(exception));
+            if (isTimeout(exception)) {
+                throw new cn.com.crc.ems.finance.agent.harness.application.BusinessModelTimeoutException(
+                        "模型响应超时，请稍后重试", exception);
+            }
             throw new BusinessModelException("模型分析暂时不可用，请稍后重试", exception);
         }
     }

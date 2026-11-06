@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://finance-agent/scene-skill-prefill-request/1.0.0",
+  "x-contract-version": "1.0.0",
+  "title": "业务场景 AI 预填请求",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "target",
+    "text"
+  ],
+  "properties": {
+    "target": {
+      "type": "string",
+      "enum": [
+        "INVESTIGATION",
+        "DECISION_PACKET",
+        "PROCESS_ARTIFACT"
+      ]
+    },
+    "text": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 4000
+    },
+    "skillId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "编辑已有场景时传入，用于校验维护权限"
+    },
+    "databaseConfigId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "仅调查目标使用；只读取表名，不读取字段"
+    },
+    "sceneName": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "investigationPrompt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "生成决策包提示词时作为前置上下文"
+    },
+    "decisionPacketPrompt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "生成流程文件提示词时作为前置上下文"
+    }
+  }
+}

@@ -51,6 +51,11 @@ public final class DatabaseConfiguredBusinessModelClient implements BusinessMode
     @Override public BusinessModelCall<EmsDatabaseQueryPlan> planEmsDatabaseQuery(BusinessGuidanceContext context,
             List<EmsDatabaseTableMetadata> tableCatalog, List<EmsDatabaseEvidence> priorEvidence,
             Map<String, List<EmsDatabaseColumnMetadata>> tableColumns) { return live().planEmsDatabaseQuery(context, tableCatalog, priorEvidence, tableColumns); }
+    @Override public BusinessModelResult<cn.com.crc.ems.finance.agent.harness.application.SceneSkillPrefillSuggestion> extractSceneSkillPrefill(
+            cn.com.crc.ems.finance.agent.harness.application.SceneSkillPrefillContext context) {
+        return live().extractSceneSkillPrefill(context);
+    }
+
     @Override public BusinessModelResult<cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeSuggestion> extractBusinessIntake(
             cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeContext context) {
         return live().extractBusinessIntake(context);

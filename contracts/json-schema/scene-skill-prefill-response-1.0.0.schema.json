@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://finance-agent/scene-skill-prefill-response/1.0.0",
+  "x-contract-version": "1.0.0",
+  "title": "业务场景 AI 预填结果",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "target",
+    "name",
+    "content",
+    "tableCount",
+    "excludedTableCount",
+    "warning"
+  ],
+  "properties": {
+    "target": {
+      "type": "string",
+      "enum": [
+        "INVESTIGATION",
+        "DECISION_PACKET",
+        "PROCESS_ARTIFACT"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "description": "仅调查目标返回场景名称，其余为空字符串"
+    },
+    "content": {
+      "type": "string"
+    },
+    "tableCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "excludedTableCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "warning": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

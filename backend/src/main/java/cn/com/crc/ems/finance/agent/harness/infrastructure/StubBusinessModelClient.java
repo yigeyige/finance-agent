@@ -6,6 +6,9 @@ import java.util.List;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import cn.com.crc.ems.finance.agent.harness.application.SceneSkillPrefillContext;
+import cn.com.crc.ems.finance.agent.harness.application.SceneSkillPrefillSuggestion;
+import cn.com.crc.ems.finance.agent.harness.application.SceneSkillPrefillTarget;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeContext;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeOption;
 import cn.com.crc.ems.finance.agent.harness.application.BusinessIntakeSuggestion;
@@ -129,6 +132,32 @@ public final class StubBusinessModelClient implements BusinessModelClient {
         output.put("description", value.description());
         output.put("sceneSkillName", value.sceneSkillName());
         output.put("databaseName", value.databaseName());
+        return result(input, output, value, started);
+    }
+
+    @Override
+    public BusinessModelResult<SceneSkillPrefillSuggestion> extractSceneSkillPrefill(SceneSkillPrefillContext context) {
+        long started = System.nanoTime();
+        ObjectNode input = JsonNodeFactory.instance.objectNode();
+        input.put("target", context.target().name());
+        input.put("text", context.text());
+        input.put("sceneName", context.sceneName());
+        input.put("prerequisitePrompt", context.prerequisitePrompt());
+        var tables = input.putArray("tableNames");
+        context.tableNames().forEach(tables::add);
+        String excerpt = context.text().length() <= 20 ? context.text() : context.text().substring(0, 20);
+        String name = context.target() == SceneSkillPrefillTarget.INVESTIGATION ? excerpt + "核查场景" : "";
+        String content = switch (context.target()) {
+            case INVESTIGATION -> "围绕“" + excerpt + "”核查关联数据与责任归属"
+                    + (context.tableNames().isEmpty() ? "。" : "，重点关注：" + String.join("、",
+                            context.tableNames().stream().limit(5).toList()) + "。");
+            case DECISION_PACKET -> "基于调查提示词输出结论、证据要求与风险等级。";
+            case PROCESS_ARTIFACT -> "基于决策包提示词输出流程节点、缺少信息与导入注意事项。";
+        };
+        SceneSkillPrefillSuggestion value = new SceneSkillPrefillSuggestion(name, content);
+        ObjectNode output = JsonNodeFactory.instance.objectNode();
+        output.put("name", value.name());
+        output.put("content", value.content());
         return result(input, output, value, started);
     }
 

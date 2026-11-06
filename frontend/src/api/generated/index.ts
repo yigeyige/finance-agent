@@ -658,3 +658,33 @@ function optionalString(value: unknown, label: string): string | null {
   if (typeof value !== 'string') throw new Error(`${label}无效`)
   return value
 }
+
+/** 场景预填目标：调查 / 决策包 / 流程文件。 */
+export type SceneSkillPrefillTarget = 'INVESTIGATION' | 'DECISION_PACKET' | 'PROCESS_ARTIFACT'
+
+/** 场景预填结果：调查目标返回名称，其余名称固定为空字符串。 */
+export interface SceneSkillPrefillResult {
+  target: SceneSkillPrefillTarget
+  name: string
+  content: string
+  tableCount: number
+  excludedTableCount: number
+  warning: string | null
+}
+
+/** 校验场景预填响应，拒绝未知目标、负数与错误类型。 */
+export function parseSceneSkillPrefillResult(value: unknown): SceneSkillPrefillResult {
+  const record = assertObjectFields(value,
+    ['target', 'name', 'content', 'tableCount', 'excludedTableCount', 'warning'], '场景预填响应')
+  if (record.target !== 'INVESTIGATION' && record.target !== 'DECISION_PACKET' && record.target !== 'PROCESS_ARTIFACT') {
+    throw new Error('场景预填响应格式无法识别')
+  }
+  return {
+    target: record.target,
+    name: requireString(record.name, '场景名称'),
+    content: requireString(record.content, '提示词内容'),
+    tableCount: requireNonNegativeNumber(record.tableCount, '使用表数量'),
+    excludedTableCount: requireNonNegativeNumber(record.excludedTableCount, '排除表数量'),
+    warning: optionalString(record.warning, '提示信息'),
+  }
+}

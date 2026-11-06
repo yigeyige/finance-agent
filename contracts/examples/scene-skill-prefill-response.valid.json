@@ -1,0 +1,8 @@
+{
+  "target": "INVESTIGATION",
+  "name": "费用报销重复审批核查",
+  "content": "围绕费用报销中的重复审批现象，按报销单号、审批人、审批时间与金额核查关联数据，输出可复核的核查结论与证据要求。",
+  "tableCount": 12,
+  "excludedTableCount": 37,
+  "warning": null
+}
